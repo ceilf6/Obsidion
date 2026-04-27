@@ -60,7 +60,7 @@
         "type": "tabs",
         "children": [
           {
-            "id": "189fa0e407bbfe89",
+            "id": "32215ba8de5b231b",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -208,7 +208,7 @@
       "bases:新建数据库": false
     }
   },
-  "active": "189fa0e407bbfe89",
+  "active": "93df450c81db3fd6",
   "lastOpenFiles": [
     "LLM Wiki.md",
     "学校 题目优先/数据结构/最小生成树/kruskal/截屏2026-01-09_19.10.31.png",
