@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "8b41089bf9bd6d24",
@@ -183,7 +183,7 @@
       "bases:新建数据库": false
     }
   },
-  "active": "189fa0e407bbfe89",
+  "active": "3101ac62cd7a8d99",
   "lastOpenFiles": [
     "未命名.md",
     "README.md"
