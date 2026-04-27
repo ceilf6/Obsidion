@@ -1,0 +1,314 @@
+# 路由
+
+![image.png](%E8%B7%AF%E7%94%B1/image.png)
+
+以前是一个页面一个html
+
+现在单页应用开发，一直只有一个页面、通过JS动态控制内容，本质就是控制一个组件的变化
+
+> vue-router 官网：[https://router.vuejs.org/zh/](https://router.vuejs.org/zh/)
+> 
+
+希望**根据页面地址渲染出不同组件**
+
+![image.png](%E8%B7%AF%E7%94%B1/image%201.png)
+
+1. **如何根据地址中的路径选择不同的组件？**
+2. **把选择的组件放到哪个位置？**
+3. **如何无刷新的切换组件？**
+
+# 路由插件
+
+```bash
+# 为了保证和课程一致，请安装3.4.9版本
+npm i vue-router@3.4.9
+```
+
+路由插件的使用
+
+```jsx
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+
+Vue.use(VueRouter); // Vue.use(插件)  在Vue中安装插件
+
+const router = new VueRouter({
+  // 路由配置
+})
+new Vue({
+  ...,
+  router
+})
+```
+
+# 基本使用
+
+```jsx
+// 路由配置
+const router = new VueRouter({
+  routes: [
+    // 路由规则
+    // 当匹配到路径 /foo 时，渲染 Foo 组件
+    { path: '/foo', component: Foo },
+    // 当匹配到路径 /bar 时，渲染 Bar 组件
+    { path: '/bar', component: Bar },
+  ],
+});
+
+```
+
+```html
+<!-- App.vue -->
+<div class="container">
+  <div>
+    <!-- 公共区域 -->
+  </div>
+  <div>
+    <!-- 页面区域 -->
+    <!-- vue-router 匹配到的组件会渲染到这里 -->
+    <RouterView />
+  </div>
+</div>
+
+```
+
+在 Vue.use(VueRouter); 后就会全局注册组件
+
+RouterView 用于占位（App中就无需声明了），内部使用的就是插槽slot
+
+# 路由模式 mode
+
+路由模式决定了：
+
+1. 路由**从哪里获取访问路径**
+2. 路由如何改变访问路径
+
+`vue-router`提供了三种路由模式：
+
+1. hash：默认值。
+    
+    **location.hash**
+    
+    路由从浏览器地址栏中的 hash 部分 **# 后面**获取路径，改变路径也是改变的 hash 部分。该模式兼容性最好。
+    
+    改变 hash 不会导致刷新
+    
+    ```
+    <http://localhost:8081/#/blog>  -->  /blog
+    <http://localhost:8081/about#/blog>  --> /blog
+    ```
+    
+2. history：路由从浏览器**地址栏**的
+    
+    `location.pathname`
+    
+    中获取路径，改变**路径** location.href 
+    
+    该模式可以让地址栏最友好
+    
+    默认页面会刷新、重新做很多事情
+    
+    ```jsx
+    请求 index.html
+    请求 各种JS
+    请求 各种CSS
+    执行 JS
+    创建 Vue应用
+    渲染 全部组件树
+    挂载到 指定元素上
+    ```
+    
+    但是如果浏览器支持`history api` 的话，就能不刷新跳转
+    
+    无刷新渲染的话只需要执行一段JS代码，切换某个区域的组件即可
+    
+    history.pushState(null, null, “/blog”)
+    
+    ```
+    <http://localhost:8081/#/blog>  -->  /
+    <http://localhost:8081/about#/blog>  --> /about
+    <http://localhost:8081/blog>  --> /blog
+    ```
+    
+3. abstract：路由从**内存**中获取路径，改变路径也只是改动内存中的值。这种模式通常应用到非浏览器环境中。
+    
+    ```bash
+    内存： /			-->   /
+    内存： /about	--> /about
+    内存： /blog	  --> /blog
+    
+    ```
+    
+
+# 导航
+
+`vue-router`提供了全局的组件`RouterLink`，它的渲染结果是一个`a`元素
+
+```html
+<RouterLink to="/blog">文章</RouterLink>
+
+<!-- mode:hash 生成 -->
+<a href="#/blog">文章</a>
+
+<!-- mode:history 生成 -->
+<!-- 为了避免刷新页面，vue-router实际上为它添加了点击事件，并阻止了默认行为，在事件内部使用hitory api更改路径 -->
+<a href="/blog">文章</a>
+
+```
+
+所以设置样式不能给 router-link 设置，而是需要给 a 元素设置
+
+![image.png](%E8%B7%AF%E7%94%B1/image%202.png)
+
+![image.png](%E8%B7%AF%E7%94%B1/image%203.png)
+
+## 激活状态 当前选中的router-link
+
+默认情况下，`vue-router`会用 **当前路径** 匹配 **导航路径** 、添加类名（只是添加了类名，但是样式还需要自己设置）：
+
+- 如果当前路径是以导航路径开头，则算作**匹配**，会为导航的 a 元素添加类名`router-link-active`
+- 如果当前路径完全等于导航路径，则算作**精确匹配**，会为导航的 a 元素添加类名`router-link-exact-active`
+
+例如，当前访问的路径是`/blog`，则：
+
+| 导航路径 | 类名 |
+| --- | --- |
+| / | router-link-active |
+| /blog | router-link-active router-link-exact-active |
+| /about | 无 |
+| /message | 无 |
+
+### 根据需要配置匹配规则
+
+可以为组件`RouterLink`添加 bool 属性`exact`，将匹配规则改为：必须要精确匹配才能添加匹配类名`router-link-active`
+
+例如，当前访问的路径是`/blog`，则：
+
+| 导航路径 | exact | 类名 |
+| --- | --- | --- |
+| / | true | 无 |
+| /blog | false | router-link-active router-link-exact-active |
+| /about | true | 无 |
+| /message | true | 无 |
+
+例如，当前访问的路径是`/blog/detail/123`，则：
+
+| 导航路径 | exact | 类名 |
+| --- | --- | --- |
+| / | true | 无 |
+| /blog | false | router-link-active |
+| /about | true | 无 |
+| /message | true | 无 |
+
+```
+为了例如 blog/ariticle/1 也能显示匹配，精准匹配 router-link-exact-active 不行
+所以用 router-link-active
+但是 about/something 不想显示匹配效果
+于是得将其他的 router-link 打开 exact 布尔属性
+```
+
+另外，可以通过`active-class`属性更改匹配的类名，通过`exact-active-class`更改精确匹配的类名
+
+# 命名路由
+
+使用命名路由可以解除系统与路径之间的耦合
+
+```jsx
+// 路由配置
+const router = new VueRouter({
+  routes: [
+    // 路由规则
+    // 当匹配到路径 /foo 时，渲染 Foo 组件
+    { name: 'foo', path: '/foo', component: Foo },
+    // 当匹配到路径 /bar 时，渲染 Bar 组件
+    { name: 'bar', path: '/bar', component: Bar },
+  ],
+});
+
+```
+
+```html
+<!-- 向to属性传递路由信息对象 RouterLink会根据你传递的信息以及路由配置生成对应的路径 -->
+<RouterLink :to="{ name:'foo' }">go to foo</RouterLink>
+
+```
+
+注意原先是 to 属性直接传递字符串
+
+现在需要注入对象得用 :to
+
+# 动态路由
+
+[动态路由](../%E2%80%9C%E4%B8%AA%E4%BA%BA%E7%A9%BA%E9%97%B4%E2%80%9D%E5%AE%9E%E8%B7%B5/%E6%96%87%E7%AB%A0%E5%88%97%E8%A1%A8%E9%A1%B5%E9%80%BB%E8%BE%91%202ff0f8d8d1fd803bb5c6ffd8ab767bfc.md) 
+
+# 注入的原型对象
+
+vue-router 还对 Vue 实例注入了原型对象
+
+## $route
+
+提供路由信息
+
+![image.png](%E8%B7%AF%E7%94%B1/image%204.png)
+
+## $router
+
+用于控制页面跳转
+
+[编程式导航](../%E2%80%9C%E4%B8%AA%E4%BA%BA%E7%A9%BA%E9%97%B4%E2%80%9D%E5%AE%9E%E8%B7%B5/%E6%96%87%E7%AB%A0%E5%88%97%E8%A1%A8%E9%A1%B5%E9%80%BB%E8%BE%91%202ff0f8d8d1fd803bb5c6ffd8ab767bfc.md) 
+
+```jsx
+// 页码变化 => 改变路由
+handlePageChange(newPage) {
+  const query = {
+    page: newPage,
+    limit: this.routeInfo.limit,
+  };
+  // 跳转到 当前的分类id  当前的页容量  newPage的页码
+  if (this.routeInfo.categoryId === -1) {
+    // 当前没有分类
+    // /article?page=${newPage}&limit=${this.routeInfo.limit}
+    this.$router.push({
+      name: "Blog",
+      query,
+    });
+  } else {
+    // 有分类的话得传入参数
+    // /article/cate/${this.routeInfo.categoryId}?page=${newPage}&limit=${this.routeInfo.limit}
+    this.$router.push({
+      name: "CategoryBlog",
+      query,
+      params: {
+        categoryId: this.routeInfo.categoryId,
+      },
+    });
+  }
+},
+```
+
+# 实践
+
+## 嵌套结构
+
+```jsx
+    // { name: "Admin", path: "/admin", component: Admin },
+    // { name: "AdminHome", path: "/admin/home", component: AdminHome },
+    // { name: "AdminLogin", path: "/admin/login", component: AdminLogin }
+    {
+        name: "Admin",
+        path: "/admin",
+        component: Admin,
+        children: [
+            { name: "AdminHome", path: "home", component: AdminHome },
+            { name: "AdminLogin", path: "login", component: AdminLogin }
+        ]
+    }
+```
+
+那么 Admin 中的 router-view 自动就是为 AdminHome 和 AdminLogin 占位的
+
+## 404页面
+
+通配符
+
+https://github.com/ceilf6/Lab/commit/e60c6d9e1f16434cee4b9273c8b770601c97ebf4
