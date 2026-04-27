@@ -1,1 +1,1 @@
-Obsidian + Notion <=> LLM
+Obsidian + Notion <=> LLM 

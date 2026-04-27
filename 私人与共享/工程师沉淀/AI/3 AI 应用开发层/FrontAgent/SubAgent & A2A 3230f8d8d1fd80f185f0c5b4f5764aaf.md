@@ -1,5 +1,0 @@
-# SubAgent & A2A
-
-[index](SubAgent%20&%20A2A/index%203230f8d8d1fd802d8963c56e3f426dc9.md)
-
-[多智能体共享事实](SubAgent%20&%20A2A/%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E5%85%B1%E4%BA%AB%E4%BA%8B%E5%AE%9E%203230f8d8d1fd80569604c06d936adb9b.md)
