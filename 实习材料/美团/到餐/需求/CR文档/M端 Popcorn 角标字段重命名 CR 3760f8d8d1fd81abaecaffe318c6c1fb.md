@@ -1,0 +1,83 @@
+# M端 Popcorn 角标字段重命名 CR
+
+Source: [KM 2763511705](https://km.sankuai.com/collabpage/2763511705)
+
+### CR 概述
+
+本次变更将角标协议字段从临时方案 `cornerLabel.textGenerationRule` 收敛到正式字段 `cornerLabel.cornerLabelRule`，并新增动态角标展示控制逻辑（非公共货架隐藏动态文本选项）。
+
+涉及文件：`hooks.ts`、`index.tsx`、`typing.ts`、`utils.ts`、`lib/typings/index.ts`
+
+### 对照接口文档验证
+
+### 后端 CornerLabelVO 字段定义（M端查询 + M端保存）
+
+后端接口文档定义的 `CornerLabelVO` 结构：
+
+```
+// 代码块
+CornerLabelVO {
+  text: String        // 静态文本时有值，动态文本时为空
+  type: Integer       // 1=STATIC_TEXT, 2=DYNAMIC_TEXT; null 等同于 1
+  cornerLabelRule: RuleVO  // type=DYNAMIC_TEXT(2) 时有值
+}
+
+RuleVO {
+  ruleId: Long   // 规则 ID（必填）
+  rule: String   // 规则内容（必填）
+}
+```
+
+### 前端类型定义对照
+
+| 后端字段 | 前端类型（IFilterItemVO.cornerLabel） | 状态 |
+| --- | --- | --- |
+| text: String | text?: string | 匹配 |
+| type: Integer | type?: CornerLabelType (1|2) | 匹配 |
+| cornerLabelRule: RuleVO | cornerLabelRule?: IRuleVO | null | 匹配 |
+
+### 动态角标展示控制逻辑
+
+| 接口文档要求 | 前端实现 | 状态 |
+| --- | --- | --- |
+| shelfActiveType=3（公共）或未传入时展示动态文本选项 | `!shelfActiveType \|\| shelfActiveType === ShelfActiveType.COMMON` | 通过 |
+| 非公共维度不展示动态角标选项 | filter 掉 `CornerLabelType.DYNAMIC_TEXT` | 通过 |
+| 后端校验兜底：非公共维度拒绝保存动态角标 | 前端已前置拦截，后端校验为兜底 | 通过 |
+
+### 表单提交格式验证
+
+| 场景 | 接口文档要求 | 前端提交格式 | 状态 |
+| --- | --- | --- | --- |
+| 静态角标 | `{ type: 1, text: "xxx" }` | `{ type: TEXT, text }` | 通过 |
+| 动态角标 | `{ type: 2, cornerLabelRule: {...} }`，不传 text | `{ type: DYNAMIC_TEXT, cornerLabelRule }` | 通过 |
+| 历史数据兼容 | type 为 null 时按 STATIC_TEXT 处理 | `cornerLabel?.type \|\| (text ? TEXT : undefined)` | 通过 |
+
+### 角标数量校验
+
+接口文档要求：最多两个分组角标，需同时识别静态 `text` 和动态 `cornerLabelRule`。
+
+前端实现（`utils.ts`）：`cornerLabels.filter((item) => item?.text || item?.cornerLabelRule).length > 2` — 通过
+
+### CR 结论
+
+**整体评价：LGTM，可合入。**
+
+变更范围精准，5 个文件的改动全部可追溯到接口字段重命名和动态角标展示控制需求。与 M端查询、M端保存、C端查询三份接口文档完全对齐。
+
+### 亮点
+
+1. 移除 `...cornerLabel` 展开，改为显式取 `type/text/cornerLabelRule`，防止 API 未知字段泄漏到表单状态
+2. `cornerLabelTypeList` 通过 useMemo 动态计算，依赖项 `[shelfActiveType]` 正确
+3. 前端前置拦截 + 后端校验兜底，防御纵深到位
+
+### 建议项（非阻塞）
+
+1. `convertPropsToFormData` 中 `cornerLabel` 对象对所有 type 都携带 `text: cornerLabel?.text`。建议动态角标时置为 undefined，使 form state 语义更干净（当前不影响提交正确性）
+2. `ShelfActiveType` 枚举缺少后端文档中的 `5=群体`。当前逻辑不受影响（只判断 COMMON），但后续如有群体维度相关需求需补充
+
+### 参考文档
+
+- M端查询货架详情接口文档：[https://km.sankuai.com/collabpage/2763380091](https://km.sankuai.com/collabpage/2763380091)
+- M端保存货架详情接口文档：[https://km.sankuai.com/collabpage/2762569763](https://km.sankuai.com/collabpage/2762569763)
+- C端查询货架配置信息接口文档：[https://km.sankuai.com/collabpage/2763330156](https://km.sankuai.com/collabpage/2763330156)
+- 接口变更摘要：[https://km.sankuai.com/collabpage/2762933207](https://km.sankuai.com/collabpage/2762933207)

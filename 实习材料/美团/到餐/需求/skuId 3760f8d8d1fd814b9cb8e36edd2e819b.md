@@ -1,0 +1,45 @@
+# skuId
+
+Source: [KM 2765778518](https://km.sankuai.com/collabpage/2765778518)
+
+"帮忙看看这个算价的请求，为啥入参会不传skuId啊；场景是融合货架规格也算价，但是分不出是不是购物车还是套餐子品"
+
+[image.png](https://km.sankuai.com/api/file/cdn/2765778518/239892301374?contentType=1&isNewContent=false)
+
+引导凑浮层的选规格 反选了售卖属性依然调用了算价，这里需要前端拦截一下
+
+取消选择的时候，判断下没有skuId的时候不算价
+
+对，就是这么回事。
+
+`shelf-mix` 里的拦截逻辑是有的，而且对**套餐（Combo）类型**的保护其实挺完整：
+
+```
+// 代码块
+const noNeedToCalculate =
+  (dealMappingType !== DealMappingTypeEnum.DishCombo && hasSelectItemNotSelectAllSaleAttribute) ||
+  firstSpuWithNoSkuInfo;  // ← 这个是 Combo 专属保护
+```
+
+问题出在 `firstSpuWithNoSkuInfo` 这个变量的赋值：
+
+```
+// 代码块
+let firstSpuWithNoSkuInfo = null;
+if (item.dealMappingType === DealMappingTypeEnum.Combo) {
+  firstSpuWithNoSkuInfo = item.firstSpuWithNoSkuInfo;  // 只有套餐才赋值！
+}
+```
+
+所以逻辑上的 gap 很清晰：
+
+| 类型 | skuId 未就绪时的保护 | 结果 |
+| --- | --- | --- |
+| `Combo`（套餐） | ✅ `firstSpuWithNoSkuInfo` 拦截 | 正常 |
+| `Sku`（单品） | ❌ 没有对应的拦截 | 直接触发算价，skuId=空 |
+| `DishCombo`（直连套餐） | ✅ `selectAll` 检查拦截 | 正常 |
+
+融合货架里的单品规格选择正好命中了这个漏掉的场景，属于**已有拦截机制但覆盖不全**，不是压根没想到要拦截。修起来也简单，就补一个 Sku 类型下 skuId 的 null check。
+
+1. 在 CustomizationFloat/index.tsx 中加 if (newPurchaseItem?.mopProductItem && !newPurchaseItem?.mopProductItem?.skuId)
+2.

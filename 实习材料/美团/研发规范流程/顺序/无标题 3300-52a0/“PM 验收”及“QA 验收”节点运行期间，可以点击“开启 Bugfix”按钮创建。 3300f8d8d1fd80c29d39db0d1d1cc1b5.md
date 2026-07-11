@@ -1,0 +1,4 @@
+# “PM 验收”及“QA 验收”节点运行期间，可以点击“开启 Bugfix”按钮创建。
+
+提测完成后开启 Bugfix: QA已验收通过或发布期间发现问题需改动时，找到对应需求的工作流，点击右上角的“开启Bugfix工作流”按钮。
+文件: https://km.sankuai.com/api/file/cdn/1728761485/47230378644?contentType=1&isNewContent=false

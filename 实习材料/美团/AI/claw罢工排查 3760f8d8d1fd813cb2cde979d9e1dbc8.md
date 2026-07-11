@@ -1,0 +1,52 @@
+# claw罢工排查
+
+Source: [KM 2760449689](https://km.sankuai.com/collabpage/2760449689)
+
+根因：~/.openclaw/openclaw.json 中 custom provider 的配置有三个问题：
+
+1. primary model gpt-5.5 没有在 provider 的 models[] 中注册 → 模型解析失败 → "Something went wrong"
+2. maxTokens: 4096 太低 → 长回复被截断，多段输出只出一段
+3. reasoning: false → 禁用了扩展思考
+
+openclaw: custom provider 的 **maxTokens** 设为多少？当前是 4096，这是导致**多段输出截断**的主要原因。 → 128000
+
+Doctor 没有报告模型配置错误，说明配置格式正确。但它发现了一个重要问题：有一个 stale session 仍然 pin 在旧的 openai-codex/* 路由上。这也可能导致请求失败。运行 --fix 来清理
+
+用 catpaw CLI 本质用的是 claude code CLI，像 401 报错，是因为我当时 cc swtich 用的模型 key 过期了
+
+按照 [https://km.sankuai.com/collabpage/2754365867](https://km.sankuai.com/collabpage/2754365867) 开发了一个 claw 之后发现有时候会罢工，在通过日志排查后发现关键信息
+
+```
+// 代码块
+[catpaw-daxiang] 2026-05-07 14:36:55.294 [error] Poll error (consecutive=1): HTTP 401 /poll/v2: {"message":"Invalid bridge token","error":"Unauthorized","statusCode":401}, retry in 3s
+[catpaw-daxiang] 2026-05-07 14:36:58.392 [error] Poll error (consecutive=2): HTTP 401 /poll/v2: {"message":"Invalid bridge token","error":"Unauthorized","statusCode":401}, retry in 6s
+[catpaw-daxiang] 2026-05-07 14:37:04.515 [error] Poll error (consecutive=3): HTTP 401 /poll/v2: {"message":"Invalid bridge token","error":"Unauthorized","statusCode":401}, retry in 12s
+Re-registering after 3 errors
+Registered with bridge (bot=...)
+```
+
+这种频繁断开连接的问题一般是因为同一个 botID 被多个实例占用，所以最佳实践就是一种通道用一个 bot
+
+但是仍然存在有些情况下发送问题后没有回复，经过日志排查发现问题在于请求都没有发出，目前处理是通过 AI 动态卡片判断请求是否发出
+
+> TODO: 后续需要对仓库代码进行处理
+> 
+
+[image.png](https://km.sankuai.com/api/file/cdn/2760449689/235549673383?contentType=1&isNewContent=false)
+
+在办公开发者后台创建动态卡片后，去 `dxchannel bot config catpaw` 或者在 ~/.channel/.env 中配置卡片 ID
+
+[image.png](https://km.sankuai.com/api/file/cdn/2760449689/235551122557?contentType=1&isNewContent=false)
+
+排查 channel.log 发现了超时报警，反向排查到通道脚本中超时进行了硬编码
+
+```
+// 代码块
+POLL_TIMEOUT_MS = 25000    // 25秒 - 轮询超时
+
+REPLY_TIMEOUT_MS = 15000   // 15秒 - 回复超时
+
+STREAM_TIMEOUT_MS = 15000  // 15秒 - 流式超时
+```
+
+同时有时候执行任务过慢，一般是系统提示词过长，可以考虑清一下无关 skill，及时 /new 开新会话

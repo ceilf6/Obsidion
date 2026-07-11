@@ -1,0 +1,72 @@
+﻿标题,方案,特点,分支模型,详情,文件
+,TBD（Trunk Based Development）,"优点
+分支模型简单易操作
+避免分支合并、冲突的烦恼
+缺点
+主分支可能存在未就绪的需求，不易做到需求和需求间的隔离。
+分支功能不明确，不易于规范约束、度量能力建设
+适用场景
+快速迭代、质量风险影响小的项目",,"点击展开内容
+主干开发是一套代码分支管理策略，开发人员之间通过约定向被指定为“主干”*的分支提交代码，以此抵抗因为长期存在的多分支导致的开发压力。 此举可避免分支合并的困扰，保证随时拥有可发布的版本。
+主干开发是助力实现 持续集成 和 持续交付 的关键因素。开发团队的成员一天多次地将代码提交到主干分支，满足了持续交付的必要条件。团队的工作在 24 小时内就可以被整合，这保证了代码版本随时处于可发布状态，使得持续交付成为可能。",https://km.sankuai.com/api/file/cdn/1728761485/45524144674?contentType=1
+,Git Flow,"优点
+职责清晰：每个分支都有明确的定位，从哪儿来，到哪去，都很明确；
+制品分离：未完成的功能只存在于feature分支，不会污染到其它分支
+缺点
+分支多，操作繁琐存在误操作管理风险
+适用场景
+适用多版本并行开发，周期明确的场景",,"点击展开内容
+规范
+Master: 用来放稳定、随时可上线的版本。只能从别的分支合并过来，不能直接提交到master
+Develop: 所有开发的基础分支，新feature分支从这出去，也会合并回这来
+Hotfix: 线上环境出bug，从master开一个hotfix，进行修复，修复完成后，合并回master和develop分支
+Release: develop分支准备好后，合并到release，经过最终测试并修改，通过测试后，合并回master和develop
+Feature: 开发新功能，从develop来，最终合并到develop去
+
+操作流程
+1 初始环境。在 master 上打tag-0.1。
+2 初始环境。从 master 拉出 develop 分支。
+3 开发新功能。在 develop 分支上拉出 feature 分支，可能会有多个。
+4 提交新功能。将完成单元测试的 feature 合并回 develop。
+5 集成测试。在 develop 上可能存在多个 feature 集成测试的 bug，直接在 develop  上改。
+6 准备发布。当develop达到发布计划的要求时，就从develop提交到release。
+7 发布测试。在release上的bug，直接在release上改，改完merge回develop。
+8 部署上线。从release提交到master，并打上新tag-0.2，并从master部署上线。
+9 线上bug。如果不是紧急bug，还是可以按常规feature去做。如果是紧急bug，就从master拉出hotfixes，在hotfixes改和测，然后提交到master，merge到develop。",https://km.sankuai.com/api/file/cdn/1728761485/45520968873?contentType=1
+,Aone Flow,阿里折中改进的分支模型,,"点击展开内容
+规范
+AoneFlow 只使用三种分支类型：master分支、feature分支、release分支，以及三条基本规则。
+Aone Flow 采取了另外一个思路。只存在一个 Master 分支，当要开发时，就拉出新的 Feature 分支，可以同时存在多个 Feature，当达到发布计划时，就把需要合并的多条 Feature 分支合并起来，通过后再往 Master 上合并，并且tag下来。
+
+操作流程
+开始工作前，从主干创建feature分支。
+通过合并特性分支，形成发布分支
+发布到线上正式环境后，合并相应的发布分支到主干，在主干添加标签，同时删除该发布分支关联的特性分支。","https://km.sankuai.com/api/file/cdn/1728761485/45528036197?contentType=1, https://km.sankuai.com/api/file/cdn/1728761485/45524144675?contentType=1, https://km.sankuai.com/api/file/cdn/1728761485/45524211435?contentType=1, https://km.sankuai.com/api/file/cdn/1728761485/45526600066?contentType=1"
+,https://km.sankuai.com/page/143886652#id-2.1.7Git%E8%A7%84%E8%8C%83,"到店平台的前端工作流程规范
+解决因为终端内灰度发布流程推广，带来的分支模型复杂度提升，以及可能造成的线上问题。
+• hotfix风险：hotfix 带上灰度代码到 master，目前是master分支不允许发灰度，参考预发布分支。
+• 并行灰度分支之间覆盖：feature分支交付速度不一致特性带来的，灰度发版分支和时机问题。
+解决历史线上故障中，因为分支模型缺失导致的线上问题","主分支：master
+测试 / 预发布 / 开发集成分支
+功能分支：feature/mis-yyyymmdd/{id}(可选)/{简要描述} 
+缺陷修复分支：bugfix/mis-yyyymmdd/{id}(可选)/{简要描述} 
+灰度/发版分支：release/mis-yyyymmdd
+发布重建：使用hotfix分支命名","点击展开内容
+2.1.7.2 分支规范强制
+分支命名规范（task id 可以为 Ones，Flow 等其他需求提报平台），可使用 `npx git newbranch` 辅助新建分支，并会在本地 gitHooks#pre-push 阶段校验
+• 主分支：master
+• 测试 / 预发布 / 开发集成分支更新强制：正式灰度/上线前需要在测试环境进行预发布，检测冲突提前暴露问题。
+    ◦ test 测试分支：test/(**)，功能分支合并测试，借助code lightemerge 工具集成测试。
+        ▪ test 公共分支
+        ▪ test/@{包名}(可选)/#{其他用途}(可选)/{id}(可选)/{简要描述}： 分组测试分支。
+    ◦ 规范不再约束 staging/lightmerge/develop/beta：业务可以按自身需求使用，此处不限制这些分支的使用。
+• 功能分支：feature/mis-yyyymmdd/{id}(可选)/{简要描述} （例：feature/mis-20200730s/poi-filter）。
+    ◦ 泳道分支新增推荐：(feature/hotfix/bugfix)/mis-yyyymmdd/{sl-泳道信息}(可选)/{id}(可选)/{简要描述}（例：feature/mis-20200730/sl-1938-xxxxx/km-1234/auto-commit-msg-scope-pkgName），支持CD功能。
+    ◦ 包分支新增推荐：(feature/hotfix/bugfix)/ mis-yyyymmdd / @{包名}(可选)/{id}(可选)/{简要描述}（例：feature/mis-20200730/sl-1938-xxxxx/@product-tongzhou/km-1234/auto-commit-msg-scope-pkgName），支持CD功能。
+    ◦ 注：id 关联 km-xx(学城 id)，ones-xx（缺陷/需求 ones id）， tt-xx（TT id）；泳道信息以 sl-xxx前缀（方便解析）,包名以@为前缀。
+    ◦ 完整版： (feature/hotfix/bugfix))/ mis-yyyymmdd/{sl-泳道信息}(可选) /@{包名}(可选)/#{其他用途}(可选)/{id}(可选)/{简要描述}，⚠️注意顺序固定。#为保留功能。
+• 缺陷修复分支：bugfix/mis-yyyymmdd/{id}(可选)/{简要描述} （例：bugfix/mis-20200730/uploader）
+• 紧急修复分支：hotfix/mis-yyyymmdd/{id}(可选)/{简要描述}（例：hotfix/mis-20200730/search-input）
+• 灰度/发版分支新增强制：release/mis-yyyymmdd/@{包名}(可选)/{id}(可选)/{简要描述}(例： release/mis-yyyymmdd/search-input)，如使用灰度强制该规范。
+    ◦ 常驻分支：release
+• 发布重建（回滚场景https://km.sankuai.com/page/405292315）：使用hotfix分支命名。master 通过git revert 进行版本回退，重新merge 或cherry pick 特性分支，禁止使用git reset 与 git push --force。",

@@ -1,0 +1,2 @@
+﻿问题,文件,构建失败,运行不符合预期
+排查方法,"https://km.sankuai.com/api/file/cdn/1728761485/46759359337?contentType=1&isNewContent=false, https://km.sankuai.com/api/file/cdn/1728761485/46758946581?contentType=1&isNewContent=false",遇到构建失败，可点击展开对应构建日志，寻找“Error”关键字，大部分问题在日志内都能找到相应提示。,确认本地分支与构建分支、构建 commit 是否一致

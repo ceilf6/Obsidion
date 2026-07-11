@@ -1,0 +1,63 @@
+# QQ 音乐
+
+Source: [KM 2764771604](https://km.sankuai.com/collabpage/2764771604)
+
+[https://mp.weixin.qq.com/s/yw3DvqKBIV5fIZkSG12zdA](https://mp.weixin.qq.com/s/yw3DvqKBIV5fIZkSG12zdA)
+
+[d9e2ec47-9d30-4cdd-9ddb-ba3812d4ca82.png](https://km.sankuai.com/api/file/cdn/2764771604/238797192120?contentType=1&isNewContent=false)
+
+[73a28fc7-2818-467d-a407-f4e7ddd156c8.png](https://km.sankuai.com/api/file/cdn/2764771604/238797351137?contentType=1&isNewContent=false)
+
+[image.png](https://km.sankuai.com/api/file/cdn/2764771604/238799474390?contentType=1&isNewContent=false)
+
+[image.png](https://km.sankuai.com/api/file/cdn/2764771604/238799839571?contentType=1&isNewContent=false)
+
+<span style="color:#333">**为什么这么做：**</span>
+
+- <span style="color:#333">一条 TAPD 单 ID → 三仓分支名一对一，追溯链整洁</span>
+- <span style="color:#333">阶段 4.3 服务仓库检查门禁会自动校验三仓分支一致性，不一致直接阻塞</span>
+- <span style="color:#333">CR 时可以快速对齐三个仓的改动</span>
+- <span style="color:#333">回滚时三个仓同步处理，避免出现"代码回了、IDL 没回"的不一致状态</span>
+
+这里的 **IDL** 是 **Interface Definition Language（接口定义语言）**。
+
+在这句话里：
+
+> IDL 契约仓 = 神经：跨服务协议（.jce 等），路径由同一个文件的 idl_repo 字段派生
+> 
+
+意思大概是：
+
+**IDL 契约仓** 是存放“服务之间通信协议定义”的代码仓库。它像系统的“神经”一样，规定不同服务之间怎么传数据、调用接口、字段长什么样。
+
+比如 `.jce` 文件就是一种 IDL 文件，用来定义：
+
+`struct UserInfo {   1 require int id;   2 optional string name; }`
+
+其他服务根据这个定义生成代码，才能用一致的格式通信。
+
+所以这句话可以拆成：
+
+- **IDL 契约仓**：存放接口协议定义的仓库
+- **神经**：比喻它连接各个服务，是跨服务通信的基础
+- **跨服务协议（.jce 等）**：例如 JCE、Thrift、Protobuf 这类接口定义文件
+- **路径由同一个文件的 idl_repo 字段派生**：IDL 仓库路径不是手写的，而是根据某个配置文件里的 `idl_repo` 字段推导出来
+
+一句话：**IDL 就是服务间接口和数据结构的“契约说明书”。**
+
+<span style="color:#333">门禁口径收拢在 context/harness-framework/main-process-numbering.md 这一份文档 —— 这是</span><span style="color:#333">**整条流程语义的唯一真相源。**</span><span style="color:#333">[AGENTS.md](http://agents.md/)、每一个 Skill、每一个 Command 都围绕它保持一致。这个"真相源"的意义在于：</span><span style="color:#333">**一次更新，全仓生效**</span><span style="color:#333">，避免规范口径散落多处并逐渐漂移。</span>
+
+<span style="color:#333">**为什么门禁要"尽量少、尽量靠前"**</span>
+
+<span style="color:#333">门禁是摩擦。加多了，研发绕开；加少了，错误漏出去。我们的平衡点是：</span>
+
+- <span style="color:#333">**需求评审门禁**</span><span style="color:#333">（2.2）—— 拦住"需求没理解对"</span>
+- <span style="color:#333">**设计门禁**</span><span style="color:#333">（3.3）—— 拦住"方案漏了关键约束 / 没追溯到需求"</span>
+- <span style="color:#333">**Dev 门禁**</span><span style="color:#333">（4.2）—— 拦住"feature 拆分不合规，开发起点不对"</span>
+- <span style="color:#333">**服务仓库检查**</span><span style="color:#333">（4.3）—— 拦住"三仓分支漂移 / IDL 契约仓未就位"</span>
+
+<span style="color:#333">这 4 个点，分别对应"意图、方案、任务、环境"四个最容易出大错、改动代价又最低的节点。一旦过了 4.4 编码循环再回退，代价就从"改几行文档"升到"回滚代码 + 回滚 IDL + 回滚数据迁移"。</span>
+
+<span style="color:#333">每一层都有 [INDEX.md](http://index.md/) 作为入口，检索成本 O(1)。</span><span style="color:#333">**AI 不需要遍历整个仓库**</span><span style="color:#333">，只需要按 团队 → 项目 → 模块 → 服务 的路径逐层缩小范围。这是"渐进式披露"的物理实现。</span>
+
+[image.png](https://km.sankuai.com/api/file/cdn/2764771604/238804601042?contentType=1&isNewContent=false)

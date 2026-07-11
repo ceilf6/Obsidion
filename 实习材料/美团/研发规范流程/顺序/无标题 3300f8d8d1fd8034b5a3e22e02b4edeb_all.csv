@@ -1,0 +1,2 @@
+﻿创建测试任务,PM/QA 验收,文件,自动化测试
+涉及 QA 协同测试的需求，需要点击链接并在ONES 上创建对应提测任务，可在测试任务下记录测试关注重点。研发自测需求可跳过此节点。,需求提测后需要经过 PM 验收和 QA 验收，此节点会自动发起审批。,"https://km.sankuai.com/api/file/cdn/1728761485/47222871341?contentType=1&isNewContent=false, https://km.sankuai.com/api/file/cdn/1728761485/47215266691?contentType=1&isNewContent=false, https://km.sankuai.com/api/file/cdn/1728761485/47215872916?contentType=1&isNewContent=false",FEDO 会自动触发自动化测试任务，部分团队的核心页面会要求结果全部通过才可继续执行。默认触发后自动向下流转，研发同学可根据日志内链接跳转查看结果。

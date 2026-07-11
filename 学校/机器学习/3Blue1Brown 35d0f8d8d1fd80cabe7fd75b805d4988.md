@@ -1,0 +1,7 @@
+# 3Blue1Brown
+
+[**神经网络的结构 Part 1 ver 2.0**](3Blue1Brown/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E7%BB%93%E6%9E%84%20Part%201%20ver%202%200%2035d0f8d8d1fd80cf9636c338b4485249.md)
+
+[梯度下降法 Part 2 ver 0.9 beta](3Blue1Brown/%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95%20Part%202%20ver%200%209%20beta%2035d0f8d8d1fd8091a7e7e52eeb7e751c.md)
+
+[反向传播算法 BP](3Blue1Brown/%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD%E7%AE%97%E6%B3%95%20BP%2035d0f8d8d1fd80a3ab72e61250686646.md)
