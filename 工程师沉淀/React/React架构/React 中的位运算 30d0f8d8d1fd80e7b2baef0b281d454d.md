@@ -63,7 +63,7 @@ if(value === A){
 
 在上面的代码中，会有一个问题，目前仅仅只是一对一的关系，但是在实际开发中，往往有很多**一对多**的关系，一个 value 可能会对应好几个值。
 
-![image.png](工程师沉淀/React/React架构/React%20中的位运算/image.png)
+![image.png](React%20%E4%B8%AD%E7%9A%84%E4%BD%8D%E8%BF%90%E7%AE%97/image.png)
 
 复习一下和二进制相关的运算：
 
@@ -231,7 +231,14 @@ if(flag & Placement){
 
 ### flags 冒泡时
 
-[](归%20completeWork%20工作流程%2030d0f8d8d1fd80b7ab1ac6139af3bcd0.md) 
+[let subtreeFlags = NoFlags;
+// 收集子 FiberNode 的子孙 FiberNode 中标记的 flags
+subtreeFlags |= child.subtreeFlags;
+// 收集子 FiberNode 中标记的 flags
+subtreeFlags ｜= child.flags;
+// 将收集到的所有 flags 附加到当前 FiberNode 的 subtreeFlags 上面
+completedWork.subtreeFlags |= subtreeFlags;
+// 注意是 "completed": completedWork 指 FiberNode; completeWork 才是归的方法](Reconciler/%E5%BD%92%20completeWork%20%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B%2030d0f8d8d1fd80b7ab1ac6139af3bcd0.md) 
 
 ## **lane 模型**
 

@@ -6,13 +6,13 @@
 
 网络 TCP/IP
 
-![回顾http请求.png](回顾http请求.png)
+![回顾http请求.png](net%E6%A8%A1%E5%9D%97/%E5%9B%9E%E9%A1%BEhttp%E8%AF%B7%E6%B1%82.png)
 
-![image.png](工程师沉淀/NodeJS/Node核心/net模块/image.png)
+![image.png](net%E6%A8%A1%E5%9D%97/image.png)
 
 # 创建客户端
 
-![创建客户端.png](创建客户端.png)
+![创建客户端.png](net%E6%A8%A1%E5%9D%97/%E5%88%9B%E5%BB%BA%E5%AE%A2%E6%88%B7%E7%AB%AF.png)
 
 **socket 是操作系统提供给应用程序操作网络通信的“接口对象”**
 
@@ -93,7 +93,7 @@ socket.on("close", () => {
 
 https://github.com/ceilf6/Lab/commit/0282185b3a1d1923365daa6bb3f6147440c35f51
 
-![创建服务器.png](创建服务器.png)
+![创建服务器.png](net%E6%A8%A1%E5%9D%97/%E5%88%9B%E5%BB%BA%E6%9C%8D%E5%8A%A1%E5%99%A8.png)
 
 ```jsx
 const net = require("net")

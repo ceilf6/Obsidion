@@ -20,11 +20,11 @@
 
 选择文件前：
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/File%20API/image.png)
+![image.png](File%20API/image.png)
 
 选择文件后：
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/File%20API/image%201.png)
+![image.png](File%20API/image%201.png)
 
 这种做法用户体验非常的差，我们无法**在客户端**对用户选取的文件进行 *validate*，无法读取文件大小，无法判断文件类型，无法预览。（不允许客户端读取本地文件，所以如果想要实现上面功能还得上传到服务器后让服务器返回，会导致服务器有很多冗余文件）
 
@@ -34,7 +34,7 @@
 <input type="file" name="" id="" multiple>
 ```
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/File%20API/image%202.png)
+![image.png](File%20API/image%202.png)
 
 但现在有了 ***HTML5* 提供的 *File API***，一切都不同了。该接口允许 *JavaScript* 读取本地文件，但并不能直接访问本地文件，而是要依赖于用户行为，比如用户在 *type='file'* 控件上选择了某个文件或者用户将文件拖拽到浏览器上。
 
@@ -67,7 +67,7 @@ file.onchange = function(event){
 
 上面代码中，*files[0]* 是用户选中的第一个文件，它是 *File* 的实例。
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/File%20API/image%203.png)
+![image.png](File%20API/image%203.png)
 
 ### 构造函数
 
@@ -347,7 +347,7 @@ file.onchange = function () {
 
 这个 *API* 对前端来说意义不小。有了这个功能，*Web* 可以提供更完整的功能链路，从打开、到编辑、到保存，一套到底。不过遗憾的是目前只有 *Chrome* 支持。
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/File%20API/image%204.png)
+![image.png](File%20API/image%204.png)
 
 （图为该 *API* 目前在各大浏览器的支持情况，可以看到全线飙红）
 

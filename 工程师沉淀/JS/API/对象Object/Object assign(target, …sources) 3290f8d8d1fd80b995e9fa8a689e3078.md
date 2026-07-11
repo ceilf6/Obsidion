@@ -1,6 +1,6 @@
 # Object.assign(target, …sources)
 
-![image.png](工程师沉淀/JS/API/对象Object/Object%20assign(target,%20…sources)/image.png)
+![image.png](Object%20assign(target,%20%E2%80%A6sources)/image.png)
 
 **把一个或多个源对象的可枚举自有属性，复制到目标对象上**，并返回目标对象。
 

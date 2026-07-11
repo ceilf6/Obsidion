@@ -16,11 +16,11 @@
 
 ## 术语
 
-![image.png](工程师沉淀/HTML/表格元素/image.png)
+![image.png](%E8%A1%A8%E6%A0%BC%E5%85%83%E7%B4%A0/image.png)
 
-![image.png](工程师沉淀/HTML/表格元素/image%201.png)
+![image.png](%E8%A1%A8%E6%A0%BC%E5%85%83%E7%B4%A0/image%201.png)
 
-![image.png](工程师沉淀/HTML/表格元素/image%202.png)
+![image.png](%E8%A1%A8%E6%A0%BC%E5%85%83%E7%B4%A0/image%202.png)
 
 display: table
 

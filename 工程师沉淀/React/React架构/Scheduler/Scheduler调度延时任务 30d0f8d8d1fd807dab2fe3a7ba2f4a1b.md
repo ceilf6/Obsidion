@@ -85,6 +85,6 @@ function handleTimeout(currentTime) {
 
 Scheduler 这一块儿大致的流程图如下：
 
-![image.png](工程师沉淀/React/React架构/Scheduler/Scheduler调度延时任务/image.png)
+![image.png](Scheduler%E8%B0%83%E5%BA%A6%E5%BB%B6%E6%97%B6%E4%BB%BB%E5%8A%A1/image.png)
 
 多层嵌套每一层都会进行处理，例如判断、开关管理

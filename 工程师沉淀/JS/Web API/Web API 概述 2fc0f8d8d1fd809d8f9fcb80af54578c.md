@@ -45,7 +45,7 @@ dom对象又称之为节点Node
 
 DOM树：文档中不同的节点形成的树形结构。
 
-![DOM树.jpg](DOM树.jpg)
+![DOM树.jpg](Web%20API%20%E6%A6%82%E8%BF%B0/DOM%E6%A0%91.jpg)
 
 同时DOM节点通过原型链串通，实现方法复用
 

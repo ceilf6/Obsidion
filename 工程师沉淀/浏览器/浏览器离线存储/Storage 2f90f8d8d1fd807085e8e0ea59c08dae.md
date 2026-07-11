@@ -1,6 +1,6 @@
 # Storage
 
-[实践](实践%2031a0f8d8d1fd80fabdfde23f4ac94174.md)
+[实践](Storage/%E5%AE%9E%E8%B7%B5%2031a0f8d8d1fd80fabdfde23f4ac94174.md)
 
 键值对
 
@@ -38,6 +38,8 @@ console.log(localStorage.getItem('I\'m Key'));
 
 API 和 localStorage 完全一致，只是换成 sessionStorage
 
+页面关闭后清空（刷新不会）
+
 # sharedStorage
 
 [https://privacysandbox.google.com/private-advertising/shared-storage?utm_source=devtools&utm_campaign=stable&hl=zh-cn](https://privacysandbox.google.com/private-advertising/shared-storage?utm_source=devtools&utm_campaign=stable&hl=zh-cn)
@@ -61,4 +63,4 @@ Output APIs
 
 [goo.gle/shared-storage](http://goo.gle/shared-storage)
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/Storage/image.png)
+![image.png](Storage/image.png)

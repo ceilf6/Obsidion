@@ -55,7 +55,7 @@ slot是vue的内置组件，用于**占位**
 
 ```
 
-![image.png](工程师沉淀/Vue/Vue2/内置组件%20slot/插槽%20slot/image.png)
+![image.png](%E6%8F%92%E6%A7%BD%20slot/image.png)
 
 # 具名插槽 name
 
@@ -101,4 +101,4 @@ slot是vue的内置组件，用于**占位**
 
 ```
 
-![image.png](工程师沉淀/Vue/Vue2/内置组件%20slot/插槽%20slot/image%201.png)
+![image.png](%E6%8F%92%E6%A7%BD%20slot/image%201.png)

@@ -14,7 +14,7 @@ ref, computed, watchEffect
 - reactive ⇒ proxy实例
 - readonly ⇒ 返回了新的 proxy 实例，set 和 deleteProperty 做了特殊处理
     
-    ![image.png](548a4485-5e9f-405c-a83d-58f4964267ab.png)
+    ![image.png](Reactivity%20API%20%E5%93%8D%E5%BA%94%E5%BC%8F/548a4485-5e9f-405c-a83d-58f4964267ab.png)
     
     readonly 代理 proxy 实例时
     

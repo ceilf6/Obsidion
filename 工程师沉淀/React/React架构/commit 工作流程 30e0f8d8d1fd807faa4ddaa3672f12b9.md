@@ -31,7 +31,7 @@ commit 阶段整体可以分为 3 个子阶段：
 
 整体流程图如下：
 
-![image.png](工程师沉淀/React/React架构/commit%20工作流程/image.png)
+![image.png](commit%20%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/image.png)
 
 每个阶段，又分为三个子阶段：
 

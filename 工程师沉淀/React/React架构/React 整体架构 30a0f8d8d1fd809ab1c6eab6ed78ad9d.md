@@ -53,7 +53,7 @@ React v15以及之前的架构称之为 Stack 架构，从 v16 开始，React �
 
 假设有如下的 DOM 层次结构：
 
-![image.png](工程师沉淀/React/React架构/React%20整体架构/image.png)
+![image.png](React%20%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/image.png)
 
 那么转换成虚拟 DOM 对象结构大致如下：
 
@@ -102,7 +102,7 @@ React v15以及之前的架构称之为 Stack 架构，从 v16 开始，React �
 
 在 React **v16 版本之前**，进行两颗虚拟 DOM 树的对比的时候，需要涉及到遍历上面的结构，这个时候只能使用递归，而且**这种递归是不能够打断的，一条路走到黑，从而造成了 JS 执行时间过长**。
 
-![image.png](工程师沉淀/React/React架构/React%20整体架构/image%201.png)
+![image.png](React%20%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/image%201.png)
 
 这样的架构模式，官方就称之为 **Stack** 架构模式
 
@@ -134,7 +134,7 @@ React v15以及之前的架构称之为 Stack 架构，从 v16 开始，React �
 
 ## 新架构的解决思路（即如何实现时间切片）
 
-[抢占式调度](操作系统%203410f8d8d1fd8078a2e3c816d2e0357c.md) 
+[抢占式调度](../../%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%203410f8d8d1fd8078a2e3c816d2e0357c.md) 
 
 ### 解决 CPU 瓶颈
 
@@ -149,13 +149,13 @@ Fiber 本质上也是一个对象，但是和之前 React 元素不同的地方�
 
 如下图：
 
-![image.png](工程师沉淀/React/React架构/React%20整体架构/image%202.png)
+![image.png](React%20%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/image%202.png)
 
 使用链表这种结构，有一个最大的好处就是在进行**整颗树的对比（reconcile）**计算时，这个过程是可以**被打断**。
 
 在发现**一帧时间已经不够**，不能够再继续执行 JS，需要渲染下一帧的时候，这个时候就会打断 JS 的执行，优先渲染下一帧。**渲染完成后再接着回来完成上一次没有执行完的 JS 计算**。
 
-![image.png](工程师沉淀/React/React架构/React%20整体架构/image%203.png)
+![image.png](React%20%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/image%203.png)
 
 官方还提供了一个 Stack 架构和 Fiber 架构的对比示例：[https://claudiopro.github.io/react-fiber-vs-stack-demo/](https://claudiopro.github.io/react-fiber-vs-stack-demo/)
 

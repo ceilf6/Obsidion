@@ -18,7 +18,7 @@ Pinia 是由 Vue 官方团队中的一个成员开发的，最早是在 2019 年
 
 pinia 官网：[https://pinia.vuejs.org/](https://pinia.vuejs.org/)
 
-![image.png](工程师沉淀/Vue/状态管理/pinia/Pinia基本概念/image.png)
+![image.png](Pinia%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/image.png)
 
 ## Pinia 优势
 

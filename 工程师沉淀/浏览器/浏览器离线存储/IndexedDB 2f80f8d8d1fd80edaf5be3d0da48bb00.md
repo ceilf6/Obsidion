@@ -17,7 +17,7 @@
 
 现有的浏览器数据储存方案，都不适合储存大量数据：***Cookie* 的大小不超过 *4KB*，且每次请求都会发送回服务器**；*Local**Storage*** 在 *2.5MB* 到 *10MB* 之间（各家浏览器不同），而且**不提供搜索功能，不能建立自定义的索引** 。所以，需要一种新的解决方案，这就是 *IndexedDB* 诞生的背景。
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/IndexedDB/image.png)
+![image.png](IndexedDB/image.png)
 
 *MDN* 官网是这样解释 *IndexedDB* 的：
 
@@ -107,7 +107,7 @@ browser/store/IndexedDB
 
 在正式开始之前，我们先创建如下的项目结构：
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/IndexedDB/image%201.png)
+![image.png](IndexedDB/image%201.png)
 
 该项目目录下存在 *2* 个文件，其中 *db.js* 是用来封装各种数据库操作的。
 
@@ -666,7 +666,7 @@ function cursorGetDataByIndexAndPage(
 
 查询结果如下：
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/IndexedDB/image%202.png)
+![image.png](IndexedDB/image%202.png)
 
 ### 更新数据
 

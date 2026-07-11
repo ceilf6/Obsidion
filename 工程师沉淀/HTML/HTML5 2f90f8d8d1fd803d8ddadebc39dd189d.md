@@ -1,6 +1,6 @@
 # HTML5
 
-![image.png](工程师沉淀/HTML/HTML5/image.png)
+![image.png](HTML5/image.png)
 
 HTML5包含两个部分的更新，分别是`文档`和`web api`
 
@@ -108,7 +108,7 @@ HTML5包含两个部分的更新，分别是`文档`和`web api`
 
 dataset
 
-![image.png](工程师沉淀/HTML/HTML5/image%201.png)
+![image.png](HTML5/image%201.png)
 
 ### input的新增属性
 

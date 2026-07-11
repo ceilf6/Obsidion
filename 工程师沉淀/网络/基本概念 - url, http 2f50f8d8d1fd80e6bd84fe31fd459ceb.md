@@ -10,7 +10,7 @@
 
 回复消息的一方称之为服务器 Server，回复消息的过程称之为相应 Response
 
-![image.png](工程师沉淀/网络/基本概念%20-%20url,%20http/image.png)
+![image.png](%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%20-%20url,%20http/image.png)
 
 注意几点
 
@@ -99,7 +99,7 @@ URL 中只能出现 ASCII 字符，像中文会被编码为 %
 
 NodeJS 创建客户端和服务器示范
 
-[net模块](net模块%203310f8d8d1fd80c28f3ceee30fb1a0f7.md) 
+[net模块](../NodeJS/Node%E6%A0%B8%E5%BF%83/net%E6%A8%A1%E5%9D%97%203310f8d8d1fd80c28f3ceee30fb1a0f7.md) 
 
 https://github.com/ceilf6/Lab/blob/main/NodeJS/sandboxs/net/server.js
 
@@ -135,7 +135,7 @@ http 协议规定
 2. 请求头 描述了请求的一些额外信息
 3. 请求体 包含了要给服务器传递的正文数据（请求体是可以省略的）（像传递账号密码）
 
-![image.png](工程师沉淀/网络/基本概念%20-%20url,%20http/image%201.png)
+![image.png](%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%20-%20url,%20http/image%201.png)
 
 ### 1. 请求行
 
@@ -176,7 +176,7 @@ http 协议规定
 
 请求方法是请求行的第一个单词，向服务器描述了客户端发出请求的动作类型，在HTTP协议中不同的请求方法只是包含了不同的语义，但服务器和浏览器的一些约定俗成的行为造成了具体的区别
 
-![image.png](工程师沉淀/网络/基本概念%20-%20url,%20http/image%202.png)
+![image.png](%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%20-%20url,%20http/image%202.png)
 
 ```jsx
 fetch('<https://www.baidu.com>', {
@@ -270,7 +270,7 @@ raw 原始格式，例如 application/json
 2. 响应头
 3. 响应体
 
-![image.png](工程师沉淀/网络/基本概念%20-%20url,%20http/image%203.png)
+![image.png](%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%20-%20url,%20http/image%203.png)
 
 ### 1. 响应行
 
@@ -292,7 +292,7 @@ raw 原始格式，例如 application/json
 
 4** 客户端错误，请求包含语法错误或无法完成请求
 
-5** 服务器错误，服务器在处理请求的过程中发生了错误
+5** **服务器**错误，服务器在处理请求的过程中发生了错误
 
 **常见的状态码**
 

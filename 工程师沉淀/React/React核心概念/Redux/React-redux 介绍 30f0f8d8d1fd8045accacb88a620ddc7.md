@@ -13,11 +13,11 @@
 - 需要将共享的状态提升至公共的父组件，若无公共的父组件，往往需要自行构造
 - 状态由父组件自上而下逐层传递，若组件层级过多，数据传递会变得很冗杂
 
-![image.png](工程师沉淀/React/React核心概念/Redux/React-redux%20介绍/image.png)
+![image.png](React-redux%20%E4%BB%8B%E7%BB%8D/image.png)
 
 此时，我们就需要一个统一的仓库来对组件状态进行管理，如下图：
 
-![image.png](工程师沉淀/React/React核心概念/Redux/React-redux%20介绍/image%201.png)
+![image.png](React-redux%20%E4%BB%8B%E7%BB%8D/image%201.png)
 
 ## *Redux* 的核心思想
 
@@ -85,6 +85,6 @@ export const store = createStore(
 
 一般来讲，当数据发生变化时，不仅仅是前端的状态库要更新数据，服务器端也要对应的对数据进行更新，此时的更新流程如下：
 
-![image.png](工程师沉淀/React/React核心概念/Redux/React-redux%20介绍/image%202.png)
+![image.png](React-redux%20%E4%BB%8B%E7%BB%8D/image%202.png)
 
 和后端交互示例：学生管理系统

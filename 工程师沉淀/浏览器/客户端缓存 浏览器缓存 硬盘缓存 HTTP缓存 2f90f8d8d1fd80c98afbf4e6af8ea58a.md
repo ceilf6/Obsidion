@@ -5,7 +5,7 @@
 - 利用浏览器离线存储能力也能实现客户端缓存
 - 配合 CDN 的多级缓存：用户 → 浏览器缓存 → CDN → 源站
 
-[缓存并发控制](缓存并发控制%203270f8d8d1fd800ca556d44d12a8daed.md)
+[缓存并发控制](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6%203270f8d8d1fd800ca556d44d12a8daed.md)
 
 本文主要包含以下内容：
 
@@ -56,7 +56,7 @@
 
 整个浏览器的缓存过程如下：
 
-![image.png](工程师沉淀/浏览器/客户端缓存%20浏览器缓存%20硬盘缓存%20HTTP缓存/image.png)
+![image.png](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/image.png)
 
 从上图我们可以看到，整个浏览器端的缓存其实没有想象的那么复杂。其最基本的原理就是：
 
@@ -81,7 +81,7 @@
 
 ## *Service Worker*
 
-[Service Worker](Service%20Worker%2031a0f8d8d1fd8010a284f4601528808a.md) 
+[Service Worker](API/Worker/Service%20Worker%2031a0f8d8d1fd8010a284f4601528808a.md) 
 
 Service Worker 能实现缓存的本质就是因为其可以**拦截** HTTP请求 并决定如何响应，就像是运行在浏览器的**代理**
 
@@ -161,7 +161,7 @@ Service Worker 能实现缓存的本质就是因为其可以**拦截** HTTP请�
 
 按照缓存类型来进行分类，可以分为**强制缓存**和**协商缓存**。需要注意的是，**无论是强制缓存还是协商缓存，都是属于 *Disk Cache -* *HTTP Cache*** 里面的一种。
 
-[详情还可以看网络中](HTTP缓存协议%202f90f8d8d1fd8077a3b4f17877b3ab88.md)
+[详情还可以看网络中](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/HTTP%E7%BC%93%E5%AD%98%E5%8D%8F%E8%AE%AE%202f90f8d8d1fd8077a3b4f17877b3ab88.md)
 
 ## 强制缓存
 
@@ -214,7 +214,7 @@ Cache-control: max-age=2592000
 
 这些值可以混合使用，例如 *Cache-control:public, max-age=2592000*。在混合使用时，它们的优先级如下图：
 
-![image.png](工程师沉淀/浏览器/客户端缓存%20浏览器缓存%20硬盘缓存%20HTTP缓存/image%201.png)
+![image.png](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/image%201.png)
 
 > max-age=0 和 no-cache 等价吗？
 从规范的字面意思来说，max-age 到期是 **应该**（ SHOULD ）重新验证，而 **no-cache 是 必须**（ MUST ）重新验证。但实际情况以浏览器实现为准，大部分情况他们俩的行为还是一致的。（如果是 max-age=0, must-revalidate 就和 no-cache 等价了）
@@ -238,11 +238,11 @@ Cache-control: max-age=2592000
 
 没有命中协商缓存的话就是返回 200 - 新的响应文件内容
 
-![image.png](工程师沉淀/浏览器/客户端缓存%20浏览器缓存%20硬盘缓存%20HTTP缓存/image%202.png)
+![image.png](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/image%202.png)
 
 如果失效，则返回新的数据和缓存规则（时间…），浏览器响应数据后，再把规则写入到缓存数据库。
 
-![image.png](工程师沉淀/浏览器/客户端缓存%20浏览器缓存%20硬盘缓存%20HTTP缓存/image%203.png)
+![image.png](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/image%203.png)
 
 协商缓存在请求数上和没有缓存是一致的、**没有减少请求数**，但如果是 *304* 的话，返回的仅仅是一个状态码而已，并没有实际的文件内容，因此 在**响应体体积上的节省**是它的优化点。
 
@@ -289,7 +289,7 @@ Cache-control: max-age=2592000
 
 如果服务器发现 *ETag* 匹配不上，那么直接以常规 *GET 200* 回包形式将新的资源（当然也**包括了新的 *ETag***）发给客户端；如果 *ETag* 是一致的，则直接返回 *304* 告诉客户端直接使用本地缓存即可。
 
-![image.png](工程师沉淀/浏览器/客户端缓存%20浏览器缓存%20硬盘缓存%20HTTP缓存/image%204.png)
+![image.png](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/image%204.png)
 
 两者之间的简单对比：
 
@@ -318,7 +318,7 @@ Cache-control: max-age=2592000
 
 其中针对第 *3* 步，具体的流程图如下：
 
-![image.png](工程师沉淀/浏览器/客户端缓存%20浏览器缓存%20硬盘缓存%20HTTP缓存/image%205.png)
+![image.png](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/image%205.png)
 
 # 浏览器行为
 
@@ -430,4 +430,6 @@ Cache-Control: max-age=31536000
 
 - *EOF*
 
-[HTTP缓存协议](HTTP缓存协议%202f90f8d8d1fd8077a3b4f17877b3ab88.md)
+[HTTP缓存协议](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/HTTP%E7%BC%93%E5%AD%98%E5%8D%8F%E8%AE%AE%202f90f8d8d1fd8077a3b4f17877b3ab88.md)
+
+[缓存 和 缓冲](%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%20%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%20%E7%A1%AC%E7%9B%98%E7%BC%93%E5%AD%98%20HTTP%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98%20%E5%92%8C%20%E7%BC%93%E5%86%B2%2036b0f8d8d1fd8019b124c7342d857b20.md)

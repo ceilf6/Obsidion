@@ -7,4 +7,4 @@ React 需要通过 Scheduler 和 FiberTree结构 实现可打断的渲染，方�
 
 导致 React 和 Vue 粒度不同原因是，React 的更新是开发者通过 hook 主动调度的，影响范围会从触发点FiberNode一直往下，但是 Vue 通过重写存取器属性或者Proxy实现了对应状态的观察者收集与通知，那么只要状态更新，无需遍历虚拟树，只需要通知到位状态对应的**具体的观察者**即可
 
-[可以这么说，React 属于**应用级**框架，Vue 属于**组件级**框架，Svelte、Solid.js 属于**元素级**框架。](前端框架的分类%2030a0f8d8d1fd8063a7ffe2d907556df2.md)
+[可以这么说，React 属于**应用级**框架，Vue 属于**组件级**框架，Svelte、Solid.js 属于**元素级**框架。](../../React/React%E6%9E%B6%E6%9E%84/%E5%B0%B1%E4%B8%9A%20%E4%BA%8C/%E5%89%8D%E7%AB%AF%E6%A1%86%E6%9E%B6%E7%9A%84%E5%88%86%E7%B1%BB%2030a0f8d8d1fd8063a7ffe2d907556df2.md)

@@ -33,11 +33,11 @@ MessageChannnel API => macrotask => Scheduler
 
 ***requestAnimationFrame** Api* 是在**每一次重新渲染之前执行**，这个 *API* 的出现，就是专门拿来做**动画**的。以前我们做动画，用的更多的是 setInterval 或者 setTimeout，但是这些 API 本意不是拿来做动画的。使用 *requestAnimationFrame Api* 拿到做动画，最大的优点就是**频率是和浏览器重新渲染的频率一致**。
 
-![image.png](工程师沉淀/React/React架构/MessageChannel/image.png)
+![image.png](MessageChannel/image.png)
 
 requestAnimationFrame 就不会存在这个问题，因为它是在渲染之前，保证了和浏览器渲染是**同频**
 
-![image.png](工程师沉淀/React/React架构/MessageChannel/image%201.png)
+![image.png](MessageChannel/image%201.png)
 
 微任务：如果微任务队列里面存在任务，那么事件循环会在循环一次的时候，将整个微任务队列**清空**。
 
@@ -47,7 +47,7 @@ requestAnimationFrame 就不会存在这个问题，因为它是在渲染之前�
 
 [https://xiejie-typora.oss-cn-chengdu.aliyuncs.com/2022-12-29-024700.gif](https://xiejie-typora.oss-cn-chengdu.aliyuncs.com/2022-12-29-024700.gif)
 
-[https://www.notion.so](https://www.notion.so)
+[https://app.notion.com](https://app.notion.com)
 
 ## MessageChannel 以及为什么选择它
 
@@ -136,7 +136,7 @@ fn();
 
 执行结果部分截图如下：
 
-![image.png](工程师沉淀/React/React架构/MessageChannel/image%202.png)
+![image.png](MessageChannel/image%202.png)
 
 正因为这个原因，所以 react 团队没有选择使用 setTimeout 来产生任务，因为 4ms 的时间的浪费还是不可忽视的。
 

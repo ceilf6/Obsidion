@@ -9,15 +9,15 @@
 - 每次都有多种方案可供选择，选择不同的方案不会对上下层造成影响
 - 每一层会在上一层的基础上添加一些额外信息
 
-![image.png](工程师沉淀/网络/五层网络模型/image.png)
+![image.png](%E4%BA%94%E5%B1%82%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B/image.png)
 
 应用层：用户在使用应用时传输的数据是什么格式 MIME
 
-FTP 文件共享 [FTP](阿里云2025-3%203270f8d8d1fd80b29cc6efa04d01990c.md) 
+FTP 文件共享 [FTP](../%E5%AF%BF%E5%8F%B8/ACM%E6%A8%A1%E5%BC%8F/%E7%9C%9F%E9%A2%98/%E9%98%BF%E9%87%8C%E7%9C%9F%E9%A2%98/%E9%98%BF%E9%87%8C%E4%BA%912025-3%203270f8d8d1fd80b29cc6efa04d01990c.md) 
 
 DNS 域名解析
 
-SMTP, POP 邮件 [SMTP](阿里云2025-3%203270f8d8d1fd80b29cc6efa04d01990c.md) 
+SMTP, POP 邮件 [SMTP](../%E5%AF%BF%E5%8F%B8/ACM%E6%A8%A1%E5%BC%8F/%E7%9C%9F%E9%A2%98/%E9%98%BF%E9%87%8C%E7%9C%9F%E9%A2%98/%E9%98%BF%E9%87%8C%E4%BA%912025-3%203270f8d8d1fd80b29cc6efa04d01990c.md) 
 
 传输层：确保数据的顺序、丢包处理
 
@@ -43,7 +43,7 @@ MAC地址 ```ifconfig``` => ether 和网卡绑定
 
 ## 数据的封装和解封装
 
-![image.png](工程师沉淀/网络/五层网络模型/image%201.png)
+![image.png](%E4%BA%94%E5%B1%82%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B/image%201.png)
 
 封装：每层都会添加 头部（首部）
 
@@ -59,7 +59,7 @@ MAC地址 ```ifconfig``` => ether 和网卡绑定
 
 四层TCP/IP 是 物理链路层包含了数据链路层和物理层
 
-![image.png](工程师沉淀/网络/五层网络模型/image%202.png)
+![image.png](%E4%BA%94%E5%B1%82%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B/image%202.png)
 
 # 参考答案
 

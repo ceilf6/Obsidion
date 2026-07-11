@@ -1,0 +1,93 @@
+# 用 Proxyman 抓包 Claude Code，我看到了什么
+
+完整文档链接：https://github.com/ceilf6/trans-comp/blob/main/km/Proxyman%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90Claude.md
+
+## 目录
+
+- 一 为什么有这篇内容？
+- 二 简单看一个“你好”的例子
+    - 1.关键信息
+    - 2.分析总结
+- 二 创建HelloWord源码
+    - 1.前两次请求
+    - 2.后四次请求
+    - 3.Token消耗对比
+    - 4.最终执行写入
+    - 5.关键设计洞察
+
+## 一 为什么有这篇内容？
+
+源码看起来无聊，理论看起来枯燥，脑子里有无数的断点始终无法连成线。多少个深夜辗转反侧，难以入眠，总是忍不住想问你“你到底~不~我”，不对！是“你到底怎么跑起来的?”。想到是不是可以通过抓包，理解协议的方式，一窥究竟呢，直接上工具。
+- Proxyman，你也可以用其他的抓包工具。
+- CatPaw CLI，你也可以直接用原生的Claude Code。
+
+## 二 简单看一个“你好”的例子
+
+先从最简单的聊天场景入手。
+
+| 我的输入 | Proxyman | 请求头 |
+| --- | --- | --- |
+|  |  |  |
+
+```
+
+```
+
+这是整个任务链的**最终请求**，也是最有价值的一次——它包含了完整的多轮对话历史，是前六次请求的"全景快照"。
+**messages 历史**：这次请求携带了完整的多轮对话上下文，完整还原了整个任务的决策链：
+
+| **轮次** | **角色** | **工具调用** | **结果** |
+| --- | --- | --- | --- |
+| 1 | user | — | "帮我在 [com.sankuai.deal.domain.server.cc](http://com.sankuai.deal.domain.server.cc/) 目录下创建 HelloWorld" |
+| 2 | assistant | `Read` → [AGENTS.md](http://agents.md/) | ❌ File does not exist |
+| 3 | assistant | `Glob` → `domain-server/src/main/java/.../cc/**` | ❌ No files found |
+| 4 | assistant | `Bash` → `ls .../server/` | ✅ 发现 cc 目录存在 |
+| 5 | assistant | `Bash` → `ls .../cc/` | ✅ 目录为空（无输出） |
+| 6 | assistant | 文本 + `Write` → HelloWorld.java | ✅ File created successfully |
+
+<details>
+<summary>Write 工具调用</summary>
+
+```
+{   "name": "Write",   "input": {     "file_path": "/Users/jokelyli/work/API/dealdomain/domain-server/src/main/java/com/sankuai/deal/domain/server/cc/HelloWorld.java",     "content": "package com.sankuai.deal.domain.server.cc;\\n\\npublic class HelloWorld {\\n\\n    public static void main(String[] args) {\\n        System.out.println(\\"Hello, World!\\");\\n    }\\n}\\n"   } }
+```
+
+</details>
+
+<details>
+<summary>Write 工具结果</summary>
+
+```
+{   "content": "File created successfully at: .../cc/HelloWorld.java",   "cache_control": { "type": "ephemeral" } }
+```
+
+</details>
+
+这次请求是整个任务链中**最大的一次请求**，因为 messages 数组里累积了所有历史轮次。但得益于 **Prompt Cache**，实际计费的 input token 依然极少——只有最新追加的那条 tool_result（Write 成功的结果）是新增内容，其余全部命中缓存。
+
+当 "cache_control": { "type": "ephemeral" } } 时就是设置了缓存
+
+**合并起来看完整的决策链如下：**
+本次任务共触发了 5 轮工具调用、7 次 API 请求。模型的决策过程体现了"目标驱动"而非"流程驱动"的特点。
+**第 1 轮：Read [AGENTS.md](http://agents.md/)（失败）**
+模型首先尝试读取项目规范文件 [AGENTS.md](http://agents.md/)（因为 [CLAUDE.md](http://claude.md/) 中有指示），但文件不存在。模型判断这不影响任务目标，直接跳过，不再重试。
+**第 2 轮：Glob cc/\*\*（失败）**
+模型转而用 Glob 工具搜索目标目录下的文件，结果返回"No files found"。这说明目录可能不存在，或者存在但为空，需要进一步确认。
+**第 3 轮：Bash ls server/（成功）**
+Glob 无法区分"目录不存在"和"目录为空"，模型改用 Bash 执行 `ls` 命令，列出 server 目录的内容，确认 `cc` 目录确实存在。
+**第 4 轮：Bash ls cc/（成功，无输出）**
+进一步确认 cc 目录为空（命令执行成功但无任何输出）。
+**第 5 轮：Write HelloWorld.java（成功）**
+目录存在且为空，条件满足。模型输出一段文字说明"目录存在但为空，我来创建文件"，随即调用 Write 工具，写入标准的 Java HelloWorld 代码。
+
+### 5.关键设计洞察
+
+通过这次完整的抓包分析，可以总结出 Claude Code 几个值得关注的设计决策。
+**git status 注入**：每次请求的 system prompt 中都包含当前 git 状态快照，让模型始终感知工作区变化，避免在不知情的情况下覆盖未提交的修改。
+**工具优先级**：模型遵循"专用工具优先"原则——能用 Read 就不用 Bash cat，能用 Glob 就不用 Bash find。这不仅是效率问题，也让用户在审查工具调用时更容易理解模型的意图。
+**失败不卡死**：当某个"准备步骤"失败时（如读取规范文件），模型会评估该失败是否阻碍最终目标。如果不阻碍，就继续推进，而不是等待用户介入。
+**渐进式探索**：
+
+先观察、再操作
+
+像**二分**一样，面对不确定的文件系统状态，模型采用"逐步缩小范围"的策略——**先 Glob 全局搜索，再 Bash 精确确认**，最终才执行写入操作，避免在错误的位置创建文件

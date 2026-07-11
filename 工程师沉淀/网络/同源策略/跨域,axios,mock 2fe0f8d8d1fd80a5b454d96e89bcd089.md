@@ -12,7 +12,7 @@
 
 # 远程获取数据的意义
 
-![image.png](工程师沉淀/网络/同源策略/跨域,axios,mock/image.png)
+![image.png](%E8%B7%A8%E5%9F%9F,axios,mock/image.png)
 
 # 开发环境有跨域问题
 

@@ -18,7 +18,7 @@ forwardRef方法：
 
 https://github.com/ceilf6/Lab/commit/7f9cd2d5e1b1ed187617cec8d5f9c92d8a0a6983
 
-![image.png](工程师沉淀/React/React进阶（零散、16前/Ref转发/image.png)
+![image.png](Ref%E8%BD%AC%E5%8F%91/image.png)
 
 ```jsx
 import React from "react";

@@ -27,7 +27,7 @@ awk -v bei="$bei" -v zhu="$zhu" '{
 mv tmp "$p"
 ```
 
-[awk](4%20文件系统%203410f8d8d1fd80b9b2e0fe3e7498821e.md) 
+[awk](01%20Cour1&2/4%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%203410f8d8d1fd80b9b2e0fe3e7498821e.md) 
 
 ## `awk` 命令
 

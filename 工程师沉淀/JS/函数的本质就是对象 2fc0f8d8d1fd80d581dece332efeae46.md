@@ -91,7 +91,7 @@ console.log(num)
 是挂载在 **构造函数 这个对象**上的方法
 > 
 > 
-> ![image.png](工程师沉淀/JS/函数的本质就是对象/image.png)
+> ![image.png](%E5%87%BD%E6%95%B0%E7%9A%84%E6%9C%AC%E8%B4%A8%E5%B0%B1%E6%98%AF%E5%AF%B9%E8%B1%A1/image.png)
 > 
 
 ```jsx
@@ -104,7 +104,7 @@ console.log('a1', typeof a1)
 console.log('a2', typeof a2)
 ```
 
-![image.png](工程师沉淀/JS/函数的本质就是对象/image%201.png)
+![image.png](%E5%87%BD%E6%95%B0%E7%9A%84%E6%9C%AC%E8%B4%A8%E5%B0%B1%E6%98%AF%E5%AF%B9%E8%B1%A1/image%201.png)
 
 > 类：在JS中，可以认为，**类就是构造函数 + 原型**
 >

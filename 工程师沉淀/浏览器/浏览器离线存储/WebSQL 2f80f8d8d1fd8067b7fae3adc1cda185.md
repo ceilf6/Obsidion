@@ -8,7 +8,7 @@ WebSQL 已经被 W3C 废弃了！现在只有 Safari 还残留支持
 
 最新版的 *Safari, Chrome* 和 *Opera* 浏览器都支持 *WebSQL*。
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/WebSQL/image.png)
+![image.png](WebSQL/image.png)
 
 在 *WebSQL* 中，有 *3* 个核心方法：
 
@@ -30,7 +30,7 @@ var db = openDatabase('mydb', '1.0', 'Test DB', 2 * 1024 * 1024);
 
 在上面的代码中，我们尝试打开一个名为 *mydb* 的数据库，因为第一次不存在此数据库，所以会创建该数据库，版本号为 *1.0*，大小为 *2M*。
 
-![image.png](工程师沉淀/浏览器/浏览器离线存储/WebSQL/image%201.png)
+![image.png](WebSQL/image%201.png)
 
 *openDatabase( )* 方法对应的 *5* 个参数：
 

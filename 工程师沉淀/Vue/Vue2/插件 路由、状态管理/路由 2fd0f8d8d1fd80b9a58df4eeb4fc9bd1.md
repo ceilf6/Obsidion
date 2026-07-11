@@ -1,6 +1,6 @@
 # 路由
 
-![image.png](工程师沉淀/Vue/Vue2/插件%20路由、状态管理/路由/image.png)
+![image.png](%E8%B7%AF%E7%94%B1/image.png)
 
 以前是一个页面一个html
 
@@ -11,7 +11,7 @@
 
 希望**根据页面地址渲染出不同组件**
 
-![image.png](工程师沉淀/Vue/Vue2/插件%20路由、状态管理/路由/image%201.png)
+![image.png](%E8%B7%AF%E7%94%B1/image%201.png)
 
 1. **如何根据地址中的路径选择不同的组件？**
 2. **把选择的组件放到哪个位置？**
@@ -158,9 +158,9 @@ RouterView 用于占位（App中就无需声明了），内部使用的就是插
 
 所以设置样式不能给 router-link 设置，而是需要给 a 元素设置
 
-![image.png](工程师沉淀/Vue/Vue2/插件%20路由、状态管理/路由/image%202.png)
+![image.png](%E8%B7%AF%E7%94%B1/image%202.png)
 
-![image.png](工程师沉淀/Vue/Vue2/插件%20路由、状态管理/路由/image%203.png)
+![image.png](%E8%B7%AF%E7%94%B1/image%203.png)
 
 ## 激活状态 当前选中的router-link
 
@@ -239,7 +239,7 @@ const router = new VueRouter({
 
 # 动态路由
 
-[动态路由](文章列表页逻辑%202ff0f8d8d1fd803bb5c6ffd8ab767bfc.md) 
+[动态路由](../%E2%80%9C%E4%B8%AA%E4%BA%BA%E7%A9%BA%E9%97%B4%E2%80%9D%E5%AE%9E%E8%B7%B5/%E6%96%87%E7%AB%A0%E5%88%97%E8%A1%A8%E9%A1%B5%E9%80%BB%E8%BE%91%202ff0f8d8d1fd803bb5c6ffd8ab767bfc.md) 
 
 # 注入的原型对象
 
@@ -249,13 +249,13 @@ vue-router 还对 Vue 实例注入了原型对象
 
 提供路由信息
 
-![image.png](工程师沉淀/Vue/Vue2/插件%20路由、状态管理/路由/image%204.png)
+![image.png](%E8%B7%AF%E7%94%B1/image%204.png)
 
 ## $router
 
 用于控制页面跳转
 
-[编程式导航](文章列表页逻辑%202ff0f8d8d1fd803bb5c6ffd8ab767bfc.md) 
+[编程式导航](../%E2%80%9C%E4%B8%AA%E4%BA%BA%E7%A9%BA%E9%97%B4%E2%80%9D%E5%AE%9E%E8%B7%B5/%E6%96%87%E7%AB%A0%E5%88%97%E8%A1%A8%E9%A1%B5%E9%80%BB%E8%BE%91%202ff0f8d8d1fd803bb5c6ffd8ab767bfc.md) 
 
 ```jsx
 // 页码变化 => 改变路由

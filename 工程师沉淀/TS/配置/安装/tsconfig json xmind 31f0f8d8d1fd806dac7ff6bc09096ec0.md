@@ -1,3 +1,3 @@
 # tsconfig.json.xmind
 
-[https://www.notion.so](https://www.notion.so)
+[https://app.notion.com](https://app.notion.com)

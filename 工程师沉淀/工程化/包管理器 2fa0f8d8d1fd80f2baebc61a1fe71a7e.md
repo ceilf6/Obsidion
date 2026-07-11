@@ -1,11 +1,11 @@
 # 包管理器
 
-[初步认识](初步认识%203330f8d8d1fd80399414f650d8f6b765.md)
+[初步认识](%E5%8C%85%E7%AE%A1%E7%90%86%E5%99%A8/%E5%88%9D%E6%AD%A5%E8%AE%A4%E8%AF%86%203330f8d8d1fd80399414f650d8f6b765.md)
 
-[软、硬链接](软、硬链接%203330f8d8d1fd8029a94cc6e2d68b410a.md)
+[软、硬链接](%E5%8C%85%E7%AE%A1%E7%90%86%E5%99%A8/%E8%BD%AF%E3%80%81%E7%A1%AC%E9%93%BE%E6%8E%A5%203330f8d8d1fd8029a94cc6e2d68b410a.md)
 
-[优缺区分](优缺区分%203330f8d8d1fd804b8d89eb9d9e2fe6fc.md)
+[优缺区分](%E5%8C%85%E7%AE%A1%E7%90%86%E5%99%A8/%E4%BC%98%E7%BC%BA%E5%8C%BA%E5%88%86%203330f8d8d1fd804b8d89eb9d9e2fe6fc.md)
 
-[包管理工具概述](包管理工具概述%2033f0f8d8d1fd80b0bc02eb7ece89f7b7.md)
+[包管理工具概述](%E5%8C%85%E7%AE%A1%E7%90%86%E5%99%A8/%E5%8C%85%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E6%A6%82%E8%BF%B0%2033f0f8d8d1fd80b0bc02eb7ece89f7b7.md)
 
-[npm](npm%2033f0f8d8d1fd80298167ddde51d63faf.md)
+[npm](%E5%8C%85%E7%AE%A1%E7%90%86%E5%99%A8/npm%2033f0f8d8d1fd80298167ddde51d63faf.md)

@@ -30,7 +30,7 @@ update 直接**复用缓存状态**
 
 因此是否命中 bailout 主要也是围绕这三个变量展开的，整体的工作流程如下：
 
-![image.png](工程师沉淀/React/性能优化/2%20bailout%20-%20beginWork/image.png)
+![image.png](2%20bailout%20-%20beginWork/image.png)
 
 从上图可以看出，bailout 是否命中发生在 **update** 阶段，在进入 beginWork 后，会有**两次**是否命中 bailout 策略的相关判断
 

@@ -12,7 +12,7 @@
 
 整体流程图如下：
 
-![image.png](工程师沉淀/React/React架构/Reconciler/归%20completeWork%20工作流程/image.png)
+![image.png](%E5%BD%92%20completeWork%20%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/image.png)
 
 ```jsx
 completeWork (reconciler)

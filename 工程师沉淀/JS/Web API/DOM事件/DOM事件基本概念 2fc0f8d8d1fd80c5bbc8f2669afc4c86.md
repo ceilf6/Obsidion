@@ -17,9 +17,9 @@
 2. 事件目标处理阶段
 3. 事件冒泡：先触发**最里层**的元素，然后再依次触发外层元素
 
-![image.png](工程师沉淀/JS/Web%20API/DOM事件/DOM事件基本概念/image.png)
+![image.png](DOM%E4%BA%8B%E4%BB%B6%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/image.png)
 
-![image.png](工程师沉淀/JS/Web%20API/DOM事件/DOM事件基本概念/image%201.png)
+![image.png](DOM%E4%BA%8B%E4%BB%B6%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/image%201.png)
 
 目前，标准规定，**默认**情况下，事件是**冒泡**的方式触发（监听）
 

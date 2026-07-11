@@ -2,4 +2,4 @@
 
 过渡效果：从一个状态到下一个状态
 
-[CSS属性](CSS属性%203140f8d8d1fd80a6b7e3e012ca84e4f7.md)
+[CSS属性](%E5%8A%A8%E7%94%BB/CSS%E5%B1%9E%E6%80%A7%203140f8d8d1fd80a6b7e3e012ca84e4f7.md)

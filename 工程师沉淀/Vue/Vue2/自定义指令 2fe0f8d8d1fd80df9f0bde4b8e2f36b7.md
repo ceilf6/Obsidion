@@ -153,9 +153,9 @@ export default {
 
 ## bingding 对象
 
-![image.png](工程师沉淀/Vue/Vue2/自定义指令/image.png)
+![image.png](%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E4%BB%A4/image.png)
 
-![image.png](工程师沉淀/Vue/Vue2/自定义指令/image%201.png)
+![image.png](%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E4%BB%A4/image%201.png)
 
 > [查看更多bingding对象的属性](https://cn.vuejs.org/v2/guide/custom-directive.html#%E9%92%A9%E5%AD%90%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0)
 > 

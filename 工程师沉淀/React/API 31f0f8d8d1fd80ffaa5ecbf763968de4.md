@@ -1,5 +1,5 @@
 # API
 
-[hooks](hooks%203180f8d8d1fd805a933bef5526c50591.md)
+[hooks](API/hooks%203180f8d8d1fd805a933bef5526c50591.md)
 
-[懒加载相关](懒加载相关%2031f0f8d8d1fd80409615d1332f6e04cc.md)
+[懒加载相关](API/%E6%87%92%E5%8A%A0%E8%BD%BD%E7%9B%B8%E5%85%B3%2031f0f8d8d1fd80409615d1332f6e04cc.md)

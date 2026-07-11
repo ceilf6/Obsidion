@@ -8,7 +8,7 @@ awk 将每行拆成字段后做处理
 
 反引号：\( \) 配合 \1 
 
-[正则表达式](正则表达式%203420f8d8d1fd8046acaadcd1e4900836.md)
+[正则表达式](06%20grep%20sed/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%203420f8d8d1fd8046acaadcd1e4900836.md)
 
 # 正则表达式
 
@@ -142,13 +142,13 @@ $ 字符串的末尾
     注意 \( \) 以及 \1
     
 
-![image.png](工程师沉淀/操作系统/操作系统/06%20grep%20sed/image.png)
+![image.png](06%20grep%20sed/image.png)
 
-![image.png](工程师沉淀/操作系统/操作系统/06%20grep%20sed/image%201.png)
+![image.png](06%20grep%20sed/image%201.png)
 
 配合管道化
 
-![image.png](工程师沉淀/操作系统/操作系统/06%20grep%20sed/image%202.png)
+![image.png](06%20grep%20sed/image%202.png)
 
 # grep命令
 
@@ -259,7 +259,7 @@ str1::str1
 
 stream editor
 
-[sed](4%20文件系统%203410f8d8d1fd80b9b2e0fe3e7498821e.md) 
+[sed](01%20Cour1&2/4%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%203410f8d8d1fd80b9b2e0fe3e7498821e.md) 
 
 sed的命令默认从标准输入读取内容，也可应用于文件；处理结果会输出到标准输出
 
@@ -458,13 +458,13 @@ sed '4a\str1' fileName
     > **&** 表示替换时，放入**本次匹配的内容**
     > 
 
-![image.png](工程师沉淀/操作系统/操作系统/06%20grep%20sed/image%203.png)
+![image.png](06%20grep%20sed/image%203.png)
 
-![image.png](工程师沉淀/操作系统/操作系统/06%20grep%20sed/image%204.png)
+![image.png](06%20grep%20sed/image%204.png)
 
-![image.png](工程师沉淀/操作系统/操作系统/06%20grep%20sed/image%205.png)
+![image.png](06%20grep%20sed/image%205.png)
 
-![image.png](工程师沉淀/操作系统/操作系统/06%20grep%20sed/image%206.png)
+![image.png](06%20grep%20sed/image%206.png)
 
 ## 文件读写
 

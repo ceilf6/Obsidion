@@ -1,6 +1,6 @@
 # 纯组件 PureComponent React.memo()
 
-[4. React.memo / PureComponent](4%20React%20memo%20PureComponent%203170f8d8d1fd80ac9693dec2ebf4bff9.md) 
+[4. React.memo / PureComponent](../%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/4%20React%20memo%20PureComponent%203170f8d8d1fd80ac9693dec2ebf4bff9.md) 
 
 在默认情况下，只要上层组件发生了变化，其**所有后代组件都需要重新渲染**
 

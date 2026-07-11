@@ -23,7 +23,7 @@ Linux中存在多种 Shell 解释器:
 
 # Unix Shell 对比 Windos PowerShell
 
-![image.png](工程师沉淀/操作系统/操作系统/01%20Cour1&2/3%20Shell/image.png)
+![image.png](3%20Shell/image.png)
 
 # 工作环境
 

@@ -17,7 +17,7 @@
 - postcss
 - less-loader
 
-![image.png](工程师沉淀/Vue/Vue2/vue%20cli/image.png)
+![image.png](vue%20cli/image.png)
 
 # SFC
 
@@ -49,7 +49,7 @@ export default {
 1. 运行时就**不再需要编译模板**了，提高了运行效率
 2. 打包结果中**不再需要vue的 template compiler ，减少了打包体积**
 
-![image.png](工程师沉淀/Vue/Vue2/vue%20cli/image%201.png)
+![image.png](vue%20cli/image%201.png)
 
 # 全局样式实现
 
@@ -73,10 +73,10 @@ npm install less less-loader@7 --save-dev
 
 # 手动模拟
 
-![image.png](工程师沉淀/Vue/Vue2/vue%20cli/image%202.png)
+![image.png](vue%20cli/image%202.png)
 
-![image.png](工程师沉淀/Vue/Vue2/vue%20cli/image%203.png)
+![image.png](vue%20cli/image%203.png)
 
-![image.png](工程师沉淀/Vue/Vue2/vue%20cli/image%204.png)
+![image.png](vue%20cli/image%204.png)
 
-![image.png](工程师沉淀/Vue/Vue2/vue%20cli/image%205.png)
+![image.png](vue%20cli/image%205.png)

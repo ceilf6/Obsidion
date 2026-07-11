@@ -4,7 +4,7 @@
 
 通过Transformer的注意力机制能实现**并行**处理所有词信息
 
-[大模型的3D并行](大模型的3D并行%203230f8d8d1fd80a8ac9fdc24b097fd15.md) 
+[大模型的3D并行](../%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%843D%E5%B9%B6%E8%A1%8C%203230f8d8d1fd80a8ac9fdc24b097fd15.md) 
 
 大模型的上下文限制主要是因为 Transformer 架构需要对每个词料做注意力计算，过长会导致计算代价提高，并且位置编码也很大
 
@@ -18,7 +18,7 @@
 
 用训练过程学习得到的 Wq, Wk, Wv 三个矩阵对词向量矩阵进行计算得到
 
-![image.png](工程师沉淀/AI/1%20LLM大模型基层/神经网络/Transformer注意力机制/index/image.png)
+![image.png](index/image.png)
 
 然后用 q1 * k2 得到 a12 ，表示在第一个词视角，和第二个词的相似度、影响力度
 
@@ -28,7 +28,7 @@
 
 **注意力头** 即 **在一个词视角中其他词的上下文信息**
 
-![image.png](工程师沉淀/AI/1%20LLM大模型基层/神经网络/Transformer注意力机制/index/image%201.png)
+![image.png](index/image%201.png)
 
 以此类推得到第二个、第三个…词的视角 a2 , a3 
 
@@ -40,13 +40,13 @@
 
 通过 多头注意力 可以实现在 **多个层面** 上对词语的分析，例如表达含义、情绪
 
-![image.png](工程师沉淀/AI/1%20LLM大模型基层/神经网络/Transformer注意力机制/index/image%202.png)
+![image.png](index/image%202.png)
 
 ## 架构图
 
 https://arxiv.org/html/1706.03762
 
-![image.png](工程师沉淀/AI/1%20LLM大模型基层/神经网络/Transformer注意力机制/index/image%203.png)
+![image.png](index/image%203.png)
 
 左边是编码器
 
@@ -66,7 +66,7 @@ https://arxiv.org/html/1706.03762
 
 # 注意力机制
 
-![image.png](工程师沉淀/AI/1%20LLM大模型基层/神经网络/Transformer注意力机制/index/image%204.png)
+![image.png](index/image%204.png)
 
 ## 单头注意力
 
@@ -80,4 +80,4 @@ q * k 得到相似度系数矩阵
 
 然后经过线性运算得到最终词向量矩阵
 
-![image.png](工程师沉淀/AI/1%20LLM大模型基层/神经网络/Transformer注意力机制/index/image%205.png)
+![image.png](index/image%205.png)
