@@ -1,5 +1,0 @@
-# FEDO 在“代码集成”节点会自动开出 PR，无需手动创建
-
-代码 Review: 点击 FEDO 日志内的 PR 链接可跳转至 Code 平台对应 PR 详情，PR 发给至少 2 个组内同学进行代码 Review 并点击“approve”
-代码集成: 点击“合并 PR” 按钮，如合入条件均满足则会自动完成代码合入并继续向下流转
-文件: https://km.sankuai.com/api/file/cdn/1728761485/47223851518?contentType=1, https://km.sankuai.com/api/file/cdn/1728761485/47215074290?contentType=1, https://km.sankuai.com/api/file/cdn/1728761485/47217115785?contentType=1
