@@ -1,0 +1,514 @@
+# 滚动抖动分析
+
+Source: [KM 2758825005](https://km.example.com/collabpage/2758825005)
+
+## 问题描述
+
+新增了 packages/modules/SnackShelf/src/components/boughtDeal 买过模块后，遇到问题：在滚动时，sectionHeader会突然从顶部往下跳一段高度后又恢复到顶部，但是正常应该是一直吸附在顶部
+
+[11985882-378d-480c-ad74-ab5ae59ac883.png](https://km.example.com/api/file/cdn/2758825005/233796791554?contentType=1&isNewContent=false)
+
+## 尝试修复PR
+
+[http://dev.example.com/code/repo-detail/nibfe/lib-snack-poi/pr/259/overview](http://dev.example.com/code/repo-detail/nibfe/lib-snack-poi/pr/259/overview)
+
+[🔗 链接卡片](https://dev.example.com/code/repo-detail/nibfe/lib-snack-poi/pr/264/overview)
+
+### 提交
+
+尝试进行了修改，但是问题仍然存在
+
+判断是否是因为没有修改完全，同时数值 62 计算得是否正确
+
+ce2189a4e1af6ab07ede9d7e0e09c4e44bd83cfc
+
+041becb7a1004e55d7febdd2549087dc69eb8231
+
+0acc3aef88d3557428d56bd73ebae8f508ffc857
+
+44d2738dbf9c215f86a2fe8bec14d7e816de75e4
+
+## 后续尝试
+
+### 一、
+
+PROMPT
+
+```
+// 代码块
+新增了 packages/modules/SnackShelf/src/components/boughtDeal 买过模块后，遇到问题：在滚动时，sectionHeader会突然从顶部往下跳一段高度，等稳定后又恢复到顶部，但是正常应该是一直吸附在顶部
+
+尝试进行了修改，但是问题仍然存在
+ce2189a4e1af6ab07ede9d7e0e09c4e44bd83cfc
+041becb7a1004e55d7febdd2549087dc69eb8231
+0acc3aef88d3557428d56bd73ebae8f508ffc857
+44d2738dbf9c215f86a2fe8bec14d7e816de75e4
+
+[$pua](/Users/ceilf6/.codex/skills/pua/SKILL.md) 不要偷懒 [$karpathy-guidelines](/Users/ceilf6/.codex/skills/karpathy-guidelines/SKILL.md) 聚焦问题，最小修复实现，不要动无关代码
+```
+
+codex gpt5.4
+
+- useHeightCache
+
+结果：修复失败
+
+claude opus4.7
+
+- Root Cause Analysis:
+The issue is in the efficient-shelf's getRenderData function (useListOperations.ts). When processing list
+items, it uses isGoodItem(type) to decide whether to populate the deal field. But isGoodItem('boughtDeal')
+returns false because boughtDeal is not in the ProductType enum. This means:
+    1. data.deal is never set for boughtDeal items in the efficient shelf
+    2. renderMyUsualOrder falls back to productInfo.products.boughtDeal[id] from the MobX store
+    3. During scrolling, there can be timing gaps where the deal isn't yet available through MobX, causing the
+    component to return <></> (0 height)
+    4. But calculateItemHeight always returns 62 for type === 'boughtDeal'
+    5. This height mismatch (0 rendered vs 62 calculated) causes FlatList to miscalculate item offsets, making
+    the sticky header jump
+    The fix: populate deal data for boughtDeal items in getRenderData, just like other item types.
+    Read 1 file (ctrl+o to expand)
+    ⏺ Now I'll implement the fix. The key change is in getRenderData - we need to also populate deal data for
+    boughtDeal items.
+    ⏺ Update(packages/modules/SnackShelf/src/efficient-shelf/components/list/hooks/useListOperations.ts)
+    ⎿ Added 1 line, removed 1 line
+    463
+    464 return list.map((item) => {
+    465 const { type, dataType } = item;
+    466 - if (isGoodItem(type) && dataType === 'item') {
+    466 + if ((isGoodItem(type) || type === 'boughtDeal') && dataType === 'item') {
+    467 const {
+    468 meta: { id: productId, type: productType },
+    469 } = item.data;
+
+> 问题出在 efficient-shelf 的 `getRenderData` 函数（`useListOperations.ts`）里。
+在处理 `listitems` 时，它会通过 `isGoodItem(type)` 来决定是否给 `deal` 字段赋值。
+> 
+> 
+> 但 `isGoodItem('boughtDeal')` 会返回 `false`，因为 `boughtDeal` 不在 `ProductType` 枚举中。
+> 
+> 这就意味着：
+> 
+> - 在 efficient shelf 中，`boughtDeal` 类型的 item 永远不会被设置 `data.deal`
+> - `renderMyUsualOrder` 会退回去从 MobX store 中读取 `productInfo.products.boughtDeal[id]`
+> - 在滚动过程中，可能会出现时间差，此时 MobX 里对应的 `deal` 还没准备好，导致组件返回 `<></>`（高度为 0）
+> - 但 `calculateItemHeight` 在 `type === 'boughtDeal'` 时始终返回 `62`
+> - 这种高度不一致（实际渲染为 0，而计算高度为 62）会导致 `FlatList` 错误计算 item 偏移量，从而让吸顶 header 发生跳动
+> **修复方式：**
+> 
+> 在 `getRenderData` 中，像处理其他 item 类型一样，也为 `boughtDeal` 类型的 item 填充 `deal` 数据
+> 
+
+### 总结
+
+**根因与修复总结**
+
+**问题：**`isGoodItem()` 的判断逻辑是 `Object.values(ProductType).includes(type)`，但 `boughtDeal` 并不在 `ProductType` 枚举中。
+因此，在 efficient-shelf 的 `getRenderData`（`useListOperations.ts:466`）里，`boughtDeal` 类型的 item 在填充 `deal` 数据时会被跳过。
+
+**影响链路：**
+
+1. 在 efficient shelf 中，`boughtDeal` 类型的 item 得到的 `deal` 是 `undefined`
+2. `renderMyUsualOrder` 会退回去从 **MobX store** 中读取数据，而这个过程在滚动时会有**时序空档**
+3. 当 `deal` 缺失时，组件会渲染 `<></>`（高度为 0），但 `calculateItemHeight` 返回的却是 `62`
+4. 这种高度不一致会导致 `FlatList` **错误计算偏移量**，从而让吸顶的 `sectionHeader` 发生跳动
+
+**修复方式**（`useListOperations.ts:466`）：
+
+- `if (isGoodItem(type) && dataType === 'item') { + if ((isGoodItem(type) || type === 'boughtDeal') && dataType === 'item') {`
+
+这样可以**确保 `**boughtDeal**` 类型的 item 在 `**getRenderData**` 阶段，也像 `**meal**` / `**mopProduct**` 一样，从 `**products**` 中正确填充它们的 `**deal**` 数据**。
+这样组件在渲染时就始终能拿到正确的数据和高度，从而消除导致 header 跳动的偏移量错算问题。
+
+Fix 1: useListOperations.ts:466 (already applied)
+
+- if (isGoodItem(type) && dataType === 'item') {
+- if ((isGoodItem(type) || type === 'boughtDeal') && dataType === 'item') {
+
+### 人工纠正
+
+不应该 || 添加逻辑成本，而是应该归入到 isGoodItem 中
+
+结果：正常一口气从后端请求所有数据的货架的抖动问题已经修复，但是懒加载的货架（每次切换类目都会去请求）仍然存在问题
+
+### 二、
+
+Let me check how boughtDeal items flow through the lazy shelf. The structGoods files don't mention boughtDeal
+at all - so the question is: how does boughtDeal data get into the sectionData for the efficient shelf? Let
+me look at the sectionStyleMap registration and how the data flows.
+
+Searched for 3 patterns (ctrl+o to expand)
+
+⏺ Let me trace the exact data flow. boughtDeal has type: 'item' in sectionStyleMap, so renderType =
+sectionStyleMap['boughtDeal']?.type = 'item'. The structGoods creates items via createGoodsItem which sets
+dataType: renderType = 'item'. So boughtDeal items should have dataType: 'item' and type: 'boughtDeal'. My
+previous fix handles the getRenderData mapping. But the lazy shelf also has a different useListOperations
+hook that may use different structGoods variants. Let me check which structGoods is actually used.
+
+> 让我检查一下 `boughtDeal` 类型的 item 在 lazy shelf 里是怎么流转的。`structGoods` 相关文件里完全没有提到 `boughtDeal`，所以问题就变成了：`boughtDeal` 的数据究竟是怎么进入 efficient shelf 的 `sectionData` 里的？我先看看 `sectionStyleMap` 的注册方式，以及数据流转路径。
+已搜索 3 处模式（按 `ctrl+o` 展开）
+⏺ 让我继续追踪一下准确的数据流。
+`boughtDeal` 在 `sectionStyleMap` 里的 `type` 是 `'item'`，所以：
+`renderType = sectionStyleMap['boughtDeal']?.type = 'item'`
+而 `structGoods` 会通过 `createGoodsItem` 来创建 item，并且会设置：
+`dataType: renderType = 'item'`
+所以，`boughtDeal` 类型的 item 理论上应该具备：
+> 
+> - `dataType: 'item'`
+> - `type: 'boughtDeal'`
+> 我之前的修复已经覆盖了 `getRenderData` 里的映射逻辑。
+> 但是 lazy shelf 里还有另一个不同的 `useListOperations` hook，它可能使用了另一套 `structGoods` 变体。
+> 我接下来要确认一下：实际使用的到底是哪一个 `structGoods`。
+
+Fix 2: snackItem.tsx:327-328 (just applied)
+
+- const actualProductType = productType || type;
+- const actualProductType = type || productType;
+
+```
+// 代码块
+Let me investigate the lazy-load shelf path more carefully. The efficient-shelf has a different structGoods
+  and data flow.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+⏺ Let me trace the full data flow for the lazy-load shelf. The getRenderData fix handles deal population, but I
+   need to check how sectionStyleMap registers boughtDeal and how the structGoods files generate boughtDeal
+  items for the lazy shelf.
+
+  Searched for 3 patterns (ctrl+o to expand)
+
+⏺ Let me check how boughtDeal items flow through the lazy shelf. The structGoods files don't mention boughtDeal
+   at all - so the question is: how does boughtDeal data get into the sectionData for the efficient shelf? Let
+  me look at the sectionStyleMap registration and how the data flows.
+
+  Searched for 3 patterns (ctrl+o to expand)
+
+⏺ Let me trace the exact data flow. boughtDeal has type: 'item' in sectionStyleMap, so renderType =
+  sectionStyleMap['boughtDeal']?.type = 'item'. The structGoods creates items via createGoodsItem which sets
+  dataType: renderType = 'item'. So boughtDeal items should have dataType: 'item' and type: 'boughtDeal'. My
+  previous fix handles the getRenderData mapping. But the lazy shelf also has a different useListOperations
+  hook that may use different structGoods variants. Let me check which structGoods is actually used.
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ Let me check if there are other useListOperations variants used by different shelf configurations.
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ Let me look at the efficient-shelf entry point and how it selects which structGoods to use.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ The efficient-shelf uses only one useListOperations which imports from structGoods.ts. My fix is already in
+  the right place. Let me now think about what else could cause the issue in the lazy-load path. The key
+  difference is the stickyHeaderIndices management - the efficient shelf dynamically sets it via
+  setStickyHeaderIndices, and the useHeightCache uses enableSmartUpdate: true. Let me look more carefully at
+  the height cache behavior and the stickyHeaderIndices logic.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Let me trace the exact issue more carefully. The sectionStyleMap for boughtDeal has type: 'item', so in
+  structGoods.ts the renderType for a boughtDeal filterItem would be 'item'. But wait - boughtDeal is NOT in
+  the ProductType enum, so sectionStyleMap[productType] where productType comes from the backend filterItem.
+  Let me check what productType the backend sends for boughtDeal categories.
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+⏺ Let me understand the data structure better. boughtDeal items are individual items within a category (like
+  meal items), not a separate category. They appear inside foldAreas of a meal/mopProduct category. Let me
+  verify this.
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ Let me look at how boughtDeal items are structured in the productsInfo - they have type: 'boughtDeal' in the
+  productsInfo array, and the deal data lives in products.boughtDeal[id]. In the structGoods, createGoodsItem
+  sets dataType: renderType where renderType comes from sectionStyleMap[productType]?.type. But productType
+  here is the parent category's productType (e.g., 'meal'), not 'boughtDeal'. The individual item's type is
+  'boughtDeal'. Let me verify this flow.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Now I see the full picture. In createGoodsItem, type comes from productInfo.type (which is 'boughtDeal'), but
+   productType is the parent category (e.g., 'meal'). And dataType is set to renderType which comes from
+  sectionStyleMap[parentProductType]?.type = 'item' (for meal). So boughtDeal items have type: 'boughtDeal' and
+   dataType: 'item'. My fix in getRenderData should catch these. But let me check the meta.type field - that's
+  what getRenderData uses to look up the deal.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Let me trace the meta fields. In createGoodsItem, ...productInfo is spread into meta, so meta.type =
+  productInfo.type = 'boughtDeal', and meta.id = productInfo.id. Then in getRenderData, it reads meta.type as
+  productType and looks up products?.[productType]?.[productId] = products?.boughtDeal?.[id]. This should work
+  correctly.
+
+  But wait - the products state in the efficient shelf is initialized without boughtDeal! Let me check.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Found it! The products state in the efficient shelf is initialized without boughtDeal. This means
+  products?.boughtDeal?.[id] will always be undefined in getRenderData, even though the actual data exists in
+  store.productInfo.products.boughtDeal. Let me also check how products gets updated.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+⏺ OK, now I see the full picture. The products state gets updated from store.productInfo.products in the
+  useEffect at line 94-100. Since store.productInfo.products includes boughtDeal, the products state should
+  eventually have boughtDeal data. But there's a timing issue - the initial state doesn't include boughtDeal,
+  and the useEffect runs asynchronously. However, the useEffect should fire before getRenderData processes the
+  list since both depend on store.productInfo.
+
+  Wait - let me re-read the flow more carefully. getRenderData is called from initializeData which is triggered
+   by store.isNetWork change. The products state update also depends on store.productInfo. There could be a
+  race where getRenderData runs with the old products state that doesn't have boughtDeal yet.
+
+  But actually, looking at line 94-100, setProducts(store.productInfo.products) should include boughtDeal. The
+  initial state at line 60-69 is just a fallback. Once the combined API returns, store.productInfo.products
+  will have boughtDeal and the useEffect will update products.
+
+  Let me look at useListOperations more carefully - it receives products as a prop. When does initializeData
+  run vs when does products get updated?
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Let me check the timing of initializeData vs products update, and also look at how products is passed to
+  useListOperations.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Key finding: products is passed as store.productInfo?.products || {} directly (line 124), not the local
+  products state. So getRenderData uses the prop products which comes directly from the MobX store. This should
+   include boughtDeal. Let me re-examine the actual issue more carefully - maybe it's the useHeightCache with
+  enableSmartUpdate: true that's causing the problem.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Let me look at the useHeightCache smart update logic more carefully - when enableSmartUpdate: true and data
+  grows (append), it only calculates heights for new items starting from prevLength. But if boughtDeal items
+  were already in the list with incorrect heights (e.g., 0 because deal was missing), the append strategy won't
+   recalculate them.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Let me now look at the sectionHeader component more carefully - specifically how tabTranslateY is computed
+  for the lazy shelf. The sectionHeader uses sectionOffsetList from the store, but in the efficient shelf,
+  setSectionOffsetList may never be called.
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ Interesting - setSectionOffsetList is never called anywhere! Let me check how the sectionHeader's sticky
+  behavior works in the efficient shelf. The sectionHeader uses sectionOffsetList for the tabTranslateY
+  animation. If it's never populated, the values are all 0, and the sticky behavior relies entirely on
+  FlatList's stickyHeaderIndices. Let me look at the sectionHeader's translateY logic more carefully.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Let me focus on the efficient shelf's sticky header mechanism. The sectionHeader uses sectionOffsetList for
+  the translateY animation, but setSectionOffsetList is never called. In the efficient shelf, the sticky
+  behavior comes from FlatList's stickyHeaderIndices which is dynamically set to a single header index. The
+  tabTranslateY would be 0 since sectionOffsetList is empty. So the sticky header relies entirely on FlatList's
+   native sticky mechanism.
+
+  The issue must be in the getItemLayout returning wrong offsets during scrolling. Let me check the
+  getItemLayout height-change detection loop more carefully - it only checks meal and mopProduct types for
+  store height changes, but boughtDeal items could also have height discrepancies.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Let me check the calculateItemHeight for boughtDeal more carefully - the issue might be that in the lazy
+  shelf, the boughtDeal item's data.deal is populated by getRenderData now, but the calculateItemHeight
+  function doesn't use deal at all for boughtDeal - it just returns a fixed 62. So the height cache should be
+  correct. Let me look at the actual rendering to see if the rendered height matches 62.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Let me check the actual rendered height of the boughtDeal component. The container has margin-bottom: 12px
+  and the image is 50px. But the container also has margin-left: 12px and margin-right: 12px. The key question
+  is whether the actual rendered height matches the 62px that calculateItemHeight returns. Let me also check if
+   the addButtonFloatingArea with position:absolute could affect layout.
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ Let me check how snack heights are stored and whether boughtDeal items could be writing heights to the store.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Let me check the snackItem's height reporting to understand if boughtDeal items could be interfering with the
+   height cache through the store.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Let me check the snackId format for boughtDeal items and whether they could collide with meal/mopProduct
+  snackIds in the height cache detection loop.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Let me trace the snackId for boughtDeal items through createGoodsItem.
+
+⏺ Let me trace the exact data flow for boughtDeal in the lazy shelf to find the remaining issue.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Let me trace the exact issue. In renderMyUsualOrder, productType comes from the goodsData item. For
+  boughtDeal items created by createGoodsItem in structGoods, productType is the parent category (e.g.,
+  'meal'), NOT 'boughtDeal'. But type is 'boughtDeal'. So actualProductType = productType || type = 'meal' (the
+   parent). Then it looks up productInfo?.products?.['meal']?.[itemId] which won't find the boughtDeal data.
+  Let me verify this.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Let me check the meta.type field for boughtDeal items - this is what getRenderData uses to look up the deal.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Now I see the full picture. In createGoodsItem, ...productInfo is spread into meta at line 165. The
+  productInfo from the backend has type: 'boughtDeal' and id: '<dealId>'. So meta.type = 'boughtDeal' and
+  meta.id = '<dealId>'. In getRenderData, it reads meta.type as productType = 'boughtDeal' and looks up
+  products?.boughtDeal?.[id]. This should work IF products has boughtDeal data.
+
+  But the products prop passed to useListOperations is store.productInfo?.products || {}. This should include
+  boughtDeal. And my fix ensures the deal is populated. So the deal data should be available.
+
+  Let me now check the renderMyUsualOrder function again - the issue is that productType on the goodsData item
+  is the PARENT category (e.g., 'meal'), not 'boughtDeal'. So actualProductType = productType || type = 'meal'.
+   Then productInfo?.products?.['meal']?.[itemId] won't find the boughtDeal data. This is the fallback path
+  that runs when deal is undefined. With my fix, deal should be populated, so the fallback shouldn't be needed.
+   But let me verify the renderMyUsualOrder is using the correct productType for the fallback.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ I found two issues in renderMyUsualOrder:
+
+  1. productType is the parent category (e.g., 'meal'), so actualProductType = productType || type = 'meal',
+  not 'boughtDeal'. The fallback lookup productInfo?.products?.['meal']?.[itemId] won't find boughtDeal data.
+  2. sectionStyleMap[actualProductType] with 'meal' would use the meal renderer, not the boughtDeal renderer.
+
+  With my getRenderData fix, deal should be populated, so the fallback path shouldn't trigger. But the second
+  issue means even if the fallback finds data, it would render with the wrong component. And
+  sectionStyleMap['boughtDeal'] is the correct renderer.
+
+  The fix: actualProductType should use type (which is 'boughtDeal') not productType (which is the parent
+  'meal'). Let me fix this.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Fixing renderMyUsualOrder - the actualProductType should prefer type ('boughtDeal') over productType (parent
+  category like 'meal'), since boughtDeal items live under products.boughtDeal, not products.meal.
+
+⏺ Update(packages/modules/SnackShelf/src/components/list/snackItem.tsx)
+  ⎿  Added 3 lines, removed 2 lines
+      323
+      324    // 曾经买过的团购
+      325    const renderMyUsualOrder = () => {
+      326 -    // 这里需要兼容懒加载货架，不能单纯的读取deal塞给renderFunc
+      327 -    const actualProductType = productType || type;
+      326 +    // boughtDeal 的 type 是 'boughtDeal'，但 productType 是父分类（如 'meal'），
+      327 +    // 数据在 products.boughtDeal 下，所以优先用 type
+      328 +    const actualProductType = type || productType;
+      329      const itemId = meta?.id ? String(meta.id) : '';
+      330      const latestDeal = itemId ? productInfo?.products?.[actualProductType]?.[itemId] : undefi
+           ned;
+      331      const actualDeal = deal || latestDeal;
+
+⏺ Let me verify the fix and also check the calculateItemHeight for the same issue - it also uses productType
+  from the item.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Good, calculateItemHeight uses type (not productType) to match boughtDeal at line 103, so the height
+  calculation is correct.
+
+  Summary of both fixes:
+
+  Fix 1: useListOperations.ts:466 (already applied)
+
+  - if (isGoodItem(type) && dataType === 'item') {
+  + if ((isGoodItem(type) || type === 'boughtDeal') && dataType === 'item') {
+  Ensures getRenderData populates deal data for boughtDeal items from products.boughtDeal.
+
+  Fix 2: snackItem.tsx:327-328 (just applied)
+
+  - const actualProductType = productType || type;
+  + const actualProductType = type || productType;
+  For boughtDeal items, productType is the parent category (e.g., 'meal'), but type is 'boughtDeal'. The data
+  lives under products.boughtDeal, and the renderer is sectionStyleMap['boughtDeal']. Prioritizing type
+  ensures:
+  1. The fallback lookup finds data in the correct products.boughtDeal[id] path
+  2. The correct sectionStyleMap['boughtDeal'] renderer is used
+
+  Root cause of the lazy-load shelf issue: Even with Fix 1 populating deal, there are edge cases during lazy
+  loading where deal could be undefined (e.g., timing between data fetch and render). The fallback path in
+  renderMyUsualOrder was looking up products.meal[id] instead of products.boughtDeal[id], so it would always
+  fail, rendering <></> (0 height) instead of the 62px boughtDeal card. This height mismatch caused the
+  FlatList offset calculation to be wrong, making the sticky header jump.
+```
+
+懒加载相关
+
+## 根本原因
+
+本质是因为增加买过区块的高度后，左侧目录（代表着感知滑动到的区块）和右侧实际滑动的区块不统一，导致上一个 sectionHeader 提前卸载，正确的应该是等待下一个区块头锚定在顶部后上一个再卸载
+
+抖动 是因为 setState 重渲染
+
+### 总结修复
+
+1. productType 枚举中补上 boughtDeal
+2. 
+
+// 代码块
+export const calculatePurchasedDealHeight = (item) => {
+const { data } = item;
+// list item 的 data 里是 filterItem，通过 productsInfo 判断是否有商品
+const productsInfo = data?.filterItem?.subFilterItems?.[0]?.foldAreas?.[0]?.productsInfo;
+if (Array.isArray(productsInfo) && productsInfo.length > 0) {
+// 券卡片高度 66px + 水平 FlatList 每个 item 的 margin-bottom 12px
+return 78;
+}
+// 无合法团购券的情况，兜底样式的高度为 36
+return 36;
+};
+
+```
+3. ```TypeScript
+// 代码块
+      // 额外检查：如果已有的 item 发生了变化（如 loading → 真实数据），需要全量重算
+      const prevSnapshot = prevDataSnapshotRef.current;
+      const hasExistingItemChanged = data.slice(0, prevLength).some((item, i) => {
+        const prev = prevSnapshot[i];
+        return !prev || item.id !== prev.id || item.type !== prev.type;
+      });
+      if (hasExistingItemChanged) {
+        updateStrategy = 'replace';
+      } else {
+```
+
+1. 
+
+// 代码块
+// 计算可见的length，用于判断当前分类是否填满一屏以决定是否补充下一分类
+// marketingMeal（list类型）用实际商品数，expand 折叠项不计入（折叠商品不可见，不占屏幕空间）
+export const countListLength = (list: IProcessItem[]): number => {
+if (!Array.isArray(list) || list.length === 0) {
+return 0;
+}
+const { marketingCount } = list.reduce(
+(acc, item) => {
+// 营销套餐数量计算
+if (item.dataType === 'list') {
+const productsLength =
+item.data?.filterItem?.subFilterItems?.[0]?.foldAreas?.[0]?.productsInfo?.length;
+acc.marketingCount = (productsLength || 1) - 1;
+}
+return acc;
+},
+{ marketingCount: 0 }
+);
+
+const totalLength = list.length + marketingCount;
+
+```
+
+```
+
+[修复后记录](%E6%BB%9A%E5%8A%A8%E6%8A%96%E5%8A%A8%E5%88%86%E6%9E%90/%E4%BF%AE%E5%A4%8D%E5%90%8E%E8%AE%B0%E5%BD%95%203760f8d8d1fd81ce93bbc4ddec168f0a.md)

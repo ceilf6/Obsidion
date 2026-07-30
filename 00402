@@ -1,0 +1,3 @@
+﻿点击按钮,备注,文件,选择发布 App 及覆盖 Native 版本区间
+,"注意最右侧的文字提示，可选择的版本不低于线上最新版。
+同时为了保证多人开发版本区间一致，同一迭代下也会锁死同一下届。","https://km.example.com/api/file/cdn/1728761485/45600983684?contentType=1&isNewContent=false, https://km.example.com/api/file/cdn/1728761485/45602980950?contentType=1&isNewContent=false",

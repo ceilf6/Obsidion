@@ -1,0 +1,86 @@
+# 198 213 打家劫舍
+
+# 记忆型回溯
+
+```jsx
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var rob = function(nums) {
+    if (nums.length === 0) return 0;
+    if (nums.length === 1) return nums[0];
+
+    // const cache = new Map()
+    const cache = new Array(nums.length).fill(-1) 
+    // 0可能也是有效值，还是初始化为-1
+    function dfs(i){
+        // 递归边界
+        if(i < 0) return 0
+
+        // 记忆型
+        if(cache[i] !== -1) return cache[i]
+
+        const curAns = Math.max(dfs(i-1),dfs(i-2)+nums[i])
+        cache[i] = curAns
+        return curAns
+    }
+    return dfs(nums.length-1) // 注意下标-1
+};
+```
+
+# DP
+
+dfs(i) ⇒ f[i]
+
+```jsx
+var rob = function(nums) {
+    if (nums.length === 0) return 0;
+    if (nums.length === 1) return nums[0];
+
+    const f = new Array(nums.length+2).fill(0)
+    // +2: dfs(-1) 和 dfs(-2)
+
+    for(let i = 0;i<nums.length;i++){
+        f[i+2] = Math.max(f[i]+nums[i], f[i+1])
+    }
+
+    return f[nums.length+1]
+}
+```
+
+复用空间
+
+```jsx
+var rob = function(nums) {
+    if (nums.length === 0) return 0;
+    if (nums.length === 1) return nums[0];
+
+    let f0 = 0;
+    let f1 = 0;
+
+    for(const num of nums){
+        const temp = f1
+        f1 = Math.max(f0+num,f1)
+        f0 = temp
+    }
+    return f1
+}
+```
+
+# 打家劫舍2
+
+```jsx
+var rob2 = function(nums) {
+    const n = nums.length
+    if (n === 1) return nums[0]
+
+    // 情况 A：抢第1家，则不能抢最后一家 → [0..n-2]
+    const a = rob(nums.slice(0, n - 1))
+
+    // 情况 B：不抢第1家，则可以抢最后一家 → [1..n-1]
+    const b = rob(nums.slice(1))
+
+    return Math.max(a, b)
+}
+```

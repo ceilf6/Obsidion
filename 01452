@@ -1,0 +1,384 @@
+# 机器学习课程
+
+首先通过梯度去优化你的 w 和 b 从而拟合数据
+
+```python
+# 1. 读取 数据量 和 特征量
+n_samples, n_features = X.shape
+
+# 2. 初始化
+self.weights = np.zeros(n_features)
+# self 是因为老师的上下文是在一个类中
+self.bias = 0
+
+# 3. 进入训练循环
+for i in range(train_times):
+	# 4. 当前 权重w 和 b 下的预测值
+	y_predicted = np.dot(X,self.weights) + self.bias
+	
+	# 5. 计算梯度（求导）
+	dw = (2/n_samples) * np.dot(X.T, (y_predicted - y))
+	db = (2/n_samples) * np.sum(y_predicted - y)
+	
+	# 6. 根据梯度更新 w 和 b
+	self.weights = self.weights - self.lr * dw
+	self.bias = self.bias - self.lr * db
+	# 其中 lr 就是 learn rate 学习率
+	# 因为梯度方向是让 MSE loss 变大的方向，所以得用 -
+	
+# 最后根据 w 和 b 进行预测，预测公式不变
+predict = np.dot(X,self.weights) + self.bias
+```
+
+划分训练集和测试集判断泛化能力
+
+线形回归通过 sigmoid 激活函数 → 逻辑回归：限定了 y 在 [0,1] 后通过分界输出 0 / 1
+
+为了防止某些特征的尺度比较大，导致其对梯度的影响能力更大，所以得特征缩放
+
+1. 直接归一化，通过 / x_max - x_min
+2. Standard_scaling：注意不要对 test 测试集用 fit ，否则就 data leakage 数据泄漏了 - 即测试集的数据也反映在了训练过程中，导致评估结果比客观更优秀
+
+逻辑回归可以视为一个最简单的神经元 neuron
+
+```python
+linear transformation -> nonlinearity -> output
+```
+
+神经元本质就是一个 加权求和(xw+b) 套一层 激活函数
+
+神经网络通过 激活函数，例如sigmoid 让不再线形
+
+| Sample | X1 | X2 | X3 | Y |
+| --- | --- | --- | --- | --- |
+| 1 |  |  |  |  |
+| 2 |  |  |  |  |
+
+特征列  标签列
+
+特征映射到多维空间中的一个点
+
+# 开始！
+
+A decision boundary is the set of input points at which a classifier changes its predicted class.
+
+**决策边界**是分类器预测类别发生切换的线或曲线
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image.png)
+
+这里的 \(x_1,x_2\) 都只出现一次方，所以边界只能是直线；没有平方项，就无法直接形成圆或弯曲边界
+
+**Underfitting (English):** The model is too simple to capture the data pattern.
+
+中文：欠拟合表示模型太简单，无法捕捉数据的真实规律。
+
+**High bias (English):** A model has high bias when its restrictive assumptions cause systematic errors.
+
+中文：高偏差表示模型的限制太强，因此系统性地预测错误。这里“边界必须是直线”就是过强限制。
+
+**Underfitting (English):** The model is too simple to fit the main pattern in the training data.
+
+中文：模型太简单，连训练数据最主要的规律都拟合不了。
+
+中心-圆环需要曲线边界，但 raw logistic regression 只能画直线，所以属于 underfitting。
+
+**Overfitting (English):** The model is unnecessarily complex and fits small details or noise in the training data. Its boundary is often overly wiggly.
+
+中文：模型不必要地过于复杂，连训练数据中的小细节或噪声都去迎合；边界通常会扭曲、弯弯绕绕
+
+## 解决欠拟合
+
+从原有特征 构造新的输入特征
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%201.png)
+
+The decision boundary is z=0
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%202.png)
+
+变换之后虽然 model 仍然是 x1, x2 线形
+
+但是有 4 个特征了
+
+又因为 n_features = n_weights 所以 权重 也得要 4 个
+
+中心 z < 0 那么 label = 0
+
+越外圈 z 越大 → label = 1
+
+一次线性边界对圆环数据欠拟合；加入合适的二次特征可以形成平滑曲线并获得较好拟合；不必要地过度复杂、扭曲的边界会过拟合并具有高方差
+
+## Dense
+
+每个输入都连接到输出
+
+有 i 个输入、o 个输出时，需要 i*o 个 weights 和 o 个 b
+
+**trainable parameters** 包含 weights 和 biases 那么就是 i*o + o
+
+n 个 experts 那么个数需要 *n
+
+> expert 是 Mixture-of-Experts（MoE，专家混合）层中的一个小神经网络。不同 expert 可以学习不同的计算模式
+> 
+
+**Router (English):**
+
+A small network that gives each expert a score, then chooses which experts process a token.
+
+中文：router 是一个小网络；它为每个 expert 产生一个分数，再**选择**哪些 expert 来处理当前 token。
+
+- **Dense layer**：一个网络层，例如 \(10\rightarrow100\)。
+- **Expert**：一个完整的小网络；本题每个 expert 包含 **2 个 dense layers**。
+- **Router**：另**一个独立的 dense layer，用来给 4 个 experts 打分**；它不是 expert。
+
+本题结构是：
+
+```
+4 experts × (2 dense layers per expert)
++ 1 router × (1 dense layer)
+```
+
+## Loss
+
+衡量模型预测错误程度的数值；越小越好
+
+**Loss surface (English):** A landscape whose height represents the loss.
+
+中文：loss surface 是一张“高度代表 loss”的地形图。
+
+**Contour (English):** A curve joining parameter values with the same loss.
+
+中文：等高线连接所有 loss 相同的参数位置。
+
+```
+higher loss                 lower loss
+   ┌───────────────┐
+   │   ┌───────┐   │
+   │   │  •    │   │  • = minimum
+   │   └───────┘   │
+   └───────────────┘
+```
+
+Optimizer 的目标是从外层（较高 loss）走向中心（较低 loss）。
+
+**Gradient \(g\) (English):** The gradient points in the direction of the steepest increase of the loss.
+
+中文：梯度 \(g\) 指向 loss 上升最快的方向。
+
+但我们的目标是让 loss 减小，所以要走相反方向：
+
+\[
+W\leftarrow W-\eta g
+\]
+
+- \(W\)：当前参数；
+- \(g\)：gradient；
+- \(\eta\)：learning rate，决定每一步走多远。
+
+**Exam-ready answer (English):**
+
+“Gradient descent subtracts the gradient because the gradient points toward the steepest increase of the loss.”
+
+中文：梯度下降减去梯度，因为梯度本身指向 loss 增加最快的方向。
+
+**Full-batch gradient descent (GD):** Uses all training samples to compute one gradient.
+
+中文：全批量 GD 用**全部**训练样本计算一次梯度。
+
+**Mini-batch SGD:** Uses only a small subset of training samples to compute one gradient.
+
+中文：mini-batch SGD 每次只用一小批样本计算梯度。
+
+一小批样本不一定完全代表全部数据，所以得到的 gradient 会有**波动**：
+
+```
+GD:   smooth path toward the minimum
+SGD:  noisy / zig-zag path toward the minimum
+```
+
+SGD 不是不下降；它的总体趋势仍然朝 minimum，但每一步可能受当前 mini-batch 影响而左右摇摆。
+
+## Momentum
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%203.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%204.png)
+
+“Momentum averages gradients over time. It accelerates learning in consistent directions and reduces oscillation when gradients alternate.”
+中文：Momentum 对多个时刻的梯度做平滑；在方向一致时加速，在梯度反复改变方向时减少振荡
+
+更平滑
+
+## Adam
+
+是一种优化器 optimizer ，全称 Adaptive Moment Estimation ，任务和 GD, SGD 一样都是更新 weights 、让 loss 下降，但是 Adam 同时做两件事
+
+1. 用 m 记住最近梯度的大致方向
+2. 用 v 记录每个参数的梯度通常有多大，据此调整该参数的步长
+
+Adam 就像 “带方向记忆、回自动调节不同参数步长”的梯度下降方法
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%205.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%206.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%207.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%208.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%209.png)
+
+其中 ‘`n` ’ 也就是变化快慢就是学习率
+
+## 正则化惩罚
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2010.png)
+
+**High bias**：模型太简单，捕捉不到真实规律，即使在 training set 上也做得不好
+
+**High variance**：模型太复杂，对训练数据的小变化过度敏感，连噪声也学了
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2011.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2012.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2013.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2014.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2015.png)
+
+data loss 也就是 Ltrain(w) 只衡量了模型在 training data 上的拟合误差，不包含正则化惩罚
+
+一个椭圆上的 data loss 相同
+
+其中中心处的 data loss 最小，但是过拟合了，不在 L1/L2 的可行范围（ < c ）内，所以 first touch 切点就是最好的
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2016.png)
+
+“Regularization may increase training loss because it restricts the model, but it can improve validation performance by reducing overfitting and improving generalization.”
+
+“**L1 can produce exactly zero weights and therefore sparse solutions. L2 usually shrinks weights smoothly but does not usually set them exactly to zero.**”
+
+中文：L1 可以使某些权重恰好为 0，因此产生稀疏解；L2 通常平滑地缩小权重，但通常不会使它们恰好为 0。
+
+> 稀疏解（sparse solution）指一组参数中，有很多 weights **恰好等于 0**
+> 
+> - weight 为 0 的 feature 对模型没有贡献；
+> - 模型实际只依赖少数非零 features；
+> - 这相当于自动做了一部分 feature selection（特征选择）。
+
+**Question (English):**
+
+Using the constraint geometry, explain why L1 can produce sparse solutions.
+
+**中文翻译：**
+
+请利用约束几何图解释：为什么 L1 能产生稀疏解？
+
+**Answer (English):**
+
+“L1 regularization has a diamond-shaped constraint region with corners on the coordinate axes. The lowest data-loss contour often first touches the diamond at a corner. At such a corner, at least one weight is exactly zero. Therefore, L1 can produce sparse solutions.”
+
+**中文翻译：**
+
+L1 正则化的约束区域是菱形，尖角位于坐标轴上。最低的 data-loss 等高线常常首先**在尖角处接触菱形**。在这样的尖角处，至少有一个 weight 恰好为 0。因此，L1 能产生稀疏解。
+
+> 看上面图中 L1 的交接点就是在 y轴 也就是 w1=0
+> 
+
+## neuron
+
+一个 neural-network layer（神经网络层）由多个 neuron（神经元）组成。
+
+- 一个 neuron 接收前一层传来的数字；
+- 它进行计算；
+- 输出一个新数字，叫 **activation（激活值）**
+
+Dropout 的动作很简单：**在 training 时，随机挑一些 activation，把它们暂时设为 0**。
+例如本次 mini-batch 可能变成：
+[a_1,\ 0,\ a_3,\ 0]
+下一次 mini-batch 又会随机丢掉不同的 activations。
+这不是永久删除 neuron；只是在当前 training step 临时让它不参与计算。
+
+[https://app.notion.com](https://app.notion.com)
+
+## 为什么这样能减少 overfitting？
+
+如果某几个 neurons 总是一起出现，模型可能过度依赖这个固定组合。这叫 **co-adaptation（共同适应/相互依赖）**。
+
+Dropout 每次随机让不同 neurons 暂时失效，防止过度依赖某些神经元组合，所以其他 neurons 不能依赖“某个固定搭档一定存在”。模型被迫学习更分散、更稳健的 features。
+
+## Training 与 evaluation 的区别
+
+- **Training:** apply dropout；随机将部分 activations 设为 0。
+- **Evaluation / inference:** do not apply dropout；所有 neurons 都参与。
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2017.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2018.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2019.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2020.png)
+
+**Patience (English):** The number of consecutive epochs to wait without validation improvement before stopping training.
+
+中文：patience 是 validation performance 连续没有改善时，仍允许继续训练、等待的 epoch 数量。
+
+> epoch 训练次数
+> 
+
+![3409.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/3409.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2021.png)
+
+## session-3 embadding
+
+**Exam-ready English:**
+
+“An embedding table stores one learned vector for each token. It is usually a lookup table rather than a dense layer, so it normally has no bias.”
+
+**中文：**
+
+embedding table 为每个 token 存储一个可学习向量。它通常是查表，而不是 dense layer，因此通常没有 bias。
+
+## FFN, MLP
+
+FFN 本质上是一个 **one-hidden-layer MLP**
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2022.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2023.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2024.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2025.png)
+
+输出类型
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2026.png)
+
+## one hot
+
+loss
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2027.png)
+
+## MoE
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2028.png)
+
+## 201
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2029.png)
+
+![image.png](%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B/image%2030.png)
+
+E: embadding 不用计 b ，其余的部分都要算
+
+1. 使用共享权重时，不再有独立 output matrix，只保留 output bias：
+
+\[
+1000.
+\]

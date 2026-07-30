@@ -1,0 +1,44 @@
+# 真题
+
+```jsx
+const obj = {
+    name: 'obj',
+    getName() {
+        return this.name
+    },
+    getName2: () => {
+        return this.name
+    },
+    getNameOutter() {
+        const inner = () => {
+            return this.name
+        }
+        return inner()
+    }
+}
+
+console.log(obj.getName())
+console.log(obj.getName2())
+console.log(obj.getNameOutter())
+
+const getName = obj.getName
+console.log(getName())
+```
+
+```jsx
+obj.getName()
+隐式绑定 => obj
+
+obj.getName2()
+箭头函数没有 this，其指向不看运行时调用方式，而看其定义位置外层
+但是 obj 是对象字面量，不是作用域 => 是全局作用域
+那么就是默认规则
+
+obj.getNameOutter()
+那么 getNameOutter 的 this 指向 obj
+同时内部调用的 inner 是内部箭头函数，
+那么就看 getNameOutter 的 => obj
+
+直接 getName
+不再隐式规则，全局默认规则
+```

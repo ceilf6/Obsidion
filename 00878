@@ -1,0 +1,156 @@
+# 列表卡顿
+
+# 原因
+
+首先分析原因
+
+1. **CPU计算**瓶颈 影响render =>减少计算
+2. **GPU绘制**瓶颈 影响paint/layout =>减少绘制
+3. DOM 节点数量过多 =>减少节点
+
+# 1. 虚拟列表
+
+核心：只渲染可视区域的元素，而不是渲染整个列表
+
+例如真实数据有 10000 条，屏幕可见 20 条，实际只渲染 30 条（含buffer缓冲）
+
+例如假设
+
+容器高 200px
+
+元素高 10px
+
+实际渲染 (200/10) + 10用于缓冲 ⇒ 30
+
+```jsx
+const itemHeight = 10
+
+function onScroll(e) {
+  const scrollTop = e.target.scrollTop
+  const start = Math.floor(scrollTop / itemHeight)
+  const end = start + visibleCount
+
+  const visibleData = data.slice(start, end)
+}
+```
+
+```jsx
+<div style="height: 200px; overflow:auto">
+  <div style="height: totalHeight">
+    <div style="transform: translateY(offset)">
+      <!-- 渲染 visibleData -->
+    </div>
+  </div>
+</div>
+```
+
+## React成熟方案
+
+react-window
+
+```jsx
+import { FixedSizeList } from 'react-window'
+
+function Row({ index, style }) {
+  return <div style={style}>{data[index]}</div>
+}
+
+<FixedSizeList
+  height={500}
+  width={300}
+  itemSize={50}
+  itemCount={data.length}
+>
+  {Row}
+</FixedSizeList>
+```
+
+# 2. 减少渲染次数
+
+## 使用 memo
+
+只有在 props 变了才 render
+
+```jsx
+const Item = React.memo(({ item }) => {
+  return <div>{item.name}</div>
+})
+```
+
+## 使用key实现复用
+
+```jsx
+const itemData = useMemo(() => ({name:'test'}), [])
+<Item data={itemData} />
+```
+
+## 函数相关 useCallback
+
+```jsx
+const handleClick = useCallback(() => {
+}, [])
+```
+
+# 3. 避免复杂计算
+
+列表 item 中如果有：
+
+- expensive computation
+- format
+- regex
+- heavy map/filter
+
+都会卡。
+
+解决：
+
+### **useMemo**
+
+```jsx
+const computed = useMemo(() => {
+  return heavyCompute(data)
+}, [data])
+```
+
+# 4. DOM 尽量扁平
+
+# 5. 避免同步 layout
+
+以下操作会触发
+
+```jsx
+element.offsetHeight
+element.clientHeight
+getBoundingClientRect()
+```
+
+# 6. 图片列表优化
+
+如果元素是图片，用懒加载
+
+```jsx
+<img **loading="lazy"** />
+```
+
+# 7. 节流优化滚动
+
+```jsx
+function throttle(fn, wait) {
+  let last = 0
+  return function (...args) {
+    const now = Date.now()
+    if (now - last > wait) {
+      last = now
+      fn.apply(this, args)
+    }
+  }
+}
+```
+
+# 8. GPU优化 避免重绘
+
+```jsx
+transform: translateZ(0);
+
+will-change: transform;
+```

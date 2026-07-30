@@ -1,0 +1,291 @@
+# 淘天24秋招-2
+
+# 24
+
+模拟
+
+注意特殊情况！！
+
+```jsx
+const rl = require("readline").createInterface({ input: process.stdin });
+var iter = rl[Symbol.asyncIterator]();
+const readline = async () => (await iter.next()).value;
+
+void async function () {
+    const a = (await readline()).split('').map(it => Number(it))
+    const idxs = a.reduce((s,it,idx) => { // reduce 支持第三个参数 idx
+        if(it)
+            s.push(a.length-idx)
+        return s
+    },[])
+
+    // 注意特殊情况！！
+    if(idxs.length === 1){
+        console.log('0')
+        return
+    }
+    if(idxs.length === 0){
+        console.log('1')
+    }
+
+    // console.log(idxs)
+    let ans = ''
+    while(idxs.length>1){
+        let cur = idxs.pop()
+        // while(ans.length < cur-1){
+        ans = '0'.repeat((cur-1)-ans.length)+ans
+        // }
+        ans = '1'+ans
+        while(idxs[idxs.length-1]===cur+1){
+            idxs.pop()
+            cur++ // 连锁倾销
+        }
+        idxs.push(cur+1)
+    }
+    console.log(ans)
+}()
+
+```
+
+# 25 因数分解
+
+![image.png](工程师沉淀/寿司/真题/阿里真题/淘天24秋招-2/image.png)
+
+[因数分解](因数分解%203290f8d8d1fd80529b53d7b2437759ff.md)
+
+**拆分整数使乘积最大**
+
+$$
+a_1+\cdots+a_k\le n
+$$
+
+> 使得
+> 
+
+$$
+a_1a_2\cdots a_k
+$$
+
+> 最大。
+> 
+
+这是经典结论：
+
+- **尽量拆成 3**
+- **但如果最后剩下 1，不要留一个 1，而要把一个 3+1 改成 2+2**
+
+原因很简单：
+
+- x≥5 时，拆成 3 和 x-3 更优，因为
+    
+    $$
+    3(x-3)\ge x
+    $$
+    
+- 1 对乘积没帮助，应该避免
+- 3+1=4，但
+
+$$
+ 3\times1=3 < 2\times2=4
+$$
+
+所以答案就是：
+
+$$
+f(n)=
+\begin{cases}
+1,& n=1\\
+3^{n/3},& n\bmod 3=0\\
+4\cdot 3^{(n-4)/3},& n\bmod 3=1,\ n\ge 4\\
+2\cdot 3^{(n-2)/3},& n\bmod 3=2
+\end{cases}
+$$
+
+# 26 多重图问题
+
+图论现在也是随手杀了 - BFS
+
+注意几个小点：
+
+- // const nexts = new Array(n+1).fill([]) // 注意共用引用地址了
+- // if(next in target){ // 注意 JS in 是判断下标 ，得用 **includes**
+    
+    并且因为是多重图所以得在 if !vis 中
+    
+
+```jsx
+const rl = require("readline").createInterface({ input: process.stdin });
+var iter = rl[Symbol.asyncIterator]();
+const readline = async () => (await iter.next()).value;
+
+void async function () {
+    const [n,m] = (await readline()).split(' ').map(it => Number(it))
+    const [M,W,J,X] = (await readline()).split(' ').map(it => Number(it))
+    // const nexts = new Array(n+1).fill([]) // 注意共用引用地址了
+    const nexts = Array.from({length: n+1}, () => [])
+    for(let i=0;i<m;i++){
+        const [a,b] = (await readline()).split(' ').map(it => Number(it))
+        nexts[a].push(b)
+        nexts[b].push(a)
+    }
+    // console.log(nexts)
+    let dMax = -Infinity
+    let dMin = Infinity
+    const target = [M,W,J]
+    const queue = [[X,0]]
+    const vis = new Array(n+1).fill(0)
+    vis[X] = 1
+    let head = 0
+    while(head < queue.length){
+        const [cur,curD] = queue[head]
+        head++
+        for(const next of nexts[cur]){
+            if(!vis[next]){
+                // if(next in target){ // 注意 JS in 是判断下标
+                if(target.includes(next)){ // 注意得是第一次遇到
+                    dMax = Math.max(dMax,curD+1)
+                    dMin = Math.min(dMin,curD+1)
+                }
+                queue.push([next,curD+1])
+                vis[next] = 1
+            }
+        }
+    }
+    console.log(dMin,dMax)
+}()
+```
+
+# 27 串串异或
+
+![image.png](工程师沉淀/寿司/真题/阿里真题/淘天24秋招-2/image%201.png)
+
+如果按照注释的我之前写法去做那么会导致 cur << 1 是 32 位
+还是得 **BigInt(”0b”+)** 然后 **.toString()** 对结果二进制进行处理
+
+```jsx
+const rl = require("readline").createInterface({ input: process.stdin });
+var iter = rl[Symbol.asyncIterator]();
+const readline = async () => (await iter.next()).value;
+
+void (async function () {
+    const T = Number(await readline());
+    for (let i = 0; i < T; i++) {
+        let [n, m] = (await readline()).split(" ").map((it) => Number(it));
+        let a;
+        let b;
+        if (n > m) {
+            // 确保 a 比 b 长, n > m
+            // [a,b] = (await readline()).split(' ')
+            a = await readline();
+            b = await readline();
+        } else {
+            [n, m] = [m, n];
+            // [b,a] = (await readline()).split(' ')
+            b = await readline();
+            a = await readline();
+        }
+        const ans = new Array(n).fill(1);
+        for (let i = 0; i < m; i++) {
+            if (a[i + n - m] === b[i]) ans[i + n - m] = 0;
+        }
+        //         let cur = 1
+        //         let ansNum = 0
+        const BASE = 998244353n
+        // 下面这种做法精度有问题因为 cur << 1 是 32 位
+        //         for(let i=0;i<n;++i){
+        //             if(ans[n-1-i]){
+        //                 cur = (cur+BASE)%BASE
+        //                 ansNum = (ansNum+cur+BASE)%BASE
+        //             }
+        //             cur = cur << 1
+        //             // console.log(cur)
+        //         }
+        //         console.log(ansNum)
+
+        // 转成 BigInt
+        const binStr = ans.join("");
+        const result = BigInt("0b" + binStr) % BASE;
+
+        console.log(result.toString());
+    }
+})();
+
+```
+
+# 存储单位
+
+![image.png](工程师沉淀/寿司/真题/阿里真题/淘天24秋招-2/image%202.png)
+
+a10 5  a10 6  ...a10 10
+a11 5  a11 6  ...a11 10
+...
+a20 5  a20 6...a20 10
+
+**每行** 10-5**+1 = 6个**
+
+10 => 20行：20-10 = 10行
+
+总共差距 10*6 + 9-5 = 64个
+
+1000 + 64*4 = 1256
+
+# 数据库
+
+存储过程包含用户定义的SQL语句集合，可以使用CALL语句调用存储过程，当然在存储过程中也可以使用CALL语句调用其他存储过程，但是不能使用DROP语句删除其他存储过程
+
+MySQL在定义存储过程中的参数列表时，参数不能与数据表中的字段名相同
+
+# 多线程
+
+- 选择使用多线程的情况：任务需要共享数据、需要高效的数据传输
+- 高优先级的线程会更有可能被调度执行，但并不保证绝对执行顺序
+- **如果多个线程相互等待对方持有的资源，会导致死锁**
+    
+    解决方案：按固定顺序加锁
+    
+- 若有多个线程同时执行写操作，一般都需要考虑线程同步，否则的话就可能影响线程安全
+
+# 数据压缩
+
+减少数据传输量
+
+可能会增加计算开销
+
+常见的压缩算法有GZIP
+
+不适用所有类型数据
+
+# C++
+
+C++ 中的每个类至少会有一个构造函数
+
+构造函数的名字必须与类名相同
+
+**构造函数不能是虚函数**，因为对象还没构造完成时，虚函数机制无法正常工作。
+
+**构造函数可以重载，但析构函数不能重载**，因为析构函数没有参数，一个类只能有一个析构函数。
+
+# 安卓
+
+standard: 每次都新建一个实例
+
+**singleTop 栈顶复用**: 要启动的Activity在栈顶时会复用这个栈顶实例
+
+bringSubviewToFront 将视图推到最外层显示
+
+- **ViewModel 做：** 持有 **UI 状态**、处理界面相关业务逻辑、配置变更后保留状态
+- **ViewModel 不做：** 持有 Activity/Fragment 引用、**直接操作具体 View**
+
+# Swift 集合
+
+- **Array**：有序，可重复
+- **Dictionary**：键值对
+- **Set**：无序，不重复
+
+**A 错**：Swift 中数组、字典、集合都是**值类型**，不是引用类型。
+
+**B 错**：字典通过 key 取值，key 不存在时返回 nil，不会 crash。
+
+**C 对**：数组下标越界会 crash。
+
+**D 对**：只有遵守 **Hashable** 的类型才能存进 Set。

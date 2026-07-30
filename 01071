@@ -1,0 +1,114 @@
+# 尝新功能
+
+Ice
+
+CodexBar
+
+codex 浏览器直接查接口、甚至能读取到 cookie 等等
+
+> `Codex/Default/Partitions/codex-browser-app/Cookies`，里面有 `Coremail.sid`、`Coremail`、`JSESSIONID`。这些值是加密存储的，我会尝试用本机 Chromium/Electron 的本地加密方式解出 cookie，用于一次性调用接口。
+> 
+
+## 完成任务后通知
+
+发布-订阅模式：所以 topic 防止重复
+
+![image.png](%E5%B0%9D%E6%96%B0%E5%8A%9F%E8%83%BD/image.png)
+
+```jsx
+mkdir -p ~/.claude/hooks
+
+cat > ~/.claude/hooks/claude-notify-ntfy.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+INPUT="$(cat)"
+TYPE="$(echo "$INPUT" | jq -r '.notification_type // "unknown"')"
+MSG="$(echo "$INPUT" | jq -r '.message // "Claude Code finished or needs attention"')"
+CWD="$(echo "$INPUT" | jq -r '.cwd // ""')"
+
+curl -fsS \
+  -H "Title: Claude Code: ${TYPE}" \
+  -H "Priority: default" \
+  -d "${MSG}
+
+${CWD}" \
+  "https://ntfy.sh/cc-ceilf6-wjh" >/dev/null
+EOF
+
+chmod +x ~/.claude/hooks/claude-notify-ntfy.sh
+```
+
+```jsx
+{
+  "env": {},
+  "model": "opus",
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "permissionMode": "bypassPermissions",
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/claude-notify-ntfy.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+```
+
+idle_prompt 的本质就是「Claude 没事干了、在等你」。goal 模式中途 Claude 一直在忙、根本不闲置，所以中途不会触发
+
+idle_prompt 的触发条件就是「输入框闲置 ≥60 秒」——它分不清「闲置是因为你真的该接手了」还是「闲置是因为模型在等后台 CI 任务、马上会自己继续」。所以监听 CI 那段会误报。
+
+1. 把「手机 + mac」两个钩子合并成一个分发脚本（避免两个钩子并发时互相把对方误判成后台任务）。
+2. 脚本先做判定：用 session_id 定位本会话的 tasks/ 目录，lsof 看有没有别的活进程占着 .output（排除自身进程链）。有 → 模型在等后台任务，静默不发；没有 → 真的停下了，手机 + mac 都发。
+3. 暂时加一行调试日志，方便你下次真跑 CI 时确认判定对不对。
+
+using-superpowers 支持启动服务器预览交互
+
+![image.png](%E5%B0%9D%E6%96%B0%E5%8A%9F%E8%83%BD/image%201.png)
+
+```jsx
+npm install -g @anthropic-ai/claude-code@latest
+```
+
+`ultracode` = xhigh reasoning effort + 自动决定是否使用动态工作流
+
+个人感觉其实就是把**开子代理的过程沉淀为工作流**，像提示词什么的
+
+虽然并行能提高效率但是感觉因为需要a2a通信增加了tokens消耗
+
+循环工程: “他会有一个自己工作流去，不断循环迭代去完成任务，去完善需求，然后用需求给ai发任务” 感觉就是 cc 的 ultracode 模式？
+
+harness: 为你工作习惯和工程习惯构建agent友好环境，确保其循环的轨迹？
+
+动态工作流是js脚本，用于协调多个子代理
+
+/workflows + s 可以把脚本保存到项目根目录
+
+[[https://github.com/SHUOSC-11-1126/overlap-aware-speaker-asr](https://github.com/SHUOSC-11-1126/overlap-aware-speaker-asr)](%E5%B0%9D%E6%96%B0%E5%8A%9F%E8%83%BD/https%20github%20com%20SHUOSC-11-1126%20overlap-aware-spea%203810f8d8d1fd8061b764dc121fee5464.md)
+
+[ultracode](%E5%B0%9D%E6%96%B0%E5%8A%9F%E8%83%BD/ultracode%203770f8d8d1fd80d8a9cddfd36add15b7.md)
+
+cursor 的 /loop 是对照 codex 和 cc 的 /goal 模式
+
+```jsx
+$ while true; do sleep 60; echo 'AGENT_LOOP_TICK_RE
+PO_EVOLVER ｛"prompt"："/repo-evolver 探索+基线模式，
+1分钟心跳。规则：ceilf6身份、增量commit、无 repo-guard、PR后自动merge、不改动gold基准"｝'；done
+AGENT_LOOP_
+_TICK_REPO_EVOLVER {"prompt":"/ repo-evolv
+er 探索+基线模式，1分钟心跳。规则：ceilf6身份、增量commit、无 repo-guard、PR后自动merge、不改动gold基准
+"
+```
+
+repo-evolver + loop 状态机

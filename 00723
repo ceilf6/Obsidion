@@ -1,0 +1,23 @@
+# 26.05.26 王景宏日报
+
+Source: [KM 2765171987](https://km.example.com/collabpage/2765171987)
+
+## 今日完成
+
+- M端 Popcorn 变更需求推进：与后端对齐公共维度货架筛选项配置规则
+    - 进展：确认 cornerLabelType=2 时 text 字段处理逻辑；公共维度货架放开二级筛选项限制；纠正 RELATED_TO_FILTER 字段命名
+    - 文档：[M端 Popcorn 变更](https://km.example.com/page/2759434466)
+    - PRD：[罗盘改动](https://km.example.com/collabpage/2757014658)
+    - 状态：进行中，待前端兼容历史数据
+- 测试技术学习：整理 Playwright 和 TDD 方法论
+    - [Playwright](https://km.example.com/page/2765360999)：e2e 测试框架核心概念（page、Locator、用户视角定位）
+    - [TDD 测试驱动开发](https://km.example.com/page/2765151052)：梳理优缺点和适用场景
+- AI 产品与工程实践调研：评估 CatX 智能体创建能力，研究工程最佳实践
+    - CatX：[CatX 创建智能体测评](https://km.example.com/page/2765010590)，对比 ChatGPT 智能体产品，评估外接 MCP 应用和自动 Prompt 生成能力
+    - Agent 记忆：[hermes agent 记忆](https://km.example.com/page/2764484560)，了解 [MEMORY.md](http://MEMORY.md) 记忆机制和上下文压缩
+    - 工程实践：[QQ 音乐](https://km.example.com/page/2764771604)，研究多仓分支管理和 IDL 契约仓模式
+
+## 明日展望
+
+- 继续推进 M端 Popcorn 变更开发，完成前端兼容历史数据逻辑
+- 排查 dxchannel 仓库卡顿问题

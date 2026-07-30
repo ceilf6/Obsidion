@@ -1,0 +1,363 @@
+# 商品选购页白皮书
+
+## 目录
+
+- 零、名词解释
+- 一、业务简介
+    - 1.1 业务定位
+    - 1.2 业务全景图
+        - 1.2.1 页面概览
+        - 1.2.2 上下游链路
+        - 1.2.3 业务功能
+        - 1.2.4 技术栈应用
+    - 1.3 关注哪些指标
+        - 1.3.1 业务指标
+        - 1.3.2 技术指标
+    - 1.4 协作对接
+- 二、页面路由参数
+- 三、模块整理
+    - 3.1 页面组件结构
+    - 3.2 上下游依赖
+        - 3.2.1 上游
+        - 3.2.2 下游
+- 四、数据
+    - 4.1 核心接口列表
+    - 4.2 主接口数据结构
+- 五、核心流程
+    - 5.1 商品数据流
+    - 5.2 售卖属性互斥及客制化逻辑
+        - **5.2.1 售卖属性互斥**
+        - *5.2.1 ** 客制化 **规则**
+    - 5.3 商品懒加载
+    - 5.4 特殊业务逻辑注意
+    - 5.5 和DUO的交互
+
+## 零、名词解释
+
+| 名词 | 描述 | 示例 |
+| --- | --- | --- |
+| SPU | 标准产品单元，聚合了属性值、特性相同的商品属性值、特性相同的商品聚合起来，就形成了 SPU，每个 SPU 至少包含一个 SKU。示例中的拿铁商品，共有 18 个 SKU（3 种杯型 * 6 种温度） |  |
+| SKU | SKU 是物理上不可分割的库存单元，也是点餐领域实际售卖的商品。例如大杯/热拿铁是一个 SKU ，中杯/热拿铁也是一个 SKU备注：若无规格互斥规则，所有的售卖属性组的笛卡尔积都和一个SKU一一对应。以上述 【杯型: 中杯、大杯】【温度: 冰、热】为例中杯-冰 中杯-热 大杯-冰 大杯-热都需要在商品下挂的SKU列表中 |  |
+| 售卖属性 | 组成 SKU 的基本属性，无价格，不支持售卖。示例中【杯型】和【温度】是规格组，不同规格组中的规格进行交叉组合，可形成不同的 SKU，如下图所示特殊情况：部分商品可能无属性组，商品本身就是单SKU。 |  |
+| 配料 | 商品的可选配料，有价格，不可单独售卖。示例中【添加或更换牛奶】、【奶泡】都是配料组，里面的「全脂牛奶」等都是配料 |  |
+| 直连套餐 | 区域于单品的独立商品类型，本身可独立售卖，常见于西快的汉堡套餐，瑞幸也有使用。 |  |
+| M选N | 一张团购券关联了M个商品，用户只能选择其中N份（部分可重复选，部分不可以）。如10选1、15选2。常规情况下都是1个团购关联一个分组，1个分组有多个商品；这里就引出多分组的概念，是指存在1个团购关联多个分组，每个分组下多个商品，类似M选N多分组、固定套餐品。 | 单分组： 多分组： |
+| 秒提品 | 秒提商品，区别于团购品，在线点货架展示的商品除营销套餐外都是秒提品。 |  |
+| 囤点提单/可囤可点 | 当前重点迭代链路，在货架拉起点单tab，也可以切到囤券tab，是可囤可点的二合一页面。 |  |
+| 融合货架 | 在 POI 页的货架，融合了团购货架和在线点货架并支持即买即点的能力。 |  |
+
+## 一、业务简介
+
+### 1.1 业务定位
+
+商品选规格页作为囤点交易链路的核心页面（导购浏览->**选品选规格**->交易下单->履约售后），UV日均 180W+()。当前已支持茶咖()、西快()、零售()等多品类的商品选购及定制能力诉求（如单品定制、M选1选购、直连套餐选购等）。同时商品规格定制作为必要且高频迭代模块，通过不同的来源判断以组件、页面级形式支持囤点选规格、团购券核销、购物车修改规格等场景复用。当前主要覆盖美团及点评共4端。核心复杂逻辑在其客制化规则（如售卖属性互斥、客制化属性合法校验等）。
+
+### 1.2 业务全景图
+
+### 1.2.1 页面概览
+
+| 页面形态 | 页面 | 功能简述 |
+| --- | --- | --- |
+| **囤点选规格** | 注：左边为通用版本，右边特团定制版（主题色及埋点上报差异） | 根据商品映射类型()及交互类型()不同，存在以下的展示表现： |
+| --- | --- | --- |
+| 场景示意图 | 注：库迪全场品是超级M选1，有特殊样式适配 |  |
+| **团购券选规格** |  |  |
+| **购物车修改规格** |  |  |
+| **仅秒提选规格** |  |  |
+| **囤点/在线点提单-必选菜** |  | 如喜姐炸串（囤点及在线点），存在必选菜支持场景，局部复用规格选择组件。 |
+
+### 1.2.2 上下游链路
+
+| 上游 | 商品选规格页 | 下游 |
+| --- | --- | --- |
+| 特团列表页及详情页 |  |  |
+| <details> |  |  |
+| <summary>特团全链路示意</summary> |  |  |
+
+</details>
+| **囤点选规格** | 囤点提单页
+左侧通用版本，右侧是核销提单 |
+|  |  | 门店选择
+|
+| 轻餐POI货架及Deal页入口
+
+| 秒提购物车（不会主动拉起，但会刷新购物车底bar）
+|  |
+| 轻餐POI货架“已购券”模块 | **团购券选规格** |  |
+| 轻餐POI货架及Deal页入口（找秒提品且未翻单，商品详情页如截图就是） | **仅秒提选规格** | 仅秒提提单
+|
+|  |  | 门店选择
+|
+|  |  | 秒提购物车（不会主动拉起，但会刷新购物车底bar）
+|
+| 秒提购物车单Item修改 | **购物车修改规格** | 秒提购物车
+|
+| 拥有`必选菜`的品牌（目前喜姐炸串），在进入提单页时自动打开浮层选择必选菜 | **提单页-必选菜** | - |
+
+### 1.2.3 业务功能
+
+### 1.2.4 技术栈应用
+
+| 终端 | 功能 / 模块 | 技术架构 | 仓库 |
+| --- | --- | --- | --- |
+| 美团大众点评 | 选规格组件 | Max + NPM | [ka-mop-max-duo/ka-mop-duo-shelf-mix](https://dev.example.com/code/repo-detail/nibfe/ka-mop-max-duo/file/list?path=packages%2Fka-mop-duo-shelf-mix)（组件地址）[https://km.example.com/collabpage/2708411332](https://km.example.com/collabpage/2708411332)、[https://km.example.com/collabpage/2708452440](https://km.example.com/collabpage/2708452440) |
+| <details> |  |  |  |
+| <summary>组件发包流程</summary> |  |  |  |
+
+在 fedo 研发组（大客户前端组）里面走 npm包 流程
+选择的项目和模板如下：
+该模板的使用教程如下：
+
+</details>
+|
+|  | 囤点选规格页（作为组件挂载在交易提单页()） | Max + DUO页面 | [12413](https://duo.example.com/portal/page/detail2/12413?branch=master)（搭建页）、[duo-food-order-submit](https://dev.example.com/code/repo-detail/nibfe/duo-food-order-submit/file/list)（壳子页）[https://km.example.com/collabpage/2707983480](https://km.example.com/collabpage/2707983480) |
+|  | 仅秒提选规格页（作为组件挂载仅秒提提单页()） | Max + 源码页面 | [ka-mop-mix-order-submit](https://dev.example.com/code/repo-detail/nibfe/ka-mop-mix-order-submit/file/list?branch=refs%2Fheads%2Fmaster) |
+
+### 1.3 关注哪些指标
+
+### 1.3.1 业务指标
+
+业务指标是产、研、运三方共同最为关注的指标，任何的功能开发、技术优化都会在业务指标中体现，所以需要保证对业务指标的正确理解。
+业务指标计算来源于灵犀埋点上报，如页面PV（页面曝光）、模块MV（模块曝光）、模块MC（模块点击），所以埋点开发虽然不像UI展示醒目，但一样需要保持严谨，改动后充分验证。
+**【大盘指标】**[选规格曝光](https://ocean.example.com/config/#/module/detail?id=417223&channelId=28)(当前归属页面有点混乱)
+
+### 1.3.2 技术指标
+
+目前指标跟交易提单页融合，后续需要拆开。
+
+| 指标名称 | 基线 | 查看方式 |
+| --- | --- | --- |
+| 页面JSError率 | <= 0.2‰ | [raptor](https://raptor.mws.example.com/frontend/error/list?type=datetimerange&start=20260127161300&end=20260127164300&projectId=10749&webVersion=all&metric=TP90&speedPoint=11,16,18,25&singleSpeedPoint=16&isPerfInMp=false&perfBundleId=3763&dyeingId=&requestTypes=all&errorListCurrentPage=1&errorChartTab=errorrate) |
+| 页面请求成功率 | >= 99.9% | [raptor](https://raptor.mws.example.com/frontend/request/trend?type=datetimerange&start=20260127161300&end=20260127164300&projectId=10749&webVersion=all&metric=TP90&speedPoint=11,16,18,25&singleSpeedPoint=16&isPerfInMp=false&perfBundleId=3763&dyeingId=&requestTypes=all) |
+| 秒开率 |  | [raptor](https://raptor.mws.example.com/ffp/index?shortId=4xDNZ2ylr) |
+
+### 1.4 协作对接
+
+| 方向 | 职责 | 对接人 |
+| --- | --- | --- |
+| 产品 | 需求定义 | 嘉徐（jijiaxu） |
+| 交互 | 交互体验 | 柴箐（chaiqing） |
+| 视觉 | 展示样式 | - |
+| 交易前端 | 交易部分及DUO领域问题协同 | 陈梁（chenliang54） |
+| 后端API | 页面数据封装 | 大客：嘉伟（lijiawei16）交易：李刚（ligang39） |
+| QA | 质量保障 | 大客：林菊（linju）交易：谢豪（xiehao13） |
+
+## 二、页面路由参数
+
+重要：只覆盖选规格所需场景，并不是宿主页面参数的全量枚举
+
+| 场景 | 前缀 | 入参 | 示例scheme |
+| --- | --- | --- | --- |
+| **囤点提单页、****团购券选规格** | imeituan://[www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=c-group-order-submit&mrn_component=GroupOrderSubmit](https://www.notion.so/www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=c-group-order-submit&mrn_component=GroupOrderSubmit) |  | 字段 |
+| --- | --- | --- |  |
+| tabType | ✅ | 1=团购Tab，5=秒提Tab |  |
+| groupBuyMopScene | ✅ | 1 表示走秒提链路 |  |
+| buyPoiId | ✅ | 购买门店 |  |
+| dealID | ✅ | 团单ID |  |
+| pageScene |  | 5=秒提提单，11=秒提（购物车跳转），12=团购（购物车跳转） |  |
+| shelfFusion |  | =true 展示加入购物车 |  |
+| lowestPriceSkuId |  | 最低价skuId，可能为空 |  |
+| mopPreOrderParam |  | 非必填，但是适配特殊场景，比如轻餐货架团购券核销/购物车提单/随心配提单如团购券核销携带参数：mopPreOrderParam=encodeURIComponent('{"mopCalculateParam":{"mopDealPurchaseItemList":[{"isPurchasedDeal":true,"purchasedDealCount":1}]}}')```javascript |  |
+| { |  |  |  |
+| mopCalculateParam: { |  |  |  |
+
+```
+mopDealPurchaseItemList: [
+  {
+    isPurchasedDeal: true,
+    purchasedDealCount: 1
+  }
+]
+```
+
+}
+}
+
+```
+| source |  | =costEffective，开启特团主题色 |
+| halfScreenSubmitHeight |  | 半屏高度 |
+| isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true |  | 浮层参数，MRN透明容器 |
+| mrn_adjustParentFrame=true |  | 调整容器自适应，前端参数 |
+| sec_source |  | 来自秒提还是来自团购，影响埋点，不影响功能 | | imeituan://www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=c-group-order-submit&mrn_component=GroupOrderSubmit&tabType=5&groupBuyMopScene=1&isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true&mrn_adjustParentFrame=true&halfScreenSubmitHeight=0.85&sec_source=rhhj_dd&dealID=1506426499&campaignId=0&button_type=buy&orderGroupId=0&nibBizConsistency=gmV2peeKZ5C2xJqoC9o14Dw1JJuFcJiNqkBfCnOGbOTqEYWOB0Mjw0pjDNpqU7cDUsaWdq9se_7dRm6s06cMaN29EgYoW-mkihADl_uMB-hkG7d8ALRmtWG-0F5m8in_Sl-SSV4Yr5BWyHi1V5tahaG7FlnxD-5pZ3X9wGq017JP0fh2AsZxA4kEFEJFQpQ4BU3cF4Bsx4IpMYOqPlf51ZQ-Q-7e_98y5sNaY7LgBx4&source=meishi_search_poi&buyPoiId=164321044&buyPoiIdEncrypt=qB4r177e7ca40cb99ce764b024935f75711afcbe643598e9791ef09a7c22f7252fc484vxu5&flexibleJSON=%7B%22assignProm%22%3A%5B%5D%7D&_referer=deal&lowestPriceSkuId=2330356205&mrn_min_version=2.187.0&hasKNBParams=true&version=12.51.200&cityId=10&locCityId=10&lat=31.27374267154093&lng=121.52913302699567&accuracy=18.736367884646267&mrn_adjustParentFrame=true&mrn_showLevel=1&shelfFusion=true&dealPrice=9&benchmarkLevel=90 |
+| **仅秒提选规格** | imeituan://[www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=ka-mop-mix-order-submit&mrn_component=KaMopMixOrderSubmit](www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=ka-mop-mix-order-submit&mrn_component=KaMopMixOrderSubmit) | | 字段 | 是否必填 | 说明 |
+| --- | --- | --- |
+| brandId | ✅ | 品牌id |
+| productId | ✅ | 商品id |
+| shopId | ✅ | 门店id |
+| dishType | ✅ | 商品类型*NORMAL_SPU *= 50, // 普通货架 spu
+*COMBO_SPU *= 60, // 直连套餐 spu |
+| lowestPriceSkuId |  | 最低价skuId，可能为空 |
+| shelfFusion |  | =true 展示加入购物车 |
+| isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true |  | 浮层参数，MRN透明容器 |
+| halfScreenSubmitHeight |  | 半浮层高度，默认 0.8*screenHeight，支持通过 halfScreenSubmitHeight 指定比例 | | imeituan://www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=ka-mop-mix-order-submit&mrn_component=KaMopMixOrderSubmit&halfScreenSubmitHeight=0.85&isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true&mrn_adjustParentFrame=true&brandId=399&productId=2204338325&dishType=50&shopId=164321044&lowestPriceSkuId=2330340375&shelfFusion=true&dealPrice=9 |
+| **其他（购物车修改规格等）** | 主要以组件形式作为局部场景使用，不单独列举，后面索引对应页面。 |  |  |
+## 三、模块整理
+
+### 3.1 页面组件结构
+
+| 一图流 | 组件 |  |
+| --- | --- | --- |
+|  | ①门店信息头packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ShopHeader |  |
+|  | ②商品/团购名称packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/TitleLine |  |
+|  | 商品选择packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku | ③分组标题packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/ChooseNFromMSingleOrMultipleGroup/index.tsx |
+|  |  | ④商品卡片packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/ProductCard |
+|  |  | ⑤售卖属性packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/AttributeGroupItem/components/SaleAttributeGroup |
+|  |  | ⑥配料packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/AttributeGroupItem/components/PremiumGroup |
+|  |  | ⑦搜索/Users/br/Desktop/ka-mop-max-duo/packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/ComboGroupItem/components/SearchView |
+|  |  | ⑧通兑券Tagpackages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/StickyComponents/components/ToggleGroup |
+|  |  | ⑨多分组Tab分类packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/StickyComponents/components/TabContainer |
+|  |  | ⑩直连套餐分组头部packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/ChooseCombo/components/GroupTitle |
+|  |  | ⑪直连套餐卡片packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ChooseProductAndSku/components/ChooseCombo/components/BaseSpuCard |
+|  | ⑫底部栏packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/BottomBar |  |
+**分场景渲染收敛及组件复用**
+| 类型 | 场景合并 | 对应组件 | 组件复用 | 数据流转 |
+| --- | --- | --- | --- | --- |
+| 团购套餐 | M选1（含超级M选1）、套餐-但只有单品SKU&无配料、套餐-但只有单品多SKU或单sku有配料 | ***ChooseOneFromM*** | 第一层：***ComboGroupItem*** -> 第二层：***ProductCard*** + ***AttributeGroupItem*** | 数据格式化向下传递及格式化向上回传都在ChooseProductAndSku/hooks下面，最后的接口统一处理在最外层的utils	- 存在3套格式（后端下发 -> 前端展示层， 前端展示层 -> 选中态可复原数据， 选中态可复原数据 -> 后端接口要求格式）**此处是一个高复杂度的设计，算是一个债务。** |
+|  | M选N单分组、预留M选N多分组 | ***ChooseNFromMSingleOrMultipleGroup*** |  |  |
+|  | 固定套餐品 | ***FixedComboSingleProduct*** |  |  |
+| 普通单品 | 单品单SKU、单品多SKU | ***ChooseOneFromOne*** | ***ProductCard*** + ***AttributeGroupItem*** |  |
+| 直连套餐 | 直连套餐 | ***ChooseCombo*** | ***AttributeGroupItem*** |  |
+### 3.2 上下游依赖
+
+#### 3.2.1 上游
+
+| 选规格页特殊处理 | 上游 | 作用 |
+| --- | --- | --- |
+| 跳链拼接 shelfFusion | poi/deal | 选规格页展示加入购物车按钮 |
+| 跳链拼接 mopPreOrderParam，内含已购团购券信息 | poi | 后端下发已购团购券数据，页面展示秒提单 Tab。 |
+| 跳链拼接 lowestPriceSkuId | poi/deal | 在融合上翻品时后端会返回最低价sku ID，前端会拼接在融合品规格页的url上，前端需要使用最低价sku替换到后端返回的默认sku |
+| preview ab_arena_tidanye_color AB 实验下发开启功能 | 特团 | 开启特团主题色 |
+| 监听`必选菜浮层打开事件`show_must_choose_dish_Modal | 在线点提单 | 打开必选菜浮层 |
+#### 3.2.2 下游
+
+| 特殊处理 | 下游 | 作用 |
+| --- | --- | --- |
+| 监听事件KA_MOP_HOME_SWITCH_SHOP | 门店选择页 | 监听到事件后发起 update 切换门店 |
+| 派发必选菜选好了事件send_essential_dish_sku_vo | 在线点提单页 | 将用户选择的必选菜信息回传给提单 |
+| 派发购物车刷新事件updateBottomBarShoppingCart | POI | 通知页面重新请求购物车数据 |
+## 四、数据
+
+### 4.1 核心接口列表
+
+| 上游 | 接口 | 调用时机与核心功能 |
+| --- | --- | --- |
+| 主链路	- 可囤可点（囤点提单页-双 Tab）
+	- 团购券核销（囤点提单页-单 Tab）特团链路 | preview | 进入页面时调用，渲染页面首屏 UI |
+|  | update | 用户做出操作时调用，用于刷新 UI 展示、与后端进行数据交换目前存在的 update 情况：	- 切换 Tab
+	- 切换门店
+	- 商品懒加载
+	- 加入购物车
+	- 切换数量
+	- 选好了 |
+|  | /mop/api/menu/productCalculatorForPoiShelf | 仅秒提品算价。商品信息变动时发起。注：	- 补规格 sku 走仅秒提品算价
+	- 上翻品走仅秒提品算价 |
+|  | /mop/api/menu/dealCalculatorForGroupTrade | 团购品算价。商品信息变动时发起。 |
+|  | /mop/api/menu/productCalculatorForGroupTrade | 直连套餐子商品算价。直连套餐商品信息变动时发起。 |
+|  | /mop/api/menu/productDetailForPoiShelf | 请求直连套餐子商品信息。定制直连套餐子商品时发起。 |
+|  | /mop/api/shop/nearbyUsableShops | 请求附近门店信息。当目前商品不可用/门店歇业时发起，引导用户切换门店。 |
+| 主链路	- 仅秒提提单（仅秒提页） | /mop/api/menu/productDetailForPoiShelf | 仅秒提商品数据请求。进入页面时发起。 |
+|  | /mop/api/menu/productCalculatorForPoiShelf | 仅秒提品算价。商品信息变动时发起。 |
+|  | /mop/api/menu/productCalculatorForGroupTrade | 直连套餐子商品算价。直连套餐商品信息变动时发起。 |
+|  | /api/v1/foodcart/addcart | 加入购物车。 |
+| 购物车页 | update | 购物车页点击`修改`按钮发起 update 请求，拉起修改商品规格浮层并填充数据。 |
+|  | /mop/api/menu/productCalculatorForPoiShelf | 仅秒提品算价。商品信息变动时发起。 |
+|  | /mop/api/menu/dealCalculatorForGroupTrade | 团购品算价。商品信息变动时发起。 |
+|  | /mop/api/menu/productCalculatorForGroupTrade | 直连套餐子商品算价。直连套餐商品信息变动时发起。 |
+|  | /mop/api/menu/productDetailForPoiShelf | 请求直连套餐子商品信息。定制直连套餐子商品时发起。 |
+| 提单页必选菜 | /mop/api/placeOrder/trial | 提单页主接口。内含必选菜商品规格信息。 |
+### 4.2 主接口数据结构
+
+详见[<https://km.example.com/collabpage/2543678076>](<https://km.example.com/collabpage/2543678076>)
+```typescript
+// 秒提大json 类型定义, <https://km.example.com/collabpage/2543678076>
+export interface MopPreOrderVO {
+  // 门店信息
+  mopShopInfoVO: MopShopInfoVO;
+  // 品牌信息
+  mopBrandInfoVO: MopBrandInfoVO;
+  // 商品价格信息
+  mopProductPriceVO: MopProductPriceVO;
+  // 商品信息（主对象）
+  mopDealMappingInfoVO: MopDealMappingInfoVO;
+  // 后端暂存信息。前端可通过入参传入，后端将在返参中原样返回
+  frontParamMap?: { [key: string]: string };
+  // 提单信息
+  mopPlaceOrderInfoVO?: MopPlaceOrderInfoVO;
+  // 当前页面
+  currentPage: CurrentPageEnum;
+  // 页面上游标识
+  orderSource: OrderSourceEnum;
+  // 必选菜信息
+  essentialDishSpuVO: EssentialDishSpuVO;
+  // 是否开启商品懒加载优化
+  productQueryOptimize?: boolean;
+  // 懒加载 update 请求的商品信息
+  mopProductCompressVO?: MopProductCompressVO;
+}
+```
+
+## 五、核心流程
+
+### 5.1 商品数据流
+
+数据流特征：自顶向下单向流动，通过回调更改顶层数据
+
+### 5.2 售卖属性互斥及客制化逻辑
+
+### **5.2.1 售卖属性互斥**
+
+主要场景是解决某些SKU售罄则不可选中特定组合的属性值。[互斥算法](https://km.example.com/collabpage/2324091209)核心就以下2点：
+
+1. 
+    - **生成缺失 SKU 集合**：售卖属性笛卡尔积 - 现有可用 SKU = 缺失 SKU 集合 C
+2. 
+    - **动态禁用计算**：用户每次选择属性后，用「已选的 n-1 组合」()去匹配集合 C，找到需要禁用的属性。
+    当前存在的问题：**禁用算法效率较低，有局限性（如单一属性对应的SKU都不存在，并不能一开始禁用掉）**
+
+### *5.2.1 ** 客制化 **规则**
+
+内部复杂的商品选规格规则和[客制化规则适配功能拆解](https://km.example.com/collabpage/2605125394)
+
+### 5.3 商品懒加载
+
+> 技术方案：[https://km.example.com/collabpage/2733739303](https://km.example.com/collabpage/2733739303)
+对于首屏无需展示 sku 信息的 deal 类型，preview 接口仅返回必要信息。当用户切换 spu 时调用 update 请求商品规格信息。
+**优化范围：**
+在囤点点单浮层 preview 请求时，若 dealMappingChooseType 为 3/4/6 时进行首屏优化。
+仅秒提链路仅存在单品与直连套餐，无需优化。
+**懒加载原理图：数据压缩**
+详见 [新数据格式](https://km.example.com/collabpage/2743921634)
+> 
+
+### 5.4 特殊业务逻辑注意
+
+| 特殊业务逻辑 | 描述 |
+| --- | --- |
+| [技术方案-补规格需求](https://km.example.com/collabpage/2733755638?searchid=219188409484&from=citadel_search_card) | 补齐因团购仅映射部分 SKU 而缺失的商品规格。 |
+| [20251030秒提商品上翻需求](https://km.example.com/collabpage/2296202608) | 仅秒提品上翻为团购品 UI 展示。 |
+| [套餐商品支持不可重复选](https://km.example.com/collabpage/2734991389#b-bcd04e1c1ba34301acafccba470d3b32) | 支持套餐商品不同分组之间不可重复选同一商品。 |
+| [选规格模块特殊主题色接入指南](https://km.example.com/collabpage/2725461777#b-37e7e5ebf1084d138627a49678840399) | 支持根据特殊业务形态（特团等）更改囤点页面主题色 |
+
+### 5.5 和DUO的交互
+
+[与外界的通信](https://km.example.com/collabpage/2707983480#b-2acb1652128a42cd959ec8646fc4ee1c)有不错的指引，需要持续更新。
+- **历史方案文档**[https://km.example.com/collabpage/2542337505](https://km.example.com/collabpage/2542337505)[货架融合梳理文档](https://km.example.com/collabpage/2591080534)[https://km.example.com/collabpage/2681332710](https://km.example.com/collabpage/2681332710)[货架融合短期方案仅秒提提单-【品牌大客前端】](https://km.example.com/collabpage/2610998276)
+180W+：[https://ua.example.com/main/#url=%2Fevent%2F%23%2Fanalysis%3Flocale%3Dzh%26channelId%3D28%26id%3D417223%26type%3Dmodule%26fid%3Docean%26tabsName%3DdataOverview%26bid%3Db_meishi_zdd0852y_mv](https://ua.example.com/main/#url=%2Fevent%2F%23%2Fanalysis%3Flocale%3Dzh%26channelId%3D28%26id%3D417223%26type%3Dmodule%26fid%3Docean%26tabsName%3DdataOverview%26bid%3Db_meishi_zdd0852y_mv)
+茶咖：除开星巴克
+西快：如麦当劳、汉堡王、华莱士
+零售：如武汉良品铺子
+商品映射类型：dealMappingType
+交互类型：dealMappingChooseType
+类型：dealMappingChooseType
+M 选1：ChooseOneFromM = 3
+套餐-只有单品单 SKU & 无配料：ComboSingleSKUNoPremium = 7
+套餐-只有单品多 SKU 或单 SKU 有配料：ComboSingelProductMultipleSKU = 8
+M 选 N 单分组 ：ChooseNFromMSingleGroup = 4
+M 选 N 多分组：ChooseNFromMMultipleGroups = 6
+固定套餐品：FixedComboSingleProduct = 5
+单品单 SKU：SingleSKU = 1
+单品多 SKU：SingleProductMultipleSKU = 2
+直连套餐：(dealMappingType=30)(无对应 dealMappingChooseType)
+提单页：rn_meishi_c-group-order-submit
+秒提提单页：rn_meishi_ka-mop-mix-order-submit
+「已选的 n-1 组合」：比如售卖属性有3组，当前已选择达到2组或者3组才会命中禁用逻辑

@@ -1,0 +1,303 @@
+# 常见布局
+
+# 多栏布局
+
+## 两栏
+
+```css
+.clearfix {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+.container {
+    background-color: lightblue;
+    /* width: 1000px; */
+    width: 90%;
+    margin: 0 auto;
+}
+
+.aside {
+    float: left;
+    background-color: #bf91f3;
+
+    /* 得定宽，不然内容会撑开导致上下分布 */
+    width: 300px;
+
+    /* 注意是修改浮动元素的 margin ，原因可以见 BFC 的 2 */
+    margin-right: 30px;
+}
+
+.main {
+    /* float: right; */
+    /* width: 700px; */
+    /* CSS/BFC/侧边栏固定后自适应.html */
+    /* 不再定宽和浮动，而是利用 BFC 盒子避开浮动盒子，
+    同时 container 宽度设为百分比从而实现响应化自适应分配 */
+    overflow: hidden;
+
+    background-color: #70A5FE;
+}
+```
+
+## 三栏
+
+### grid
+
+```css
+        .container {
+            display: grid;
+            grid-template-columns: 200px 1fr 200px;
+            gap: 10px 20px;
+            /* 行间隙为10px，列间隙为20px */
+        }
+```
+
+### flex
+
+```css
+        .container {
+            display: flex;
+            flex-direction: row;
+            /* justify-content: center; */
+            align-items: flex-start;
+        }
+
+        .left,
+        .right {
+            /* flex: 0 0 200px; */
+            flex-shrink: 0;
+            width: 200px;
+        }
+
+        .mid {
+            flex: 1;
+        }
+```
+
+### 浮动
+
+```css
+    <style>
+        .clearfix::after {
+            content: "";
+            display: block;
+            clear: both;
+        }
+
+        .container {
+            padding: 30px;
+            border: 3px solid black;
+
+            min-width: 700px;
+        }
+
+        .left {
+            float: left;
+            width: 200px;
+            background-color: #70A5FE;
+
+            margin-right: 20px;
+        }
+
+        .right {
+            float: right;
+            width: 200px;
+            background-color: #70A5FE;
+
+            margin-left: 20px;
+        }
+
+        .mid {
+            background-color: #bf91f3;
+
+            /* 常规流块盒在排列时，无视浮动盒子
+            这个盒子不会避开浮动元素，导致被遮挡
+            所以得创建 BFC => 创建 BFC 的元素，它的边框盒不会和浮动元素重叠 */
+            overflow: hidden;
+
+            border: 2px solid #008c8c;
+
+            /* min-width: 300px; */
+        }
+    </style>
+   
+<body>
+    <div class="container clearfix">
+        <div class="left">
+            </div>
+        <!-- float 只影响后续兄弟元素
+        如果 mid 元素写在 right 前面，那么其就会占满 left 右侧的空间
+        而 right 后来的只能占包含块剩下空间的 靠上靠右 -->
+        <div class="right">
+        </div>
+        <div class="mid">
+            常规流块盒在排列时，无视浮动盒子
+            这个盒子不会避开浮动元素，导致被遮挡
+            <div style="background-color: red;width: 100px;height: 20px;"></div>
+        </div>
+    </div>
+</body>
+```
+
+# 等高布局
+
+通常侧边栏高度不够，需要拉伸
+
+1. CSS3 的弹性盒
+    
+    ```css
+    .container {
+        display: flex;
+    }
+    
+    .left,
+    .right {
+        width: 200px;
+        background: #70A5FE;
+    }
+    
+    .mid {
+        flex: 1;                 /* 横向自适应 */
+        background: #bf91f3;
+        margin: 0 20px;
+    }
+    ```
+    
+    用 flex 布局的话就不需要 mid 写在 right 前面了，弹性盒子的顺序就是元素的顺序
+    
+2. JS 控制
+3. 伪等高
+    
+    ```css
+    .container {
+    	overflow: hidden;
+    }
+    
+    .left, .right {
+      height: 10000px;
+      margin-bottom: -9990px;
+      /* 需要把 clearfix 的伪元素拉回来 */
+    }
+    ```
+    
+
+# 元素书写顺序
+
+得先写浮动元素
+
+如果为了搜索引擎利好，那么主要内容越靠前越好
+
+那么就不用浮动，直接预留空间、然后侧边栏通过绝对定位挂上去实现
+
+```css
+        .container {
+            position: relative;
+            /* 作为挂载容器 */
+        }
+
+				.left, .right {
+            position: absolute;
+            right: 30px;
+            top: 30px;
+        }
+        
+        .mid {
+		        margin: 0 200px;
+        }
+```
+
+# 后台页面布局
+
+多个区域占满整个页面，分区域的滚动
+
+```css
+body {
+    margin: 0;
+}
+
+h1 {
+    margin: 0;
+}
+
+.app {
+    /* 通过 固定定位fixed 铺满整个页面 */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: #1A1B27;
+}
+
+.header {
+    height: 60px;
+    background-color: #70A5FE;
+    color: #fff;
+    text-align: center;
+    line-height: 60px;
+    font-size: x-large;
+
+    /* 2. 绝对定位，从常规流中剔除 */
+    position: absolute;
+    width: 100%;
+}
+
+.container {
+    color: #fff;
+    width: 100%;
+    /* 一. 下面的区域要占据除导航栏外的所有空间 */
+    /* 1. 两个常规流 直接通过 calc 计算 */
+    /* height: calc(100% - 60px); */
+
+    height: 100%;
+    /* 2 中通过 padding 防止被绝对定位元素遮挡 */
+    padding-top: 60px;
+    /* 上边导航栏导致的 下面的内边距 应该是算在盒子里面的，否则 container 会超出 app */
+    box-sizing: border-box;
+}
+
+/* 浮动在左侧 */
+.container .left {
+    float: left;
+    width: 300px;
+    background-color: #bf91f3;
+    height: 100%;
+
+    padding: 20px;
+    box-sizing: border-box;
+
+    /* 启动滚动条 */
+    overflow: auto;
+}
+
+.container .main {
+    overflow: hidden; /* 创建BFC => **不和浮动元素重叠** */
+    height: 100%;
+
+    padding: 20px;
+    box-sizing: border-box;
+
+    /* 启动滚动条 */
+    overflow: auto;
+}
+
+/* 隐藏滚动条 */
+.left::-webkit-scrollbar,
+.main::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+```
+
+```css
+    <div class="app">
+        <header class="header">
+            ceilf6
+            <nav></nav>
+        </header>
+        <div class="container">
+            <aside class="left">
+             </div>
+        </div>
+    </div>
+```

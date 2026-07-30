@@ -1,0 +1,9 @@
+# 架构改造
+
+问题：阶段顺序不稳定
+
+[技术方案](技术方案%203230f8d8d1fd80d6b8e8ecd9ceefe9c9.md)
+
+[手动DAG拓扑排序调度](手动DAG拓扑排序调度%203240f8d8d1fd8011a81fdba4773b467d.md)
+
+[风险隔离+平滑迁移 LangGraph](风险隔离+平滑迁移%20LangGraph%203240f8d8d1fd8050b767fbaede34468f.md)

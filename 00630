@@ -1,0 +1,49 @@
+# 多个递增数组中找公共元素
+
+直接多指针扫描即可
+
+一行一个指针，比较所有指针当前指向的值
+
+**利用性质 递增**
+
+如果小了就移动，如果全部相等就是公共元素
+
+```jsx
+function commonElements(matrix) {
+  const k = matrix.length;
+  const pointers = new Array(k).fill(0);
+  const result = [];
+
+  while (true) {
+    let current = [];
+
+    // 取出每一行指针指向的值
+    for (let i = 0; i < k; i++) {
+      if (pointers[i] >= matrix[i].length) {
+        return result; // 有一行走完了，结束
+      }
+      current.push(matrix[i][pointers[i]]);
+    }
+
+    // 判断是否全部相同
+    if (current.every(v => v === current[0])) {
+      result.push(current[0]);
+
+      // 所有指针都前进
+      for (let i = 0; i < k; i++) {
+        pointers[i]++;
+      }
+    } else {
+      // 找到最小值
+      const minVal = Math.min(...current);
+
+      // 最小值所在行指针前进
+      for (let i = 0; i < k; i++) {
+        if (current[i] === minVal) {
+          pointers[i]++;
+        }
+      }
+    }
+  }
+}
+```

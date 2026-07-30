@@ -1,0 +1,516 @@
+# 提单页、秒提店内购物车说明
+
+## 目录
+
+- 一、业务简介
+    - 1.1 能力介绍
+    - 1.2 业务全景
+        - 1.2.1 页面形态概览
+        - 1.2.2 上下游页面
+            - 提单商品选购
+            - 商品提单页
+            - 购物车
+        - 1.2.3 页面入参业务参数
+    - 1.3 协作对接
+- 二、前端技术基建
+    - 2.1 仓库
+    - 2.2 基建配置
+    - 2.3 raptor配置
+    - 2.4 页面埋点信息
+- 三、 页面结构
+    - 3.1 提单页面
+    - 3.2 购物车
+- 四、数据信息
+    - 4.1 接口信息
+        - 4.1.1 提单接口字段说明
+            - 补充字段
+        - 4.1.2 购物车接口字段说明
+            - poi链路
+            - 
+                1. 购物车内页
+    - 4.2 购物车数据流转逻辑
+    - 购物车过往需求列表
+    - 提单需求列表
+    - 鸣谢
+
+## 一、业务简介
+
+### 1.1 能力介绍
+
+提单页面在秒提侧主要承载商品选购和提单下单前内容，选购页PV日均180W()左右，针对秒提链路主要支持两大类交易流程，秒提场景下支持商品选规格()、切换门店、加入购物车()、备注()、修改规格()、预计取单功能()、就餐方式()、各类优惠能力()；团购场景下复用到餐交易团购券下单相关能力。购物车能力主要为支持多品提单功能，支持零食、茶饮，西快等品类，主要包括商品加减购，修改，切换团购、优惠明细展示，引导凑单等能力，日均UV 10W+()。
+
+### 1.2 业务全景
+
+### 1.2.1 页面形态概览
+
+| 提单 |  |  |  |  |  |  |  |  |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 页面形态说明 | 购物车提单 | 融合单品直接提单 | 仅秒提品直接提单 | 西快随心配提单 | 零食随心配提单 | 特价团购提单 | 融合商品选规格 | 仅秒提品选规格 |
+| 图示 |  |  |  |  |  |  | > 商品选规格内部的多种形态见[商品选购页白皮书](https://km.example.com/collabpage/2745444834#b-4cd31938813d497dac0fbac64bf3ce5b) |  |
+| 备注 | 比较特殊的场景：喜姐支持在提单必选菜 |  |  |  |  |  | 开通购物车品牌底部才会有加入购物车能力 |  |
+| 购物车 |  |  |  |  |  |  |  |  |
+| --- | --- | --- | --- | --- |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |
+| 页面形态说明 | 货架入口购物车 | 购物车优惠明细 | 零食随心配内页购物车 | 引导凑选品 |  |  |  |  |
+| 图示 | 两张图主要差异在于营销营销和品类1. - 有无凑单内容，支持平台券，（后续会支持商家券） |  |  |  |  |  |  |  |
+1. 
+    - 是否支持勾选（零食品类支持勾选，其他暂不支持） | 整个购物车整体的优惠明细 | 1. - 零食随心配内页有无凑单内容 | |
+
+### 1.2.2 上下游页面
+
+### 提单商品选购
+
+> 详细可见[https://km.example.com/collabpage/2745444834](https://km.example.com/collabpage/2745444834)
+| 上游页面 | poi货架（仅限美团app） | deal | 特团 |  |
+| --- | --- | --- | --- | --- |
+| 图示 |  |  |  |  |
+| 线路说明 | 点击货架商品选规格按钮 | poi->deal->点击秒提按钮 | 特团内页抢按钮 | 特团deal页面，直接购买 |
+> 
+
+### 商品提单页
+
+| 上游页面 | poi货架（仅限美团app） | 购物车 | 零食随心配内页 | 西快随心配内页 |
+| --- | --- | --- | --- | --- |
+| 图示 |  |  |  |  |
+| 线路说明 | 点击底部去结算 | 点击去结算 | 点击去结算 | 点击选好了 |
+| 下游页面 |  | 门店选择 | 购物车 | 支付->订单详情 |
+| --- | --- | --- | --- |  |
+|  |  |  | [https://km.example.com/collabpage/2726808648](https://km.example.com/collabpage/2726808648) |  |
+
+### 购物车
+
+| 上游页面 | poi货架（仅限美团app） | deal页面 | 零食随心配内页 | 引导凑特殊入口 |  |
+| --- | --- | --- | --- | --- | --- |
+| 图示 |  |  |  |  |  |
+| 线路说明 | 点击底部购物车icon/点击已优惠文字区域 | 点击左边第二个购物车icon | 点击底部购物车icon/点击已优惠文字区域 | 底部按钮点击去凑单 | 点击券区 |
+| 下游页面 |  |  |  |  |  |
+
+### 1.2.3 页面入参业务参数
+
+| 场景 | 前缀 | 入参 | 示例scheme |
+| --- | --- | --- | --- |
+| **囤点提单页、****团购券选规格** | imeituan://[www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=c-group-order-submit&mrn_component=GroupOrderSubmit](https://www.notion.so/www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=c-group-order-submit&mrn_component=GroupOrderSubmit) |  | 字段 |
+| --- | --- | --- |  |
+| tabType | ✅ | 1=团购Tab，5=秒提Tab |  |
+| groupBuyMopScene | ✅ | 1 表示走秒提链路 |  |
+| buyPoiId | ✅ | 购买门店 |  |
+| dealID | ✅ | 团单ID |  |
+| pageScene |  | 5=秒提提单，11=秒提（购物车跳转），12=团购（购物车跳转） |  |
+| shelfFusion |  | =true 展示加入购物车 |  |
+| lowestPriceSkuId |  | 最低价skuId，可能为空 |  |
+| mopPreOrderParam |  | 非必填，但是适配特殊场景，比如轻餐货架团购券核销/购物车提单/随心配提单如团购券核销携带参数：mopPreOrderParam=encodeURIComponent('{"mopCalculateParam":{"mopDealPurchaseItemList":[{"isPurchasedDeal":true,"purchasedDealCount":1}]}}')```javascript |  |
+| { |  |  |  |
+| mopCalculateParam: { |  |  |  |
+
+```
+mopDealPurchaseItemList: [
+  {
+    isPurchasedDeal: true,
+    purchasedDealCount: 1
+  }
+]
+```
+
+}
+}
+
+```
+|  |  | 随心配详细逻辑见ka-mop-mix-match/src/pages/components/BottomBar/index.tsx```javascript
+const params = {
+      shopId,
+      poiId: shopId,
+      brandId,
+      mopPlaceOrderParam: {
+        // 团购品
+        mopDealPurchaseItemList,
+        // 仅秒提
+        mopPurchaseItemList,
+
+      },
+      currentPage: 10,
+      scene: 30,
+      orderSource: 20,
+    };
+    let url = `${
+      buttonInfo.jumpUrlPrefix
+    }&groupBuyMopScene=2&shopId=${shopId}&buyPoiId=${shopId}&mopPreOrderParam=${encodeURIComponent(
+      JSON.stringify(params),
+    )}&productList=${encodeURIComponent(JSON.stringify(productList))}&pageSourceId=100&pageScene=5`;
+``` |
+| source |  | =costEffective，开启特团主题色 |
+| halfScreenSubmitHeight |  | 半屏高度 |
+| isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true |  | 浮层参数，MRN透明容器 |
+| mrn_adjustParentFrame=true |  | 调整容器自适应，前端参数 |
+| sec_source |  | 来自秒提还是来自团购，影响埋点，不影响功能 | | imeituan://[www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=c-group-order-submit&mrn_component=GroupOrderSubmit&tabType=5&groupBuyMopScene=1&isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true&mrn_adjustParentFrame=true&halfScreenSubmitHeight=0.85&sec_source=rhhj_dd&dealID=1506426499&campaignId=0&button_type=buy&orderGroupId=0&nibBizConsistency=gmV2peeKZ5C2xJqoC9o14Dw1JJuFcJiNqkBfCnOGbOTqEYWOB0Mjw0pjDNpqU7cDUsaWdq9se_7dRm6s06cMaN29EgYoW-mkihADl_uMB-hkG7d8ALRmtWG-0F5m8in_Sl-SSV4Yr5BWyHi1V5tahaG7FlnxD-5pZ3X9wGq017JP0fh2AsZxA4kEFEJFQpQ4BU3cF4Bsx4IpMYOqPlf51ZQ-Q-7e_98y5sNaY7LgBx4&source=meishi_search_poi&buyPoiId=164321044&buyPoiIdEncrypt=qB4r177e7ca40cb99ce764b024935f75711afcbe643598e9791ef09a7c22f7252fc484vxu5&flexibleJSON=%7B%22assignProm%22%3A%5B%5D%7D&_referer=deal&lowestPriceSkuId=2330356205&mrn_min_version=2.187.0&hasKNBParams=true&version=12.51.200&cityId=10&locCityId=10&lat=31.27374267154093&lng=121.52913302699567&accuracy=18.736367884646267&mrn_adjustParentFrame=true&mrn_showLevel=1&shelfFusion=true&dealPrice=9&benchmarkLevel=90](www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=c-group-order-submit&mrn_component=GroupOrderSubmit&tabType=5&groupBuyMopScene=1&isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true&mrn_adjustParentFrame=true&halfScreenSubmitHeight=0.85&sec_source=rhhj_dd&dealID=1506426499&campaignId=0&button_type=buy&orderGroupId=0&nibBizConsistency=gmV2peeKZ5C2xJqoC9o14Dw1JJuFcJiNqkBfCnOGbOTqEYWOB0Mjw0pjDNpqU7cDUsaWdq9se_7dRm6s06cMaN29EgYoW-mkihADl_uMB-hkG7d8ALRmtWG-0F5m8in_Sl-SSV4Yr5BWyHi1V5tahaG7FlnxD-5pZ3X9wGq017JP0fh2AsZxA4kEFEJFQpQ4BU3cF4Bsx4IpMYOqPlf51ZQ-Q-7e_98y5sNaY7LgBx4&source=meishi_search_poi&buyPoiId=164321044&buyPoiIdEncrypt=qB4r177e7ca40cb99ce764b024935f75711afcbe643598e9791ef09a7c22f7252fc484vxu5&flexibleJSON=%7B%22assignProm%22%3A%5B%5D%7D&_referer=deal&lowestPriceSkuId=2330356205&mrn_min_version=2.187.0&hasKNBParams=true&version=12.51.200&cityId=10&locCityId=10&lat=31.27374267154093&lng=121.52913302699567&accuracy=18.736367884646267&mrn_adjustParentFrame=true&mrn_showLevel=1&shelfFusion=true&dealPrice=9&benchmarkLevel=90) |
+| **仅秒提选规格** | imeituan://[www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=ka-mop-mix-order-submit&mrn_component=KaMopMixOrderSubmit](www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=ka-mop-mix-order-submit&mrn_component=KaMopMixOrderSubmit) | | 字段 | 是否必填 | 说明 |
+| --- | --- | --- |
+| brandId | ✅ | 品牌id |
+| productId | ✅ | 商品id |
+| shopId | ✅ | 门店id |
+| dishType | ✅ | 商品类型*NORMAL_SPU *= 50, // 普通货架 spu
+*COMBO_SPU *= 60, // 直连套餐 spu |
+| lowestPriceSkuId |  | 最低价skuId，可能为空 |
+| shelfFusion |  | =true 展示加入购物车 |
+| isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true |  | 浮层参数，MRN透明容器 |
+| halfScreenSubmitHeight |  | 半浮层高度，默认 0.8*screenHeight，支持通过 halfScreenSubmitHeight 指定比例 | | imeituan://[www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=ka-mop-mix-order-submit&mrn_component=KaMopMixOrderSubmit&halfScreenSubmitHeight=0.85&isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true&mrn_adjustParentFrame=true&brandId=399&productId=2204338325&dishType=50&shopId=164321044&lowestPriceSkuId=2330340375&shelfFusion=true&dealPrice=9](www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=ka-mop-mix-order-submit&mrn_component=KaMopMixOrderSubmit&halfScreenSubmitHeight=0.85&isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true&mrn_adjustParentFrame=true&brandId=399&productId=2204338325&dishType=50&shopId=164321044&lowestPriceSkuId=2330340375&shelfFusion=true&dealPrice=9) |
+| 购物车 | imeituan://[www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=food-mop-cart-list&mrn_component=main&isTransparent=true&mrn_transparent=true&hideLoading=true&mrn_hideloading=true&mrn_hideNextNavBar=true&pagepopup=true&poiId=](www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=food-mop-cart-list&mrn_component=main&isTransparent=true&mrn_transparent=true&hideLoading=true&mrn_hideloading=true&mrn_hideNextNavBar=true&pagepopup=true&poiId=)${shopId}&brandId=${brandId}&showErrorPageNav=0&pageScene=${    pageScene ?? ''  }&mrn_min_version=0.8.0&mrn_adjustParentFrame=true | | 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| shopId | ✅ | shopId |
+| brandId | ✅ | brandId |
+| pageScene | ✅ | 页面展示场景，锚定tab 11 秒提，12 团购，门店歇业买团购 |
+| mrn_min_version | ✅ | 最小版本号（主要兼容一些断层功能） | |  |
+| **其他（购物车修改规格等）** | 主要以组件形式作为局部场景使用，不单独列举，后面索引对应页面。 |  |  |
+### 1.3 协作对接
+
+| 方向 | 职责 | 对接人 |
+| --- | --- | --- |
+| 产品 | 需求定义 | 嘉徐（jijiaxu） |
+| 交互 | 交互体验 | 柴箐（chaiqing） |
+| 视觉 | 展示样式 | - |
+| 交易前端 | 交易部分及DUO领域问题协同 | 陈梁（chenliang54） |
+| 后端API | 页面数据封装 | 大客：嘉伟（lijiawei16）交易：李刚（ligang39） |
+| QA | 质量保障 | 大客：林菊（linju）交易：谢豪（xiehao13） |
+## 二、前端技术基建
+
+### 2.1  仓库
+
+| 业务 | code |
+| --- | --- |
+| 购物车 | 购物车内页秒提业务组件：ssh://[git@git.example.com](<mailto:git@git.example.com>)/nibfe/ka-mop-max-duo.git购物车页面壳容器：ssh://[git@git.example.com](<mailto:git@git.example.com>)/nibfe/food-cart.gitduo开发页面：[<https://duo.example.com/portal/page/detail2/12443?branch=master>](<https://duo.example.com/portal/page/detail2/12443?branch=master>)头部双tab复用交易组件：[<https://yooz.example.com/client-platform/material/detail/397>](<https://yooz.example.com/client-platform/material/detail/397>)页面容器组件：[<https://yooz.example.com/client-platform/material/detail/136>](<https://yooz.example.com/client-platform/material/detail/136>) |
+| 提单 | 选规格组件/门店组件/商品详情/备注就餐方式：ssh://[git@git.example.com](<mailto:git@git.example.com>)/nibfe/ka-mop-max-duo.git底部bottom提单组件：[<https://yooz.example.com/client-platform/material/detail/402>](<https://yooz.example.com/client-platform/material/detail/402>)头部双tab复用交易组件：[<https://yooz.example.com/client-platform/material/detail/397>](<https://yooz.example.com/client-platform/material/detail/397>)页面容器组件：[<https://yooz.example.com/client-platform/material/detail/136>](<https://yooz.example.com/client-platform/material/detail/136>)duo开发页面：[<https://duo.example.com/portal/page/detail2/12413?branch=master>](<https://duo.example.com/portal/page/detail2/12413?branch=master>)提单壳子页面：ssh://[git@git.example.com](<mailto:git@git.example.com>)/nibfe/duo-food-order-submit.git |
+| 仅秒提 | ssh://[git@git.example.com](<mailto:git@git.example.com>)/nibfe/ka-mop-mix-order-submit.git |
+### 2.2 基建配置
+
+页面开发[duo框架](<https://km.example.com/collabpage/2707983480>)+[max技术栈](<https://sky.example.com/max/>)+[<https://km.example.com/collabpage/1524210565>](<https://km.example.com/collabpage/1524210565>)（类似yarn link）同步工具
+### 2.3 raptor配置
+
+交易提单：[raptor](<https://raptor.mws.example.com/mrn/quality/errorList?start=20260130161000&end=20260130164000&timeType=datetimerange&type=datetimerange&hier=MRN,5,meishi,rn_meishi_c-group-order-submit&errorListCurrentPage=1&isMRN=1&errorDetailCurrentPageSize=10>)，[自定义指标](<https://raptor.mws.example.com/frontend/custom_key/?type=datetimerange&start=20260130161100&end=20260130164100&projectId=10749&webVersion=all&metric=TP90&speedPoint=11,16,18,25&singleSpeedPoint=16&isPerfInMp=false&perfBundleId=3763&dyeingId=&customKeyParams=%5B%7B%22currentKeyId%22%3A%22MIAOTI_PRICE_CONSISTENT%22,%22time%22%3A%5B1769702400000,1769788799000%5D,%22selectedTags%22%3A%5B%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D%5D,%22selectedChartTypes%22%3A%5B%22COUNT%22,%22AVG%22%5D,%22groupByTag%22%3Anull%7D%5D>)
+仅秒提提单：[raptor](<https://raptor.mws.example.com/mrn/quality/errorList?start=20260130161100&end=20260130164100&timeType=datetimerange&type=datetimerange&hier=MRN,5,meishi,rn_meishi_ka-mop-mix-order-submit&errorListCurrentPage=1&isMRN=1&errorDetailCurrentPageSize=10>)，[自定义指标](<https://raptor.mws.example.com/frontend/custom_key/?type=datetimerange&start=20260130161100&end=20260130164100&projectId=32769&webVersion=all&metric=TP90&speedPoint=11,16,18,25&singleSpeedPoint=16&isPerfInMp=false&perfBundleId=3763&dyeingId=>)
+购物车：[raptor](<https://raptor.mws.example.com/mrn/quality/errorList?start=20260130161100&end=20260130164100&timeType=datetimerange&type=datetimerange&hier=MRN,5,meishi,rn_meishi_food-mop-cart-list&errorListCurrentPage=1&isMRN=1&errorDetailCurrentPageSize=10>),[自定义指标](<https://raptor.mws.example.com/frontend/custom_key/?type=datetimerange&start=20260130161100&end=20260130164100&projectId=35193&webVersion=all&metric=TP90&speedPoint=11,16,18,25&singleSpeedPoint=16&isPerfInMp=false&perfBundleId=3763&dyeingId=&customKeyParams=%5B%7B%22currentKeyId%22%3A%22d-continer-render-1%22,%22time%22%3A%5B1769702400000,1769788799000%5D,%22selectedTags%22%3A%5B%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D,%5B%5D%5D,%22selectedChartTypes%22%3A%5B%22COUNT%22,%22AVG%22%5D,%22groupByTag%22%3Anull%7D%5D>)
+### 2.4 页面埋点信息
+
+购物车页面：[购物车建设](<https://ocean.example.com/config/#/demand/program/edit?flowId=56406&action=detail>)、[引导凑需求](<https://ocean.example.com/config/#/demand/program/edit?flowId=61875&action=detail>)
+提单：[选规格](<https://ocean.example.com/config/#/module/detail?id=417223&channelId=28>)，详情见ka-max-duo仓库文件packages/ka-mop-duo-shelf-mix/src/utils/lx.ts
+## 三、 页面结构
+
+选规格页面内容主要见[<https://km.example.com/collabpage/2745444834#b-20f7063ed8a647c18a52a67ee186f39a>](<https://km.example.com/collabpage/2745444834#b-20f7063ed8a647c18a52a67ee186f39a>)，不赘述
+### 3.1 提单页面
+
+| 页面组装说明 | 页面模块说明 |
+| --- | --- |
+|  | 双tab使用范围：当前主要给秒提页面使用，包括交易提单，购物车 代码文件：[<https://yooz.example.com/client-platform/material/detail/397>](<https://yooz.example.com/client-platform/material/detail/397>) |
+|  | 切换门店组件 1. 使用范围：选规格头部，提单头部 2. 代码文件：packages/ka-mop-duo-shelf-mix/src/ShopCustomization/components/ShopHeader |
+|  | 预期管理  1. 使用范围：提单  2. 代码文件：packages/ka-mop-duo-shelf-mix/src/SubmitComp/OrderTakeShopInfo |
+|  | 就餐方式 使用范围：提单 代码文件：packages/ka-mop-duo-shelf-mix/src/SubmitComp/FulfillMent |
+|  | 订单详情使用范围：提单 代码文件：packages/ka-mop-duo-shelf-mix/src/SubmitComp/OrderItem |
+|  | 备注 使用范围：提单 代码文件：packages/ka-mop-duo-shelf-mix/src/SubmitComp/Remark |
+|  | 必选菜 使用范围：提单 代码文件：packages/ka-mop-duo-shelf-mix/src/SubmitComp/mustChooseDishpackages/ka-mop-duo-shelf-mix/src/mustChooseDishModal仅秒提仓库ka-mop-mix-order-submit/src/pages/SubmitOrder/components/MustChooseDishContent |
+|  | 结算按钮  使用范围：秒提主要在提单底部，这块有一部分校验逻辑写在这里  代码文件：[<https://yooz.example.com/client-platform/material/detail/402>](<https://yooz.example.com/client-platform/material/detail/402>) |
+| 其他补充 |  页面整体容器：    使用范围：购物车、提单         代码文件：[<https://yooz.example.com/client-platform/material/detail/136>](<https://yooz.example.com/client-platform/material/detail/136>) |
+### 3.2 购物车
+
+| 页面组件说明 | 模块说明 |
+| --- | --- |
+|  | 双tab：同提单，不赘述 |
+|  | 帮我省模块使用范围：购物车内页代码文件：ka-mop-max-duo/packages/ka-mop-guide-spu-tip |
+|  | 门店信息使用范围：购物车内页代码文件：ka-mop-max-duo/packages/ka-mop-shop-cart-title |
+|  | 加购列表使用范围：购物车代码文件：ka-mop-max-duo/packages/ka-mop-shop-cart |
+|  | 底部bottom使用范围：购物车，poi代码文件：ka-mop-max-duo/packages/ka-mop-shop-cart-bottom |
+|  | 引导凑优惠展示区域使用范围：购物车引导凑模块头部代码文件：ka-mop-max-duo/packages/ka-mop-guide-discount-spu/src/components/Progress |
+|  | 可凑单商品列表使用范围：代码文件：ka-mop-max-duo/packages/ka-mop-guide-discount-spu/src/components/GoodsCard |
+|  | 优惠明细使用范围：代码文件：ka-mop-max-duo/packages/ka-mop-cart-discount-detail/src/index.tsx |
+## 四、数据信息
+
+### 4.1 接口信息
+
+见[商品选购页白皮书](<https://km.example.com/collabpage/2745444834#b-5691be86baba49b29fd216a92f80fe06>)
+#### 4.1.1 提单接口字段说明
+
+[<https://km.example.com/collabpage/2745444834#b-5691be86baba49b29fd216a92f80fe06>](<https://km.example.com/collabpage/2745444834#b-5691be86baba49b29fd216a92f80fe06>)
+##### 补充字段
+
+| 区域 | 字段 |
+| --- | --- |
+|  | update/preview接口mopPreOrderVO->mopShopInfoVOmopPreOrderVO->mopBrandInfoVO |
+|  | update/preview接口mopPreOrderVO->mopProductPriceVO算价接口/mop/api/menu/dealCalculatorForGroupTrade返回价格内容 |
+| mopShopInfoVO | mopPreOrderVO->mopShopInfoVO->prepareTimeRichText |
+|  | mopPreOrderVO->mopPlaceOrderInfoVO->mopDealPurchaseItemVOList |
+|  | mopPreOrderVO->mopPlaceOrderInfoVO->supportRemark |
+| 必选菜 | mopPreOrderVO->essentialDishSpuVO，类似dealMappingInfoVO |
+#### 4.1.2 购物车接口字段说明
+
+1. - ##### poi链路
+
+接口/poi/v1/poi/brandcart/和/api/v1/foodcart/poiaddcart[<https://km.example.com/collabpage/2706314339>](<https://km.example.com/collabpage/2706314339>)，重要字段说明
+> 初始进入调用/poi/v1/poi/brandcart/，查询购物车数据，后续加购或者更新调用/api/v1/foodcart/poiaddcart，接口返回内容基本一致
+| 字段 | 对应页面数据 |
+| --- | --- |
+| cartBriefProductVOMap | 加购的详细信息```javascript
+{
+  "1575866251": {
+    "productId": "1575866251",
+    "count": 1,
+    "buyLimit": -1,
+    "upLimit": false,
+    "cartItemCountList": [
+      {
+        "cartItemId": "A9844525C2906832626C93C13F307300",
+        "count": 0
+      }
+    ]
+  }
+}
+``` |
+| cartUsedDealBriefProductMap | ```javascript
+cartUsedDealBriefProductMap:{
+  "1558394608": {
+    "productId": "1558394608",
+    "count": 1,
+    "buyLimit": -1,
+    "upLimit": false,
+    "cartItemCountList": []
+  }
+}
+```已购券的数据 |
+##### 2. 购物车内页
+
+接口字段详情见[<https://km.example.com/collabpage/2706406137>](<https://km.example.com/collabpage/2706406137>)
+| 字段 | 说明 |
+| --- | --- |
+| pageSceneParamVO | ```javascript
+{
+  "pageScene": 11,
+  "nextPageScene": 0,
+  "tabInfoVO": [
+    {
+      "pageScene": 11,
+      "tabTitle": "秒提·到店取",
+      "tabStyle": 0
+    },
+    {
+      "pageScene": 12,
+      "tabTitle": "买团购",
+      "tabStyle": 0
+    }
+  ],
+  "submitBtnStatus": 0,
+  "openSelectCouponPageFlag": false,
+  "giftIntention": 0,
+  "pageSourceId": 0
+}
+```双tab数据 |
+| groupOperateCartVO团购tab下的数据 | ```javascript
+{
+  "allSelect": false,
+  "groupValidCartItemVOList": [],
+  "groupInValidCartItemVOList": [],
+  "groupCartValidateResultVO": {
+    "validateResult": false,
+    "unSupportConsumeMessage": "暂无商品"
+  }
+}
+``` |
+| mopOperateCartVO秒提tab下的数据 | ```javascript
+{
+  "mopShopInfoVO": {
+    "shopId": "1002103330",
+    "cityId": 50,
+    "shopTag": "到店自取",
+    "shopIcon": "<https://p0.meituan.net/ingee/f4de1cab813221212bc4e150f45e4cae1959.png>",
+    "shopName": "瑞幸咖啡（未来之光城店）",
+    "brandId": "288",
+    "topTipList": [],
+    "bottomTipList": [],
+    "topTipRichTextList": [],
+    "tipList": []
+  },
+  "mopBrandInfoVO": {
+    "brandId": "288",
+    "mopBrandType": 20
+  },
+  "mopCartValidateResultVO": {
+    "validateResult": true,
+    "code": 0
+  },
+  "allSelect": true,
+  "mopValidCartItemVOList": [
+    {
+      "cartItemId": "0DC56651BC0A7995379CB04460DB407D",
+      "rank": 1,
+      "purchaseItemType": 30,
+      "count": 1,
+      "upLimit": true,
+      "discountPrice": "3500",
+      "payPrice": "0",
+      "mopDealPurchaseItemVO": {
+        "itemKey": "0DC56651BC0A7995379CB04460DB407D",
+        "purchaseItemType": 30,
+        "rank": 1,
+        "selected": true,
+        "count": 1,
+        "totalPrice": "3500",
+        "payPrice": "0",
+        "discountPrice": "3500",
+        "needChooseAttr": false,
+        "canModifyAttr": true,
+        "mopComboVO": {
+          "comboCode": "64896270",
+          "comboName": "褚橙拿铁",
+          "comboImage": "<http://p0.meituan.net/w.h/scpdeal/67e84ce9e932d0ad4cabd209d774c9b4663928.jpg@280_0_720_720a%7C267h_267w_2e_90Q>",
+          "mopComboSkuVOList": [
+            {
+              "comboGroupId": "81583384",
+              "skuId": "2762775348",
+              "spuId": "2271771361",
+              "comboItemId": "0DC56651BC0A7995379CB04460DB407D-64896270-81583384-2762775348-0",
+              "spuImage": "<https://img.meituan.net/shopdirectconnectpic/c3e16ef1f583c0afe73ba20fb9c5b8e2.jpg>",
+              "spuName": "褚橙拿铁",
+              "comboSkuNum": 1,
+              "skuName": "大杯/意式拼配/冰/少甜/默认浓度",
+              "skuPrice": "3500",
+              "totalPrice": "3500",
+              "isSupplementSku": false,
+              "mopPremiumVOList": []
+            }
+          ]
+        },
+        "isPurchasedDeal": true,
+        "dealId": "1558394608",
+        "dealTag": 1,
+        "dealMappingType": 20,
+        "dealImage": "<http://p0.meituan.net/258.258/scpdeal/67e84ce9e932d0ad4cabd209d774c9b4663928.jpg@46_0_1187_720a%7C388h_640w_2e_90Q>",
+        "dealName": "褚橙拿铁",
+        "dealSellPrice": "0",
+        "dealOriginPrice": "0"
+      }
+    },
+    {
+      "cartItemId": "A9844525C2906832626C93C13F307300",
+      "rank": 2,
+      "purchaseItemType": 30,
+      "count": 1,
+      "upLimit": false,
+      "discountPrice": "3500",
+      "payPrice": "0",
+      "mopDealPurchaseItemVO": {
+        "itemKey": "A9844525C2906832626C93C13F307300",
+        "purchaseItemType": 30,
+        "rank": 2,
+        "selected": true,
+        "count": 1,
+        "totalPrice": "3500",
+        "payPrice": "1290",
+        "discountPrice": "3500",
+        "needChooseAttr": false,
+        "canModifyAttr": true,
+        "mopComboVO": {
+          "comboCode": "65358058",
+          "comboName": "【当季好喝】10选1",
+          "comboImage": "<https://img.meituan.net/w.h/content/aab4ff72731cec1ff14ed7209ec56f5f73109.jpg@280_0_720_720a%7C267h_267w_2e_90Q>",
+          "mopComboSkuVOList": [
+            {
+              "comboGroupId": "82786273",
+              "skuId": "2742195574",
+              "spuId": "2229378235",
+              "comboItemId": "A9844525C2906832626C93C13F307300-65358058-82786273-2742195574-0",
+              "spuImage": "<https://img.meituan.net/shopdirectconnectpic/9aa43c4eeaab38bef168ca4c15c54583.jpg>",
+              "spuName": "小黄油拿铁",
+              "comboSkuNum": 1,
+              "skuName": "大杯/意式拼配/冰/不另外加糖/默认浓度",
+              "skuPrice": "3500",
+              "totalPrice": "3500",
+              "isSupplementSku": false,
+              "mopPremiumVOList": []
+            }
+          ]
+        },
+        "isPurchasedDeal": false,
+        "dealId": "1575866251",
+        "dealTag": 1,
+        "dealMappingType": 20,
+        "dealImage": "<https://img.meituan.net/258.258/content/aab4ff72731cec1ff14ed7209ec56f5f73109.jpg@46_0_1187_720a%7C388h_640w_2e_90Q>",
+        "dealName": "【当季好喝】10选1",
+        "dealSellPrice": "1290",
+        "dealOriginPrice": "3500"
+      }
+    }
+  ],
+  "mopInValidCartItemVOList": [],
+  "mopProductPriceVO": {
+    "mopCurrentPrice": "1290",
+    "selectNum": 2
+  }
+}
+``` |
+| cartBottomBarVO购物车底部bottom数据和poi返回的一致 | ```javascript
+{
+  "quantity": 2,
+  "payPrice": "12.9",
+  "promoPrice": "57.1",
+  "originPrice": "70",
+  "buttonText": "去结算",
+  "buttonUrl": "imeituan://www.meituan.com/mrn?mrn_biz=meishi&mrn_entry=c-group-order-submit&mrn_component=GroupOrderSubmit&tabType=5&groupBuyMopScene=1&isTransparent=true&hideLoading=true&mrn_transparent=true&mrn_hideloading=true&mrn_hideNextNavBar=true&mrn_adjustParentFrame=true&halfScreenSubmitHeight=0.85&sec_source=rhhj_dd&pageSourceId=100&pageScene=11&_referer=mopCart&buyPoiId=1002103330&mopPreOrderParam=%7B%22orderSource%22%3A%2240%22%2C%22brandId%22%3A%22288%22%2C%22poiId%22%3A%221002103330%22%2C%22currentPage%22%3A%2220%22%2C%22mopPlaceOrderParam%22%3A%7B%22cartItemIdList%22%3A%5B%220DC56651BC0A7995379CB04460DB407D%22%2C%22A9844525C2906832626C93C13F307300%22%5D%7D%2C%22scene%22%3A%2230%22%7D&shopId=1002103330&cartItemList=%5B%7B%22cartItemId%22%3A%220DC56651BC0A7995379CB04460DB407D%22%2C%22productType%22%3A4%7D%2C%7B%22cartItemId%22%3A%22A9844525C2906832626C93C13F307300%22%2C%22productType%22%3A4%7D%5D&mrn_min_version=2.304.0",
+  "hasCartItem": true,
+  "isClearOperation": false,
+  "cartUsedDealBriefProductMap": {
+    "1558394608": {
+      "productId": "1558394608",
+      "count": 1
+    }
+  },
+  "cartBriefProductMap": {
+    "1575866251": {
+      "productId": "1575866251",
+      "count": 1,
+      "upLimit": false
+    }
+  }
+}
+``` |
+| 优惠数据 | ```javascript
+[
+  {
+    "titleText": "团购优惠",
+    "iconUrl": "<https://p0.meituan.net/ingee/3e5bface924f0e0e176bfe71c2e675ea1871.png>",
+    "labelText": "22.1"
+  },
+  {
+    "titleText": "团购券抵扣",
+    "iconUrl": "<https://p0.meituan.net/mop/7633c53bb6129058f4ec75c58ba53fd83178.png>",
+    "labelText": "35"
+  }
+]
+``` |
+### 4.2  购物车数据流转逻辑
+
+| 各模块流程 | 图示 |
+| --- | --- |
+| 购物车加购商品列表 |  |
+| 购物车修改流程 |  |
+| 引导凑 |  |
+### 购物车过往需求列表
+
+| 需求 | PRD | 前端方案 | 后端方案 |
+| --- | --- | --- | --- |
+| 新建购物车 | [<https://km.example.com/collabpage/2703084530?from=citadel_collabpage>](<https://km.example.com/collabpage/2703084530?from=citadel_collabpage>) | [<https://km.example.com/collabpage/2705548426>](<https://km.example.com/collabpage/2705548426>) | [<https://km.example.com/collabpage/2705730531#b-7cd54c88b00545f8a3a1cf3b7d1a0c9f>](<https://km.example.com/collabpage/2705730531#b-7cd54c88b00545f8a3a1cf3b7d1a0c9f>) |
+| 购物车一期优化 | [<https://km.example.com/collabpage/2710488527>](<https://km.example.com/collabpage/2710488527>) | @李予谦(Br) | [<https://km.example.com/collabpage/2712162944>](<https://km.example.com/collabpage/2712162944>) |
+| 零食零售随心配支持购物车 | [<https://km.example.com/collabpage/2705476980>](<https://km.example.com/collabpage/2705476980>) | [<https://km.example.com/collabpage/2708212885>](<https://km.example.com/collabpage/2708212885>) | [技术方案](<https://km.example.com/collabpage/2707783032>) |
+| 已购团购券购物车适配 | [<https://km.example.com/collabpage/2705101652?from=citadel_collabpage>](<https://km.example.com/collabpage/2705101652?from=citadel_collabpage>) | [<https://km.example.com/collabpage/2715182975>](<https://km.example.com/collabpage/2715182975>) | [<https://km.example.com/collabpage/2709878113?from=citadel_collabpage>](<https://km.example.com/collabpage/2709878113?from=citadel_collabpage>) |
+| 引导凑 | [<https://km.example.com/collabpage/2714398649>](<https://km.example.com/collabpage/2714398649>) | [<https://km.example.com/collabpage/2721710053>](<https://km.example.com/collabpage/2721710053>) | [<https://km.example.com/collabpage/2723298341>](<https://km.example.com/collabpage/2723298341>)[<https://km.example.com/collabpage/2722737303>](<https://km.example.com/collabpage/2722737303>) |
+### 提单需求列表
+
+### 鸣谢
+
+> 排名不分先后
+@陈文威提供配置平台入口
+小美会议记录[<https://km.example.com/collabpage/2747124593>](<https://km.example.com/collabpage/2747124593>)
+180W：[<https://ua.example.com/main/#url=%2Fevent%2F%23%2Fanalysis%3Flocale%3Dzh%26channelId%3D28%26id%3D417223%26type%3Dmodule%26fid%3Docean%26tabsName%3DdataOverview%26bid%3Db_meishi_zdd0852y_mv%26iframeStartPerf%3D1327%26businessLine%3Dmart>](<https://ua.example.com/main/#url=%2Fevent%2F%23%2Fanalysis%3Flocale%3Dzh%26channelId%3D28%26id%3D417223%26type%3Dmodule%26fid%3Docean%26tabsName%3DdataOverview%26bid%3Db_meishi_zdd0852y_mv%26iframeStartPerf%3D1327%26businessLine%3Dmart>)，不包括提单的PV，因当前无mv埋点
+商品选规格：如茶饮类：瑞幸，库迪；西快类：汉堡王，华莱士；零食类：良品铺子；水果类：鲜丰水果
+加入购物车：部分支持购物车品牌，如汉堡王，瑞幸、鲜丰水果、良品铺子等
+备注：需要品牌配置，是否可配置见[<https://luopan.example.com/system/brand/ka-manage-portal/business-config/brand-list>](<https://luopan.example.com/system/brand/ka-manage-portal/business-config/brand-list>)
+修改规格：直接提单，不走购物车链路
+预计取单功能：品牌接入功能，见[<https://luopan.example.com/system/brand/ka-manage-portal/business-config/brand-list>](<https://luopan.example.com/system/brand/ka-manage-portal/business-config/brand-list>)
+就餐方式：汉堡王等西快品牌支持，后端接口交互+lion配置，品牌维度支持："259","1191","1397","1259","1262","374","1503"门店维度支持："180","1309","356","1357"
+各类优惠能力：神券，商家券，美团券，团购优惠等
+10W+：[<https://ua.example.com/main/#url=%2Fevent%2F%23%2Fanalysis%3Flocale%3Dzh%26channelId%3D28%26id%3D43386270%26type%3Dpage%26tabsName%3DdataOverview%26businessLine%3Dmart>](<https://ua.example.com/main/#url=%2Fevent%2F%23%2Fanalysis%3Flocale%3Dzh%26channelId%3D28%26id%3D43386270%26type%3Dpage%26tabsName%3DdataOverview%26businessLine%3Dmart>)
+```

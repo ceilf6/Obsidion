@@ -1,0 +1,490 @@
+# 路由
+
+H5 和 PC 一样都用的 React Router
+
+SPA: **URL change => Component Change**
+
+**history 和 hash 本质就是前端路由的两种模式**，Vue Router 和 React Router 都是对这两种浏览器机制的封装。
+
+但更准确地说：
+
+> **history / hash 不是框架的概念，而是浏览器 URL 变化的两种实现方式。**
+> 
+
+Vue Router、React Router只是**利用了这两种机制来实现 SPA 路由**。
+
+---
+
+# **一、Hash 模式**
+
+URL 长这样：
+
+```
+https://example.com/#/home
+https://example.com/#/detail
+```
+
+# 后面的部分叫 **hash fragment**。
+
+特点：
+
+- # 后的内容 **不会发送给服务器**
+- 只在浏览器端变化
+- 可以监听 hashchange 事件
+
+例如：
+
+```
+window.addEventListener("hashchange", () => {
+  console.log(location.hash)
+})
+```
+
+Vue Router：
+
+```
+createWebHashHistory()
+```
+
+React Router：
+
+```
+<HashRouter>
+```
+
+---
+
+# **二、History 模式**
+
+URL 长这样：
+
+```
+https://example.com/home
+https://example.com/detail
+```
+
+使用的是浏览器 API：
+
+```
+history.pushState()
+history.replaceState()
+```
+
+例如：
+
+```
+history.pushState({}, "", "/detail")
+```
+
+Vue Router：
+
+```
+createWebHistory()
+```
+
+React Router：
+
+```
+<BrowserRouter>
+```
+
+---
+
+# **三、为什么需要服务器支持**
+
+history 模式的问题是：
+
+如果刷新
+
+```
+https://example.com/detail
+```
+
+浏览器会向服务器请求：
+
+```
+GET /detail
+```
+
+但服务器可能只有：
+
+```
+index.html
+```
+
+所以必须配置：
+
+```
+所有路径 -> index.html
+```
+
+例如 nginx：
+
+```
+location / {
+  try_files $uri /index.html;
+}
+```
+
+---
+
+# **四、为什么移动端很多用 hash**
+
+很多移动端 H5 项目运行在：
+
+```
+App WebView
+```
+
+如果用 history：
+
+```
+/detail
+```
+
+WebView 或 CDN 可能会找不到资源。
+
+hash 模式：
+
+```
+/#/detail
+```
+
+服务器只会请求：
+
+```
+/
+```
+
+不会有问题。
+
+---
+
+# **五、两种模式对比**
+
+| **模式** | **URL** | **服务器配置** | **SEO** |
+| --- | --- | --- | --- |
+| Hash | /#/home | 不需要 | 不好 |
+| History | /home | 需要 | 好 |
+
+---
+
+# **六、框架里的对应关系**
+
+### **Vue Router**
+
+```
+createWebHistory()
+createWebHashHistory()
+```
+
+---
+
+### **React Router**
+
+```
+<BrowserRouter>   // history
+<HashRouter>      // hash
+```
+
+---
+
+# **七、一个很多人不知道的点**
+
+很多人以为：
+
+```
+React Router = history
+Vue Router = history
+```
+
+其实不是。
+
+它们只是：
+
+```
+router = URL变化监听 + 组件渲染
+```
+
+底层依赖：
+
+```
+hashchange
+popstate
+history.pushState
+```
+
+---
+
+如果你愿意，我可以再给你讲一个**前端面试非常爱问的问题**：
+
+> **为什么 hash 路由不会刷新页面，而 history 路由也不会刷新页面？**
+> 
+
+这个问题其实涉及 **浏览器导航机制 + SPA 原理**，很多人答不完整。
+
+这个问题的核心是：**浏览器什么时候会发起一次新的页面加载（navigation）**。
+
+结论先说：
+
+> **hash 路由不会刷新页面，是因为 # 后的部分不会触发 HTTP 请求。**
+> 
+
+> **history 路由不会刷新页面，是因为 pushState 只是修改 URL，不会触发导航。**
+> 
+
+下面分别解释。
+
+---
+
+# **一、为什么 hash 路由不会刷新页面**
+
+例如：
+
+```
+https://example.com/#/home
+```
+
+如果变成：
+
+```
+https://example.com/#/detail
+```
+
+浏览器只会认为：
+
+```
+fragment changed
+```
+
+也就是 **URL fragment 变化**。
+
+URL结构：
+
+```
+protocol://host:port/path?query#fragment
+```
+
+其中：
+
+```
+#fragment
+```
+
+是 **浏览器内部使用的定位信息**。
+
+特点：
+
+- **不会发送给服务器**
+- **不会触发页面加载**
+
+所以浏览器只会触发：
+
+```
+hashchange
+```
+
+例如：
+
+```
+window.addEventListener("hashchange", () => {
+  console.log(location.hash)
+})
+```
+
+Vue Router / React Router 就是监听这个事件。
+
+```
+hashchange -> 匹配路由 -> 渲染组件
+```
+
+整个过程 **没有 HTTP 请求**。
+
+---
+
+# **二、为什么 history 路由不会刷新页面**
+
+history 路由使用的是：
+
+```
+history.pushState()
+history.replaceState()
+```
+
+例如：
+
+```
+history.pushState({}, "", "/detail")
+```
+
+浏览器会做两件事：
+
+```
+1 修改地址栏 URL
+2 修改 history stack
+```
+
+但是 **不会发起页面导航**。
+
+浏览器规范明确规定：
+
+```
+pushState does NOT trigger navigation
+```
+
+所以不会：
+
+```
+请求新 HTML
+解析 DOM
+重新加载 JS
+```
+
+只是 URL 变了。
+
+---
+
+# **三、什么时候 history 会刷新**
+
+如果是这种情况：
+
+### **1 点击普通 a 标签**
+
+```
+<a href="/detail">detail</a>
+```
+
+浏览器行为：
+
+```
+navigation
+-> HTTP request
+-> load new page
+```
+
+所以会刷新。
+
+React Router 的 <Link> 实际上做的是：
+
+```
+event.preventDefault()
+history.pushState()
+```
+
+---
+
+### **2 手动输入 URL**
+
+```
+https://example.com/detail
+```
+
+浏览器会请求：
+
+```
+GET /detail
+```
+
+所以 history 模式需要服务器支持。
+
+---
+
+# **四、SPA 路由真正的原理**
+
+无论 React Router 还是 Vue Router，本质都是：
+
+```
+监听 URL 变化
+        ↓
+匹配路由表
+        ↓
+渲染组件
+```
+
+示意：
+
+```
+URL change
+   │
+   ├─ hashchange
+   │
+   └─ popstate
+        │
+   Router match
+        │
+   render component
+```
+
+而 **HTML 页面本身始终只有一个**：
+
+```
+index.html
+```
+
+---
+
+# **五、一个很多人理解错的点**
+
+很多人以为：
+
+```
+React Router 切换页面
+```
+
+其实并没有页面。
+
+真实发生的是：
+
+```
+URL change
+Component change
+```
+
+所以 SPA 本质是：
+
+```
+Single HTML
+Multiple Components
+```
+
+---
+
+# **六、一个面试常问的进阶问题**
+
+如果问：
+
+> **为什么 React Router 的 Link 不会刷新页面，而 a 标签会？**
+> 
+
+答案就是：
+
+```
+Link
+↓
+preventDefault()
+↓
+history.pushState()
+↓
+Router 渲染组件
+```
+
+而：
+
+```
+a 标签
+↓
+浏览器 navigation
+↓
+HTTP request
+↓
+重新加载页面
+```
+
+---
+
+如果你愿意，我可以再给你讲一个**很多前端其实没完全理解的问题**：
+
+> **为什么 SPA 必须要有 index.html fallback？**
+> 
+
+这个其实是 **history 路由的核心原理**，也是很多人部署项目会踩的坑。

@@ -1,0 +1,22 @@
+# 26.05.25 王景宏日报
+
+Source: [KM 2764590798](https://km.example.com/collabpage/2764590798)
+
+## 今日完成
+
+- 团队 Skills 统计盘点：统计品牌团队和统计团队的 skills 使用状况，完成按人统计表格
+    - 文档：[品牌团队 skills 统计](https://km.example.com/page/2764496312)
+    - 文档：[统计团队 skills 状况](https://km.example.com/page/2763699564)
+    - 进展：品牌团队共 75 个 skills，完成成员维度统计；同步整理统计脚本工作流文档
+- M端 Popcorn 变更：推进 M 端货架分组角标配置功能
+    - 文档：[M端 Popcorn 变更](https://km.example.com/page/2759434466)
+    - 进展：整理角标类型配置逻辑、接口字段细节，确认二级分组需支持与一级相同的配置界面
+- CC 中转站缓存命中率问题排查：定位并解决中转站因未忽略 cch 字段导致缓存无法命中的问题
+    - 文档：[cc中转站缓存命中率](https://km.example.com/page/2764197350)
+    - 状态：已完成，通过配置 CLAUDE_CODE_ATTRIBUTTION_HEADER=0 环境变量规避
+
+## 明日展望
+
+- 继续推进 M 端 Popcorn 分组角标配置联调
+- 完善团队 skills 统计分析并同步结论
+- 排查 dxchannel 仓库卡顿问题

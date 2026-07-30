@@ -1,0 +1,19 @@
+# 26.04.01 王景宏日报
+
+Source: [KM 2754890255](https://km.example.com/collabpage/2754890255)
+
+## 今日完成
+
+- 和露姐一起打包上线
+- 学习、分析了开发流程中不同平台的角色
+    - [https://km.example.com/collabpage/2754690388](https://km.example.com/collabpage/2754690388)
+    - [https://km.example.com/collabpage/2754920634](https://km.example.com/collabpage/2754920634)
+- 回溯数据流向，对DUO项目有了一些更多的理解，更新了 [https://km.example.com/collabpage/2753686060](https://km.example.com/collabpage/2753686060)
+- 学习通过 Node 的 net 模块建立服务 [https://km.example.com/collabpage/2754600927](https://km.example.com/collabpage/2754600927)
+- 学习、优化了文件分块策略，提高嵌入训练效率和召回率[https://github.com/ceilf6/FrontAgent/commit/e78a9c02a847f8d29ba213e4ee595c5916c17a29](https://github.com/ceilf6/FrontAgent/commit/e78a9c02a847f8d29ba213e4ee595c5916c17a29)
+
+## 明日展望
+
+- 向露姐学习埋点
+- 继续学习Node
+- 学习如何优化ANN

@@ -1,0 +1,24 @@
+# 常见场景
+
+- 浏览器 DOM事件系统
+    
+    **EventTarget 就是浏览器自带的 EventBus**
+    
+- React事件系统（根元素收集）
+- Node.js
+    
+    ```jsx
+    const EventEmitter = require("events")
+    
+    const bus = new EventEmitter()
+    
+    bus.on("msg", data => {
+      console.log(data)
+    })
+    
+    bus.emit("msg", "hello")
+    ```
+    
+- 浏览器 BroadcastChannel
+    
+    [**通道 BroadcastChannel** 专门用于多页面通信的API](跨页面通信%2031a0f8d8d1fd8020a3d9fbc84e632faa.md)

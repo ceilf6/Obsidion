@@ -1,0 +1,77 @@
+# 概述
+
+精炼 - 术语降低沟通成本
+
+1. web
+    
+    标识互联网
+    
+2. W3C 万维网联盟 - 为互联网提供标准
+    
+    w3.org
+    
+3. XML 可扩展的标记语言
+    
+    extension markup language
+    
+    用于定义文档结构，方便计算机识别
+    
+
+## 什么是HTML
+
+根据W3C的规定：HTML 是用于描述页面结构的语言
+
+结构：有什么东西、表示什么含义
+
+Hyper Text Markup Language 超文本：强于普通文本，超链接
+
+标记：有开始和结束 <> </>
+
+MDN: Mozilla Developent Network
+
+## 什么是CSS
+
+根据W3C的规定：CSS是用于描述页面展示的语言
+
+决定了页面长什么样子
+
+查阅：MDN
+
+## 执行 HTML, CSS
+
+需要交给浏览器内核执行
+
+像小程序、手机端运行：安装浏览器内核
+
+### 浏览器组成
+
+1. shell: 外壳
+2. core: 内核
+    1. JS执行引擎
+    2. 渲染引擎
+
+浏览器 - 内核
+
+IE: Trient
+
+Firefox: Gecko
+
+Chrome: Webkit / Blink
+
+Safari: Webkit
+
+Opera: Presto / Blink
+
+## 版本和兼容性
+
+HTML5, CSS3
+
+版本表示的是语言书写标准
+
+可能新版本出来之后浏览器不支持
+
+XHTML：可以认为 HTML 的另一种版本
+
+要求严格，完全符合 XML 规范
+
+现在都用的 HTML5

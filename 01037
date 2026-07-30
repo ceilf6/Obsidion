@@ -1,0 +1,53 @@
+# 品牌团队 skills 统计
+
+Source: [KM 2764496312](https://km.example.com/collabpage/2764496312)
+
+截止到 5-25，总和是 **75 个 skills**
+
+| name | mis | empId | role | skills | skill names |
+| --- | --- | --- | --- | --- | --- |
+| - | zhangxiangyu23 | - | member | 0 | - |
+| - | liuhaohao | - | member | 1 | ones-team-worktime |
+| - | majiaxin04 | - | member | 2 | food-brand-resv-tech-report; food-brand-resv-weekly-report |
+| - | quekaixin | - | member | 0 | - |
+| - | yuanlu09 | - | member | 3 | user-mop-order; user-weather-query; util-pr-experience-analyzer |
+| - | xiaoruoyin | - | member | 1 | mop-dish-manager |
+| - | wb_huwenqiang02 | - | member | 2 | admin-user-query-hwq; qahome-v2 |
+| - | zhaobingqian02 | - | member | 0 | - |
+| - | wangjinghong02 | - | member | 9 | agent-cli-architect; agent-memory-lifecycle; agent-state-architect; design; frontend-reviewer; report-writer; requirement-interviewer; skill-lifecycle; tui-render-optimizer |
+| - | wb_zhuyeheng | - | member | 0 | - |
+| - | wb_sunchao07 | - | member | 0 | - |
+| - | liyuqian06 | - | member | 14 | ac-alert-analyzer; ai-score-km; ai-usage-report; bundle-release-analysis; dealmapping-workflow-turing-platform; deep-research-br-version; km-image-insert; km-knowledge-square; km-quality-writing; mop-fe-raptor-error-analysis; mop-fedo-workflow; raptor-project-patrol; repo-analyzer; skill-km-sync |
+| - | lizeming02 | - | member | 4 | brand-onboarding; brand-onboarding-doc; business-agent-check; daxiang-pub-account |
+| - | xiaojie.chen | - | member | 0 | - |
+| - | wb_chenyongqi05 | - | member | 0 | - |
+| - | xuanruiwei | - | member | 0 | - |
+| - | panyuanyuan05 | - | member | 0 | - |
+| - | xiejiatong02 | - | member | 1 | java-knowledge-generator |
+| - | zhangjun150 | - | member | 1 | mop-deal-mapping-monitor |
+| - | wb_gaotian03 | - | member | 1 | mrn-prefetch-dk |
+| - | wb_yudalin | - | member | 1 | dacan-joint-member-qa |
+| - | zhangbowen23 | - | member | 3 | food-member-integration; ka-water-level-report; resv-saas-integration |
+| - | wb_chenwenwei | - | member | 0 | - |
+| - | shuyue03 | - | member | 1 | openspec-tool |
+| - | liuyu225 | - | member | 1 | luopan-toolkit |
+| - | fanchuyun | - | member | 4 | api-doc-gen; cookie-ann; damai-tracker; stella-lou |
+| - | guchengwei | - | member | 0 | - |
+| - | lijiawei16 | - | member | 1 | food-mop-integration-assistant |
+| - | liuhaibo03 | - | member | 1 | daily-work-report |
+| - | jiangpeng25 | - | member | 2 | llm-knowledge-base; ones-org-manpower |
+| - | wudongxia | - | member | 1 | task-eta-before-run |
+| - | zengyunchi | - | member | 0 | - |
+| - | yaoli04 | - | member | 3 | mop-brand-eval; mry-loadtest-prep; mry-poi-product-query |
+| - | wb_caizhiquan | - | member | 1 | operator-mop-lightweight-query |
+| - | jiangzhiwei09 | - | member | 1 | jzw-member-weekly-report |
+| - | guyixin | - | member | 8 | ones-worktime-check; operator-ka-event-log; operator-mop-ops; operator-mop-rhhj-migration; operator-prd-calibration; operator-prd-scoring; user-mop-h5-check; user-mop-tt-analysis |
+| - | zhengyuling06 | - | member | 0 | - |
+| - | wangyutong18 | - | member | 0 | - |
+| - | lihuiliang | - | member | 5 | friday-a2a-agent; pr-reviewer; raptor-ffp-c; raptor-member-dashboard; video-perf-analyzer |
+| - | wb_chenyile02 | - | member | 0 | - |
+| - | wb_chengfeixiang | - | member | 3 | mop-brand-e2e-builder; mop-portal-deal-mapping; mop-portal-dish |
+
+注：未提供群 ID 或 MIS 列表，所以按 `group-skill-stats` 默认内置团队 MIS 列表统计。
+
+[5.18 - 5.24 skills 数量](%E5%93%81%E7%89%8C%E5%9B%A2%E9%98%9F%20skills%20%E7%BB%9F%E8%AE%A1/5%2018%20-%205%2024%20skills%20%E6%95%B0%E9%87%8F%203760f8d8d1fd8104b7c7fa30f9b705da.md)

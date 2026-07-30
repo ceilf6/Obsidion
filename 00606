@@ -1,0 +1,55 @@
+# 二叉树的右视图
+
+1. BFS
+
+1. DFS
+
+开一个 ans 数组，长度为树高
+
+**先左再右：后来者直接覆盖**
+
+```jsx
+function rightSideView(root) {
+  let ans = [];
+
+  function dfs(node, depth) {
+    if (!node) return;
+
+    // 直接覆盖这一层的值
+    ans[depth] = node.val;
+
+    // 先左再右
+    dfs(node.left, depth + 1);
+    dfs(node.right, depth + 1);
+  }
+
+  dfs(root, 0);
+  return ans;
+}
+```
+
+（如果是先右再左的话得开一个标记数组标记当前层是否已经有节点了，如果没有的话就加入左）
+
+```jsx
+function rightSideView(root) {
+  let ans = [];
+  let seen = []; // 标记每层是否已经填过
+
+  function dfs(node, depth) {
+    if (!node) return;
+
+    // 如果这一层还没记录过，加入答案
+    if (!seen[depth]) {
+      ans.push(node.val);
+      seen[depth] = true;
+    }
+
+    // 先右再左
+    dfs(node.right, depth + 1);
+    dfs(node.left, depth + 1);
+  }
+
+  dfs(root, 0);
+  return ans;
+}
+```

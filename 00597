@@ -1,0 +1,28 @@
+# 浏览器相关skill
+
+底层是调用了之前写的浏览器MCP
+
+来源本质上是 Playwright，不是 LLM 自带浏览器能力。
+
+调用链可以这样看：
+
+1. 底层浏览器引擎
+    
+    packages/mcp-web/package.json 里依赖了 playwright，实际控制的是本机 Chromium。
+    
+2. 能力实现层
+    
+    packages/mcp-web/src/browser.ts 的 BrowserManager 封装了 navigate/click/type/scroll/screenshot/waitForSelector 等能力。
+    
+3. MCP 暴露层
+    
+    packages/mcp-web/src/server.ts 把这些方法注册成 MCP tools，对外提供“浏览器 MCP”接口。
+    
+4. 你当前项目里的接入方式
+    
+    apps/cli/src/mcp-client.ts 的 WebMCPClient 会把 browser_* 工具调用分发到 BrowserManager。
+    
+    再由 packages/core/src/executor.ts 按 step 的 tool 名执行。
+    
+
+所以总结一句：browser MCP = MCP 协议封装 + BrowserManager + Playwright。

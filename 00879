@@ -1,0 +1,54 @@
+# 技术方案优缺分析
+
+把这个 `README.md` 当“入口索引”，不是把它当“唯一知识内容”。
+
+如果你的意思是：
+
+- 只配置一个种子链接：`https://github.com/ceilf6/Lab/blob/main/README.md`
+- 然后系统从这个 README 里解析链接，按一定深度继续抓取 `blob / commit / issue / discussion`
+- 并把这些内容和它们之间的引用关系一起存下来
+
+那我认为这是一个很好的方向，甚至比“一上来全量扫整个 Lab 仓库”更适合做 MVP。
+
+核心判断是：
+
+- 只索引 `README` 本身：不够，信息太薄，只是目录。
+- 用 `README` 作为种子做链式采集：可行，而且很适合 `Lab` 这种“人工整理过索引”的仓库。
+
+我建议直接做成“GitHub **知识图谱**”而不是普通 RAG：
+
+1. **`README` 是根节点**
+2. README 中**每个链接是边**
+3. 被链接的文件、commit、issue、discussion 是不同类型的节点
+4. 检索时先命中 README 的索引条目，再跳到关联节点取正文或证据
+
+这样有几个明显好处：
+
+- **噪声低，因为 README 本身已经做过人工筛选**
+- 可解释性强，回答时能说清“这个结论来自 README 的哪个入口，再落到哪个 commit/文件”
+- 很适合存 commit 信息，因为 commit 在这里不是孤立数据，而是某条知识索引的证据链
+
+但要注意几个边界：
+
+- 不要无限递归，建议先只做 `depth=1`，最多再做“选择性 depth=2”
+- 默认只允许 `github.com/ceilf6/Lab` 以及它直接引用的受控链接
+- `commit` 不建议存完整 diff 作为主检索文本，太噪。更适合存：
+    - commit message
+    - changed files
+    - diff 摘要
+    - README 中引用它的那段说明
+- 要做去重和规范化，同一个 commit / 文件链接不能反复入库
+- 要排除子模块路径，尤其是 `FrontAgent` 自己，避免知识自污染
+
+我会推荐的实现顺序是：
+
+1. 先做 `README seed + depth=1`
+2. 支持 4 类节点：`readme/file/commit/issue-discussion`
+3. 检索时走“两段式”
+    - 先召回 README 条目
+    - 再展开关联节点正文
+4. 后面再加 selective `depth=2`
+
+一句话总结：
+
+`只给 README 链接` 作为配置入口可以，`只存 README 文本` 不可以。最佳形态是“README 作为知识索引根节点，下面挂文件/commit/issue 的证据链”。

@@ -1,0 +1,76 @@
+# 函数表达式和this
+
+## 函数表达式
+
+JS中，函数也是一个数据，语法上，函数可以用于任何需要数据的地方
+
+JS中，函数是一等公民
+
+函数是一个引用类型，将其赋值给某个变量时，变量中保存的是函数的地址
+
+## this关键字
+
+> this无法赋值
+> 
+1. 在全局作用域中，this关键字固定指向全局对象。
+2. 在函数作用域中，取决于函数是如何被调用的
+    1. 函数直接调用，this指向全局对象
+    2. 通过一个对象的属性调用，格式为`对象.属性()`或`对象["属性"]()`，this指向对象
+        
+        <隐式规则>
+        
+
+像在链式调用、装饰器模式中，记得每个中间函数结束后需要 return this 确保链式接续
+
+[// 通过 任务队列task,next() 进行管理
+function LazyMan(name) {
+    this.name = name
+    this.task = [() => {
+        console.log(`I am ${this.name}`)
+        this.next() // 执行完后继续下一个任务
+    }]
+
+    // 延迟启动，确保链式调用形成后再执行
+    setTimeout(() => {
+        this.next()
+    }, 0)
+}
+
+// 执行下一个任务
+LazyMan.prototype.next = function () {
+    const task = this.task.shift()
+    task && task.call(this) // 使用 call 绑定 this
+}
+
+LazyMan.prototype.rest = function (time) {
+    this.task.push(() => {
+        setTimeout(() => {
+            console.log(`Wake up after ${time}s`)
+            this.next() // 休息结束后继续执行
+        }, time * 1000)
+    })
+    return this // 返回this进而支持装饰器模式链式调用，例如 .rest(time).rest()/.learn
+}
+
+LazyMan.prototype.firstRest = function (time) {
+    this.task.unshift(() => {
+        setTimeout(() => {
+            console.log(`Wake up after ${time}s`)
+            this.next()
+        }, time * 1000)
+    })
+    return this
+}
+
+LazyMan.prototype.learn = function (what) {
+    this.task.push(() => {
+        console.log(`Learning ${what}`)
+        this.next() // 执行完后继续
+    })
+    return this
+}
+
+// 工厂函数
+function Hardman(name) {
+    return new LazyMan(name)
+}](../../../%E5%AF%BF%E5%8F%B8/%E4%BC%98%E5%85%88%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97%20lazyman%203010f8d8d1fd809eaf01dde7c56237bc.md)

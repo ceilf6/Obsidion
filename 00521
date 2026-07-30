@@ -1,0 +1,37 @@
+# 1. 向量检索算法
+
+嵌入模型
+
+# KNN
+
+K Nearest Neighbors
+
+k近邻
+
+计算查询向量和各个文档向量的距离进行排序
+
+![image.png](1%20%E5%90%91%E9%87%8F%E6%A3%80%E7%B4%A2%E7%AE%97%E6%B3%95/image.png)
+
+拓展性过差：搜索的复杂度会随着文档增加而不断增加
+
+# ANN
+
+Approximate Nearest Neighbors
+
+**近似**近邻
+
+用质量换时间
+
+## 可导航小世界
+
+Navigable Small World
+
+用 **近邻图** 的数据结构
+
+在近邻图中不断从候选节点中选取相邻点进行遍历，计算距离
+
+有点像图最短路算法Dijkstra不断**松弛**操作
+
+![image.png](1%20%E5%90%91%E9%87%8F%E6%A3%80%E7%B4%A2%E7%AE%97%E6%B3%95/image%201.png)
+
+HNSW 通过例如 10个10个 向量筛选更快

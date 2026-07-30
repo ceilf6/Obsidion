@@ -1,0 +1,235 @@
+# 选择器
+
+选择器的作用是帮助精准的选中想要的元素
+
+## 简单选择器
+
+1. ID选择器
+    
+    前面是 # ，选中对应 id 值的元素
+    
+    ```html
+    /* ID选择器和变量名一样不能以数字开头 */
+    #text1 {
+        color: red;
+    }
+    ```
+    
+2. 元素选择器
+    
+    直接书写元素名称，选择页面中所有同名元素
+    
+    ```html
+    h1 {
+    
+    }
+    ```
+    
+3. 类选择器
+    
+    以 . 开头，可以间隔空格选择多个类
+    
+    ```html
+    .red {
+    
+    }
+    
+    .big {
+        font-size: 3em;
+    }
+    
+    <p class="red big">class="red big"</p>
+    ```
+    
+4. 通配符选择器
+* 选中所有元素
+5. 属性选择器
+    
+    [ ]
+    根据属性名和属性值
+    
+    [https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference/Selectors/Attribute_selectors](https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference/Selectors/Attribute_selectors)
+    
+    ```html
+    /* 选中所有具有 href 属性的元素 */
+    [href] {
+    
+    }
+    
+    /* href属性为目标值的元素 */
+    [href="https://baidu.com"] {
+    
+    }
+    
+    /* 值以 结束 */
+    [href$="baidu.com"] {
+    
+    }
+    ```
+    
+6. 伪类选择器
+:
+Elements 看 :hov
+按照从上往下的顺序书写 - 爱恨法则 - 特殊性
+    
+    l_v_
+    ha__
+    
+    ```html
+    :link 超链接未访问时的状态
+    :visited 超链接访问过后的状态
+    
+    选中鼠标悬停时的a元素
+    a:hover {
+    
+    }
+    
+    :active 鼠标按下激活
+    ```
+    
+    :nth-child( ) 特殊的伪类选择器
+    
+    传数字的时候就是选中第几个子元素，注意是从 第一个 开始的，而不是 0
+    
+    传入带 n : 从 0 开始，例如
+    
+    ```html
+    :nth-child(2n) 选中偶数位的子元素
+    ```
+    
+    那么这样就可以用于一行固定元素个数的时候处理最后一个元素的特殊样式，例如 6 个每行的话就是 6n
+    
+7. 伪元素选择器
+::
+    
+    ```html
+    <span> T </span>
+    
+    span::before {
+    	content: “《”; //伪元素的文本内容
+    	
+    	color: 只会应用到伪元素上，因为这个选择器只选择了伪元素
+    }
+    
+    <span><xx>《</xx> T </span>
+    
+    span::after {
+    	content: "》";
+    }
+    ```
+    
+    ::first-letter 选中文本的第一个字母（汉字也算字母）
+    
+    ```css
+    /* ::first-letter选中第一个字母 */
+    .main .container .movies .movie-item .score::first-letter {
+        font-size: 1.5em;
+    }
+    ```
+    
+
+# 更多的选择器
+
+## 伪类选择器
+
+1. X:first-child 选中X元素，且该X元素是父元素的第一个子元素
+2. X:first-of-type 选中X元素，且该X元素是父元素的第一个X元素
+3. X:last-child 选中X元素，且该X元素是父元素的最后一个元素
+4. nth-child( f(n) ) 选中指定位置的子元素
+    1. n 为数字，那么就是 第几个
+    2. n 函数，那么就是 n 从 0 开始
+    3. X:nth-child( f(n) ) 选中X元素，且该X元素是父元素的第 f(n) 个元素
+    
+    even 关键词等同于 2n
+    odd 关键词等于 2n+1
+    
+5. X:nth-type-of( f(n) ) 选中子元素中第 f(n) 个 type 为 X 的
+6. focus
+    
+    元素聚焦时的样式，例如 input 的默认样式是外边框 outline 变蓝 *-webkit-focus-ring-color auto 1px*（通过 tab 键切换 focus 元素，可以通过 tabindex 调整顺序）
+    
+7. checked
+    
+    单选或多选框被选中的样式
+    
+
+## 伪元素选择器
+
+1. first-letter 选中元素中第一个字母
+2. first-line 选中第一行字母
+3. selection 选中被用户框选的文字
+
+# 选择器组合
+
+1. **并且**
+选择器直接连着写，**不需要空格**
+    
+    ```html
+    p {
+    	text-indent: 2em;
+    	line-height: 2;
+    }
+    
+    p.red {
+    	color: red;
+    }
+    ```
+    
+2. **后代**选择器
+**空格**
+    
+    ```html
+    div.red li {
+    	
+    }
+    ```
+    
+3. 子元素（**紧邻**的后代）
+**>**
+    
+    ```html
+    .red>.InDiv2 {
+        color: red;
+    }
+    ```
+    
+4. 相邻兄弟元素
++
+同一个父元素、紧挨着（中间不能有任何元素）、后一个元素是 li
+    
+    ```html
+    .special+li {
+    
+    }
+    ```
+    
+5. 兄弟元素
+~
+**选中所有在 A 后面的、同一父级下的 B**
+    
+    ```html
+    A~B {
+    
+    }
+    ```
+    
+
+# 选择器的并列
+
+**多个选择器用 , 分隔**
+
+语法糖 - **复用**代码
+
+```html
+div.red li,
+.red .InDiv,
+.red>.InDiv2,
+.red>.InDiv3 {
+    color: red;
+}
+
+/* .red .InDiv {
+    color: red;
+}
+*/
+```

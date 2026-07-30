@@ -1,0 +1,7 @@
+﻿创建任务,备注,文件
+,"任务类型
+• 需求：需求开发，对应线上最高bundle的覆盖版本区间。
+• Hotfix：对于线上问题的修复流程。Bugfix需要单独创建计划。
+• 回滚：MRN 暂不支持此类型。
+ONES 事项
+• 需求任务需要录入任务类型ONES事项，Hotfix录入缺陷类型ONES事项",https://km.example.com/api/file/cdn/1728761485/46568207361?contentType=1&isNewContent=false

@@ -1,0 +1,144 @@
+# 在mac上学习Linux
+
+可以，**而且很适合**。mac 本身就是类 Unix 环境，用它学 Linux 的很多基础内容都没问题，但要分清：
+
+**你学的是“Unix/Linux 通用命令行能力”，还是“Linux 系统本身”。**
+
+可以这样分层学。
+
+先学 **通用命令行部分**，直接在 mac 上就能练：
+
+- 文件与目录：pwd ls cd mkdir cp mv rm
+- 查看内容：cat less head tail
+- 查找：find grep
+- 权限：chmod chown
+- 管道与重定向：| > >>
+- Shell 基础：变量、引号、通配符、脚本、环境变量
+- 进程与任务：ps top kill jobs fg bg
+- 网络基础：ssh curl
+
+这些在 mac 上练，思路和 Linux 很接近。
+
+但如果你想学的是 **真正的 Linux 环境**，比如：
+
+- /home /proc /sys /etc/systemd
+- apt yum dnf
+- systemd
+- Linux 内核、发行版差异
+- Docker / server 部署
+- 用户组、服务管理、挂载、日志
+
+那就最好**额外准备一个 Linux 环境**。在 mac 上最常见有 3 种方式：
+
+### **1. 虚拟机学 Linux**
+
+最推荐入门。
+
+装一个虚拟机软件，然后跑 Ubuntu。这样你能看到完整 Linux 目录树、服务管理、软件安装流程，更接近真实服务器。
+
+适合学：
+
+- 系统基础
+- Linux 目录结构
+- 用户权限
+- 包管理
+- 服务管理
+
+### **2. Docker 容器学命令**
+
+适合快速练命令，但不适合学完整系统。
+
+比如进一个 Ubuntu 容器练：
+
+```
+docker run -it ubuntu bash
+```
+
+优点是轻量。
+
+缺点是它不是完整 Linux 主机，很多系统级东西学不到。
+
+### **3. 买云服务器**
+
+适合后期。
+
+比如买一台便宜的 Linux 云主机，然后用 ssh 连上去。这样能学到最真实的远程运维体验。
+
+---
+
+我建议你的学习路线是：
+
+### **第一阶段：先在 mac 上打命令行基础**
+
+把这些练熟：
+
+```
+pwd
+ls -la
+cd
+mkdir
+touch
+cp
+mv
+rm
+cat
+grep
+find
+chmod
+echo
+```
+
+再学：
+
+- 重定向 > >>
+- 管道 |
+- Shell 变量
+- .zshrc
+- 脚本 sh / bash
+
+### **第二阶段：装一个 Ubuntu 虚拟机**
+
+开始学 Linux 特有内容：
+
+- /home /etc /var /proc
+- apt install
+- sudo
+- 用户和组
+- systemctl
+- journalctl
+- ss / ip
+- crontab
+
+### **第三阶段：做真实练习**
+
+比如给自己定几个小任务：
+
+- 新建用户
+- 配置 ssh 登录
+- 安装 nginx
+- 跑一个 Node / Python 服务
+- 看日志
+- 配置定时任务
+- 改权限让某个脚本可执行
+
+---
+
+还有一个很重要的点：
+
+**不要死记“mac 和 Linux 一不一样”，而要记“哪些是通用的，哪些是 Linux 特有的”。**
+
+例如：
+
+- ls cd pwd：通用
+- 家目录位置：mac 常见 /Users，Linux 常见 /home
+- 包管理器：mac 常用 brew，Ubuntu 常用 apt
+- 服务管理：mac 不是 systemd 那套
+- 挂载点：mac 常见 /Volumes，Linux 常见 /mnt
+
+所以最好的方法是：
+
+**mac 当练手台，Linux 虚拟机当主战场。**
+
+这样你既能随时练命令，又不会把 Linux 特性和 mac 特性混在一起。
+
+我也可以直接给你一份“适合 mac 用户入门 Linux 的 7 天学习路线”。

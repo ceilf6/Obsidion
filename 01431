@@ -1,0 +1,821 @@
+# 第一章_new
+
+好的，开始学习**第一章：向量空间**。
+
+我先基于你上传的 `数值分析.zip` 实际核对了一下资料：
+
+- 教材文件：`02_数值分析原版教材翻译.pdf`
+- 第一章标题：**向量空间**
+- 第一章主要小节：
+    - 1.1 向量空间
+    - 1.2 线性映射
+    - 1.3 矩阵
+    - 1.4 行列式
+    - 1.5 线性方程组
+    - 1.6 特征值
+- 期中范围文件 `_期中考试范围.md` 里对第一章的重点写的是：**线性方程组** Ax-b=0 **解的结构：无解、唯一解、无穷多解；特别是矩阵** A **含参数时，根据参数讨论方程的解。**
+
+所以这里要先纠正一个容易误解的点：
+
+**教材第一章完整内容很多，不只是线性方程组；但考试复习重点主要落在 1.5 线性方程组，并且需要用到前面 1.1–1.4 的概念：基、线性无关、核、像、秩、行列式、可逆矩阵。**
+
+下面按教材知识点顺序讲，但会突出考试真正用得上的部分。
+
+---
+
+# **第一章 1.1 向量空间**
+
+教材一开始不是直接讲方程组，而是先讲“向量空间”。你可以先把它理解成：
+
+可以做加法、可以乘数，并且运算规则正常的一类对象集合。
+
+教材中主要提到两个常见例子：
+
+\mathbb{R}^n
+
+和
+
+P_n
+
+其中 P_n 表示次数小于等于 n 的多项式空间。
+
+比如：
+
+P_2=\{a_0+a_1x+a_2x^2\}
+
+它也是一个向量空间，因为多项式之间可以相加，也可以乘实数。
+
+---
+
+## **1.1.1 向量子空间**
+
+教材给出的判定形式是：
+
+\forall x\in F,\ \forall y\in F,\ \forall \lambda,\mu\in K,\quad \lambda x+\mu y\in F
+
+意思是：如果一个集合 F 中任取两个向量 x,y，再任取两个数 \lambda,\mu，组合出来的
+
+\lambda x+\mu y
+
+仍然在 F 里面，那么 F 就是一个向量子空间。
+
+这个地方考试通常不会单独深挖，但它是后面“核”和“像”的基础。
+
+比如齐次方程组
+
+Ax=0
+
+的解集就是一个向量子空间，也就是后面说的：
+
+\ker A
+
+---
+
+## **1.1.2 线性相关与线性无关**
+
+教材定义：
+
+如果存在不全为零的数
+
+\lambda_1,\lambda_2,\dots,\lambda_p
+
+使得
+
+\lambda_1x_1+\lambda_2x_2+\cdots+\lambda_px_p=0
+
+那么向量组
+
+\{x_1,x_2,\dots,x_p\}
+
+线性相关。
+
+反过来，如果只有在
+
+\lambda_1=\lambda_2=\cdots=\lambda_p=0
+
+时上式才成立，那么它线性无关。
+
+这一点和方程组关系非常密切。
+
+比如矩阵
+
+A=(A_1,A_2,\dots,A_n)
+
+的列向量线性无关，等价于：
+
+Ax=0
+
+只有零解。
+
+因为
+
+Ax=x_1A_1+x_2A_2+\cdots+x_nA_n
+
+所以求
+
+Ax=0
+
+本质上就是问：
+
+x_1A_1+x_2A_2+\cdots+x_nA_n=0
+
+是否只能所有系数都为 0。
+
+---
+
+## **1.1.3 生成族与基**
+
+教材中定义：如果空间中任意向量都能由一组向量线性组合出来，那么这组向量叫生成族。
+
+如果一组向量既能生成整个空间，又线性无关，那么它就是一个基。
+
+比如在 \mathbb{R}^3 中，标准基是：
+
+e_1=(1,0,0),\quad e_2=(0,1,0),\quad e_3=(0,0,1)
+
+任何向量
+
+x=(x_1,x_2,x_3)
+
+都可以写成：
+
+x=x_1e_1+x_2e_2+x_3e_3
+
+这里的 x_1,x_2,x_3 就是坐标。
+
+---
+
+# **第一章 1.2 线性映射**
+
+教材定义线性映射 u:E\to F 满足两个条件：
+
+u(x+y)=u(x)+u(y)
+
+u(\lambda x)=\lambda u(x)
+
+也可以合并理解成：
+
+u(\lambda x+\mu y)=\lambda u(x)+\mu u(y)
+
+线性映射最重要的两个概念是：**核**和**像**。
+
+---
+
+## **1.2.1 核 Ker**
+
+教材定义：
+
+x\in \ker u \Longleftrightarrow u(x)=0
+
+如果换成矩阵 A，就是：
+
+\ker A=\{x\mid Ax=0\}
+
+也就是齐次线性方程组的解集。
+
+所以：
+
+Ax=0
+
+的全部解，就是矩阵 A 的核。
+
+考试里遇到“求齐次方程组解空间”，本质就是求：
+
+\ker A
+
+---
+
+## **1.2.2 像 Im**
+
+教材定义：
+
+y\in \operatorname{Im}u\Longleftrightarrow\exists x,\ y=u(x)
+
+如果换成矩阵：
+
+\operatorname{Im}A=\{Ax\mid x\in \mathbb{R}^n\}
+
+也就是 A 的所有列向量张成的空间。
+
+因为：
+
+Ax=x_1A_1+x_2A_2+\cdots+x_nA_n
+
+所以
+
+\operatorname{Im}A=\operatorname{span}(A_1,A_2,\dots,A_n)
+
+这句话对理解非齐次方程组非常关键。
+
+因为方程
+
+Ax=b
+
+有解，等价于 b 能不能由 A 的列向量线性组合出来。
+
+也就是：
+
+Ax=b \text{ 有解}\Longleftrightarrowb\in \operatorname{Im}A
+
+---
+
+# **第一章 1.3 矩阵**
+
+教材把矩阵看成线性映射在基下的表示。对考试来说，最重要的是下面三件事。
+
+---
+
+## **1.3.1 矩阵乘向量的本质**
+
+设
+
+A=(A_1,A_2,\dots,A_n)
+
+其中 A_j 是第 j 列。
+
+那么：
+
+Ax=x_1A_1+x_2A_2+\cdots+x_nA_n
+
+这说明矩阵乘向量不是机械计算而已，它的本质是：
+
+用 x_1,x_2,\dots,x_n 作为系数，对矩阵的列向量做线性组合。
+
+所以：
+
+Ax=b
+
+其实是在问：
+
+能不能用 A 的列向量线性组合出 b。
+
+---
+
+## **1.3.2 矩阵的核**
+
+教材中矩阵的核定义为：
+
+\ker A=\{X\mid AX=0\}
+
+这就是齐次方程组的解集。
+
+如果
+
+\ker A=\{0\}
+
+说明 Ax=0 只有零解。
+
+如果
+
+\ker A\ne \{0\}
+
+说明 Ax=0 有非零解，也就是有无穷多解。
+
+---
+
+## **1.3.3 秩**
+
+教材中矩阵的秩定义为像空间的维数：
+
+\operatorname{rang}(A)=\dim(\operatorname{Im}A)
+
+你可以理解成：
+
+矩阵 A 的列向量中最多有多少个线性无关向量。
+
+教材也指出，矩阵的列秩和行秩相同：
+
+\operatorname{rang}(A)=\operatorname{rang}(A^T)
+
+这就是为什么我们可以通过行消元来求秩。
+
+---
+
+# **第一章 1.4 行列式**
+
+这部分是为方阵线性方程组服务的。
+
+教材中的关键结论是：
+
+A \text{ 可逆}\Longleftrightarrow\det A\ne 0
+
+还给出等价条件：
+
+A \text{ 可逆}\Longleftrightarrow\det A\ne 0\Longleftrightarrow\ker A=\{0\}\Longleftrightarrow\operatorname{rang}(A)=n
+
+这个结论非常重要。
+
+考试题里如果 A 是 n\times n 方阵，第一反应就是看：
+
+\det A
+
+如果
+
+\det A\ne 0
+
+那么 A 可逆，方程组 Ax=b 对任意 b 都有唯一解。
+
+如果
+
+\det A=0
+
+那么 A 不可逆，方程组不可能有唯一解，但仍然可能有解，也可能无解。
+
+这时就要看秩。
+
+---
+
+# **第一章 1.5 线性方程组**
+
+这是第一章最重要的考试部分。
+
+教材先讲方阵线性方程组：
+
+Ax=b,\quad A\in M_{n,n}
+
+教材定理 1.5.1 的核心结论是：
+
+Ax=b \text{ 有唯一解}\Longleftrightarrow\det A\ne 0
+
+如果
+
+\det A\ne 0
+
+则：
+
+x=A^{-1}b
+
+这是理论公式。
+
+但教材也提醒，Cramer 公式和直接求逆更多是形式化计算，实际数值计算中不用它们作为主要方法。
+
+---
+
+## **1.5.1 方阵方程组的解的结构**
+
+对于
+
+Ax=b,\quad A\in \mathbb{R}^{n\times n}
+
+分两大类。
+
+---
+
+### **情况一：**\det A\ne 0
+
+此时：
+
+A^{-1}\text{ 存在}
+
+所以：
+
+x=A^{-1}b
+
+方程组有唯一解。
+
+考场写法：
+
+\det A\ne 0,\quad A\text{ 可逆，因此 }Ax=b\text{ 有唯一解。}
+
+---
+
+### **情况二：**\det A=0
+
+此时 A 不可逆，所以不可能有唯一解。
+
+但是还要继续判断：
+
+- 可能无解；
+- 可能无穷多解。
+
+这时用增广矩阵：
+
+(A|b)
+
+比较两个秩：
+
+\operatorname{rang}(A)
+
+和
+
+\operatorname{rang}(A|b)
+
+判断规则是：
+
+\operatorname{rang}(A)\ne \operatorname{rang}(A|b)\Rightarrow\text{无解}
+
+\operatorname{rang}(A)=\operatorname{rang}(A|b)<n\Rightarrow\text{无穷多解}
+
+这里 n 是未知数个数。
+
+---
+
+## **1.5.2 任意维度线性方程组**
+
+教材写的是：
+
+Ax=b,\quad A\in M_{n,p},\quad x\in M_{p,1},\quad b\in M_{n,1}
+
+也就是 n 个方程，p 个未知数。
+
+这时候 A 不一定是方阵，不能只靠行列式。
+
+通用判别法是：
+
+\operatorname{rang}(A)\ne \operatorname{rang}(A|b)\Rightarrow\text{无解}
+
+\operatorname{rang}(A)=\operatorname{rang}(A|b)=p\Rightarrow\text{唯一解}
+
+\operatorname{rang}(A)=\operatorname{rang}(A|b)<p\Rightarrow\text{无穷多解}
+
+这里 p 是未知数个数。
+
+---
+
+# **教材例 1.5.1：齐次系统**
+
+教材例 1.5.1 给的是齐次方程组：
+
+\[
+
+\begin{cases}
+
+x_1+x_2+x_3=0,\\
+
+x_1+2x_2-x_3=0,\\
+
+x_1+3x_3=0,\\
+
+2x_1+x_2+4x_3=0.
+
+\end{cases}
+
+\]
+
+教材消元后得到等价系统：
+
+\[
+
+\begin{cases}
+
+x_1+x_2+x_3=0,\\
+
+x_2-2x_3=0.
+
+\end{cases}
+
+\]
+
+于是：
+
+x_2=2x_3
+
+x_1=-3x_3
+
+令
+
+x_3=t
+
+则：
+
+x=t\begin{pmatrix}-3\\2\\1\end{pmatrix}
+
+所以齐次系统的解空间是一条直线，维数为 1。
+
+教材中也写到：
+
+\dim(\ker A)=1
+
+因此：
+
+\operatorname{rang}(A)=3-1=2
+
+这里用到的是秩-零化度关系：
+
+\dim(\ker A)+\operatorname{rang}(A)=p
+
+其中 p=3，因为有 3 个未知数。
+
+---
+
+# **教材例 1.5.2：非齐次系统**
+
+教材例 1.5.2 给的是：
+
+\[
+
+\begin{cases}
+
+x_1+x_2+x_3=1,\\
+
+x_1+2x_2-x_3=-1,\\
+
+x_1+3x_3=3,\\
+
+2x_1+x_2+4x_3=4.
+
+\end{cases}
+
+\]
+
+教材消元后得到：
+
+\[
+
+\begin{cases}
+
+x_1+x_2+x_3=1,\\
+
+x_2-2x_3=-2.
+
+\end{cases}
+
+\]
+
+于是：
+
+x_2=2x_3-2
+
+x_1=-3x_3+3
+
+令
+
+x_3=t
+
+则：
+
+x=t\begin{pmatrix}-3\\2\\1\end{pmatrix}+\begin{pmatrix}3\\-2\\0\end{pmatrix}
+
+这说明：
+
+\text{非齐次系统通解}=\text{齐次系统通解}+\text{一个特解}
+
+也就是：
+
+x=x_h+x_p
+
+其中
+
+x_h\in \ker A
+
+而 x_p 是 Ax=b 的一个特解。
+
+这个结构非常重要。
+
+---
+
+# **教材给出的无解例子**
+
+教材紧接着给了一个无解情况：
+
+\[
+
+\begin{cases}
+
+x_1+x_2+x_3=1,\\
+
+x_1+2x_2-x_3=-1,\\
+
+x_1+3x_3=3,\\
+
+2x_1+x_2+4x_3=2.
+
+\end{cases}
+
+\]
+
+注意它和例 1.5.2 几乎一样，只是最后一个方程右边从 4 改成了 2。
+
+教材这里只写了“无解”，没有展开消元过程。原因是前面三个方程已经推出了一组约束，而第四个方程与这些约束冲突。
+
+这种冲突在消元时会表现为：
+
+0=c,\quad c\ne 0
+
+例如：
+
+0=1
+
+这就说明：
+
+\operatorname{rang}(A)\ne \operatorname{rang}(A|b)
+
+所以无解。
+
+---
+
+# **第一章最核心的考试模板**
+
+以后看到线性方程组：
+
+Ax=b
+
+你先看矩阵形状。
+
+---
+
+## **模板一：**A **是方阵**
+
+先算：
+
+\det A
+
+如果：
+
+\det A\ne 0
+
+直接结论：
+
+Ax=b\text{ 有唯一解}
+
+如果：
+
+\det A=0
+
+继续比较：
+
+\operatorname{rang}(A)
+
+和
+
+\operatorname{rang}(A|b)
+
+结论：
+
+\operatorname{rang}(A)\ne \operatorname{rang}(A|b)\Rightarrow\text{无解}
+
+\operatorname{rang}(A)=\operatorname{rang}(A|b)<n\Rightarrow\text{无穷多解}
+
+---
+
+## **模板二：**A **不是方阵**
+
+不能用行列式，直接比较秩。
+
+设未知数个数为 p。
+
+\operatorname{rang}(A)\ne \operatorname{rang}(A|b)\Rightarrow\text{无解}
+
+\operatorname{rang}(A)=\operatorname{rang}(A|b)=p\Rightarrow\text{唯一解}
+
+\operatorname{rang}(A)=\operatorname{rang}(A|b)<p\Rightarrow\text{无穷多解}
+
+---
+
+# **参数讨论题怎么写**
+
+这是期中范围里明确强调的题型。
+
+如果题目给：
+
+A(a)x=b
+
+第一步算：
+
+\det A(a)
+
+然后令：
+
+\det A(a)=0
+
+找特殊参数。
+
+例如算出：
+
+\det A(a)=(a-1)(a+2)
+
+那么特殊参数是：
+
+a=1,\quad a=-2
+
+于是分类：
+
+---
+
+## **第一类：**a\ne 1,-2
+
+此时：
+
+\det A(a)\ne 0
+
+所以：
+
+A(a)\text{ 可逆}
+
+因此：
+
+A(a)x=b
+
+有唯一解。
+
+---
+
+## **第二类：**a=1
+
+代入原方程组，做消元，比较：
+
+\operatorname{rang}(A)
+
+和
+
+\operatorname{rang}(A|b)
+
+然后判断无解或无穷多解。
+
+---
+
+## **第三类：**a=-2
+
+同样代入，做消元，比较两个秩。
+
+---
+
+# **你现在需要真正掌握的第一章内容**
+
+第一章内容很多，但从你给的期中范围看，最需要掌握的是下面这张表：
+
+| **判断条件** | **结论** |
+| --- | --- |
+| \det A\ne 0 | 方阵 Ax=b 有唯一解 |
+| \det A=0 | 不可能有唯一解，需要继续看秩 |
+| \operatorname{rang}(A)\ne \operatorname{rang}(A|b) | 无解 |
+| \operatorname{rang}(A)=\operatorname{rang}(A|b)=p | 唯一解 |
+| \operatorname{rang}(A)=\operatorname{rang}(A|b)<p | 无穷多解 |
+| Ax=0 且 \ker A\ne\{0\} | 有非零解，且无穷多解 |
+| 非齐次有解时 | 通解 = 一个特解 + 齐次通解 |
+
+其中 p 是未知数个数。
+
+---
+
+# **小练习：先判断，不计算具体解**
+
+判断下面说法是否正确。
+
+**题 1**
+
+若 A\in \mathbb{R}^{3\times 3}，且
+
+\det A\ne 0
+
+则 Ax=b 对任意 b\in\mathbb{R}^3 都有唯一解。
+
+答案：正确。
+
+因为
+
+\det A\ne 0\Rightarrow A\text{ 可逆}\Rightarrow x=A^{-1}b
+
+---
+
+**题 2**
+
+若 A\in \mathbb{R}^{3\times 3}，且
+
+\det A=0
+
+则 Ax=b 一定无解。
+
+答案：错误。
+
+因为 \det A=0 只能说明不可能有唯一解，但仍可能有无穷多解，也可能无解。
+
+---
+
+**题 3**
+
+若
+
+\operatorname{rang}(A)=2,\quad \operatorname{rang}(A|b)=3
+
+则 Ax=b 无解。
+
+答案：正确。
+
+因为：
+
+\operatorname{rang}(A)\ne \operatorname{rang}(A|b)
+
+说明增广矩阵多出了一条矛盾信息。
+
+---
+
+**题 4**
+
+若 A 有 4 个未知数，并且：
+
+\operatorname{rang}(A)=\operatorname{rang}(A|b)=3
+
+则 Ax=b 有无穷多解。
+
+答案：正确。
+
+因为未知数个数 p=4，而
+
+\operatorname{rang}(A)=\operatorname{rang}(A|b)=3<4
+
+所以有自由变量，解无穷多。
+
+---
+
+接下来我们直接进入第一章最重要题型：**含参数线性方程组的解的讨论**。这类题就是期中范围里明确点名的题型。

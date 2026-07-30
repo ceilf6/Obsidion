@@ -1,0 +1,461 @@
+# 工程师沉淀
+
+- 针对特定岗位进行特定匹配
+    
+    [tailor-resume-to-jd.zip](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/tailor-resume-to-jd.zip)
+    
+- 把我的 notion 导出作为上下文，让 AI 知道我会什么
+- codex 中的也都处理了吗
+- HR 10 秒首扫信息优先级实验—codex 两轮判「处置无效」，要走 issue -PR 流程，想做时说一声
+- 字节段叙事层级（黄金位被排障细节占据）一建议等下次日报产出更新时顺脱敏管道一起调
+- 姐夫聊天记录：软实力
+    - 删掉七牛？
+- 结果、数据，但是要经得住问的
+- 想问的问题藏在 docs 里面不利于准备
+
+```markdown
+claude 和 codex 用 /persona-review 这个技能做出了一系列审阅在 @docs/persona-review/ 中，现在咱们根据他们对简历提出的问题一个一个解决
+```
+
+```markdown
+/brainstorming
+```
+
+## 面试可能问题
+
+```markdown
+## 五、面试追问预案（按被问概率排序）
+
+### 字节 · 飞书（必问，信息最少的一段）
+
+- AI 实时总结的整体链路是什么？音频 → ASR → LLM → 端上展示，你负责哪一段？
+- 流式总结怎么做增量更新？延迟目标是多少，怎么控制成本？
+- 总结质量如何评测（人工评估？自动指标？badcase 怎么收集）？
+- 长会议上下文超限怎么处理？多语言会议呢？
+
+### 美团 · 到店（重构是全简历最容易被压力测试的一条）
+
+- 为什么要从 Vue2 重构到 React？业务动机还是技术动机？谁决策的？
+- 怎么做的渐进迁移？灰度方案？出问题如何回滚？重构期间业务需求怎么并行？
+- "多端可共享的业务逻辑抽成公共分层"——具体分层设计？hooks 抽离还是 monorepo 包？状态管理怎么跨端复用？
+- 重构收益如何度量？（口头给出注释中那组性能数据 + 测量工具与方法）
+- Vue2 和 React 的响应式/渲染机制差异？迁移中最容易踩的坑是什么？
+- "AI 提效"落到指标上是什么？知识库和智能体的技术方案，效果怎么衡量——不能只答"组织了分享"。
+- Git Flow 和 trunk-based 的取舍？发布和回滚机制？
+
+### 七牛云 · XBuilder
+
+- 录屏组件用的什么 API（MediaRecorder？getDisplayMedia？）兼容性怎么处理？
+- 海报生成用 canvas 还是 html2canvas 一类？跨域图片污染 canvas 怎么解决？
+- 合入 goplus/builder 的 PR 是哪几个？评审过程中被要求改过什么？
+
+### FrontAgent（术语密度最高，每个词都可能被抽查）
+
+- SDD 的 spec 长什么样？怎么"约束"生成过程？
+- "多层校验拦截幻觉"是哪几层？拦截率有评测吗？
+- BM25 + 向量混合检索：为什么要混合？融合排序用 RRF 还是加权？chunking 策略？检索质量怎么评（recall@k？）
+- 蒸馏细节：teacher 模型是什么？训练数据规模和构造方法？14B 的训练算力哪来的？评测基准是什么？14B/7B 和直接调大模型 API 对比，结论是什么？
+- 和 Cursor / Claude Code / Copilot 的差异化定位？有真实用户吗？
+
+### Wiki / repo-guard
+
+- Wiki：GitNexus、OpenViking、CodeGraphContext 哪些是自研、哪些是集成？你的工作量在哪里？"节省 Token"省了多少、怎么测的？
+- repo-guard：级联影响分析怎么实现的（AST？依赖图？embedding？）误报率怎么控制？
+- 和 CodeRabbit、Copilot code review 这类现成产品比，差异在哪？Marketplace 安装量多少？
+
+### 基础技能验证（简历自己列的，等于邀请面试官考）
+
+- JS：事件循环输出题（宏/微任务）、闭包导致内存泄漏的场景、手写原型链继承。
+- React：Fiber 与并发渲染解决什么问题、Hooks 闭包陷阱、受控/非受控组件、RN 与 Web 渲染差异。
+- 网络：HTTPS 握手过程、HTTP/2 对比 1.1、CSRF 与 XSS 各自的防御、跨域方案对比。
+- AI：Transformer attention 的复杂度、LoRA 为什么省显存 / rank 怎么选、RAG 里 embedding 模型怎么选型。
+- 竞赛背景（百度之星/码蹄杯金奖）→ 大概率手撕算法题，C++/Python 写了"熟悉"，会被抽查。
+
+### HR / 软性问题
+
+- 美团 9 个月横跨大三学年，课程和学分怎么安排的？
+- 三段实习无缝衔接，为什么离开美团去字节？字节有转正意向吗？秋招的目标是什么？
+- 100+ 仓库、单年上万 commits——时间怎么分配的？哪些仓库是真正的精力所在？
+- 定位到底是前端、全栈还是 AI 应用工程师？意向部门和城市？
+
+---
+
+## 六、优先级摘要（如果只改三处）
+
+内容侧：
+
+1. **补齐字节段产出**（条目 6）——位置最显眼、内容最空，杠杆最大。〔待实习产出〕
+2. **给 FrontAgent 加外部佐证、给所有项目加"我的角色"**（条目 4、10）——把可信度从"自述"升级为"可验证"。
+3. **对齐"全栈"定位或技能栏**（条目 8）+ **消解 14B 训练与"了解 Transformer"的矛盾**（条目 5）——先消灭自相矛盾。
+
+视觉侧（如果只改三处）：
+
+1. **重建强调系统**（条目 21）——粗体收敛到单一语义（数字），让 14B/7B、804★ 这类锚点浮出来。
+2. **提高时间线与灰字对比度**（条目 23）+ **print 隐藏 live 徽标**（条目 26）——一处是 HR 首扫信息，一处是纸面 bug。
+3. **给开源区做视觉断句**（条目 19）——FrontAgent 整段散文拆出可扫读的结构，最强素材配得上最好的可读性。
+
+```
+
+```markdown
+/brainstorming 一般一份秋招简历会被哪些人看？需要注意什么？我认为一般首先是初筛的时候 HR
+  会看，然后第一面的时候技术面试官会看，第二面的时候技术主管会看。所以我感觉得让 HR, 技术面试官, 部门技术主管
+  三种身份的人看我的简历，一是要找存在哪些问题，二是统计一下他们分别可能问什么。说说你的看法
+```
+
+![image.png](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/image.png)
+
+![image.png](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/image%201.png)
+
+![image.png](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/image%202.png)
+
+![image.png](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/image%203.png)
+
+## 简历todos
+
+- ~~不同区块之间要不要用背景颜色进行区分？或者就像实习经历中每个经历左侧有一竖线一样，给每个区块弄一个竖线？~~
+    
+    > 
+    > 
+    > 
+    > 背景色仍然不建议。核心问题是气质与语义，不是媒介：色块面板是网页卡片/管理后台的语言，会瓦解"工程编辑部"的报刊气质；更要命的是 stat band 会失去全页唯一背景块的地位——"有底色 = 关键数据区"这个语义一旦稀释，等于在背景层重演我们刚消灭的"哪里都是绿"。屏幕渲染再好，这两条都躲不开。
+    > 
+    > 区块级竖线也仍然不建议。竖线在这份简历里已有明确语义（条目归属 + 绿色/加宽 = 当前实习），升级到区块级就是双轨嵌套 + 语义清零——这条定律和媒介无关。
+    > 
+    > 不过"在线简历"这个前提确实打开了两扇打印时代不敢开的门，如果你想加强分区感，我建议从这里拿红利而不是背景色：
+    > 
+    > 1. 交互层的分区反馈（web 独有）：比如鼠标悬停某个区块时，该区块 h2 的延伸线从 hairline 灰渐变为墨色、或标题前浮现 slug 方块——分区感在你需要它的时刻出现，静态观感零污染，编辑部气质完好。链接的 hover 也可以让下划线加粗半档，和刚合的 #40 呼应。
+    > 2. 密度松绑（这才是大红利）：单页 A4 是打印时代的约束。如果真的 web-first，区块间距可以从被压到下限的 14px 放开到 20px+，条目 18"密而无锚点"的问题靠空间本身解决——分区感的最优解从来是留白，不是色块。
+    > 
+    > 但第 2 条动的是 spec 的硬约束和 print-check 门禁，这需要你显式拍板，不是我顺手能改的：秋招投递系统普遍要求上传 PDF 附件，如果那个场景还存在，单页约束就还有存在的理由；如果你确认全部走在线链接投递，我们就开个 issue 正式把 A4/print-check 换成 web 排版基线。
+    > 
+- ~~Commits 后面不需要 2026，”2026”价值密度低、占位且分散 HR 或面试官的注意力~~
+- 很多处 “·” 应该清除，没有实际意义、感觉观感不是很好
+- 美团 “到店事业群”
+- 框架中 React 和 Vue 各自一行
+
+你的直觉方向是对的——"简历不该靠正则扒 SVG 的 <text> 节点拿数据"确实是个坏味道。但"直接请求生成卡片的数据接口"这个具体形式，在这个场景里反而更不优雅，原因有三：
+
+1. 那个接口不存在或碰不得。卡片的数据源是 GitHub GraphQL API，它必须带 token——你 profile 仓库的 Action 里 token 是仓库 secret，而简历是公开静态页，浏览器端直连等于把 PAT 发给每个访问者。退到无认证的 REST API：总 stars 要翻页聚合 repos、年度 commits 要走 search API、"Contributed to" 基本只有 GraphQL 有——一次页面访问变成 N 个请求，还共享每 IP 60 次/小时的限额。HR 在公司 NAT 后面打开你的简历，大概率触发限流回落兜底——恰恰在最需要 live 数据的时候失效。
+2. 口径会漂移。五个数字的计数规则是卡片生成器的内部逻辑，自己从裸 API 重算要么重新实现它的规则，要么简历数字和你 GitHub 主页的卡片对不上——而"以 ceilf6/ceilf6 卡片为准"正是你定过的数据口径红线。
+3. 我看了你 profile 仓库的流水线：update-stats-schedule.yml 每天 03:00 跑 [fetch-github-stats-card.py](http://fetch-github-stats-card.py/) 把卡片 SVG 提交进仓库。也就是说数据已经每天在一个有 token、有重试、集中化的地方落地了——问题只在落地格式是图片。
+
+所以优雅版本不是"绕过卡片去请求 API"，而是让流水线把数据和图片一起发布：
+
+- ceilf6/ceilf6 侧：[fetch-github-stats-card.py](http://fetch-github-stats-card.py/) 拿到 SVG 后顺手解析一次（解析从每个访问者的浏览器移到 Action 里、每天一次），把五个数字写成 assets/github-stats.json 与 SVG 一同提交。
+- resume 侧：STATS_CARD_URL 换成 JSON 地址，parseStatsCard 的 40 行正则换成十几行 JSON 校验，超时/兜底语义不变。卡片改版时是你的 Action 每天报错（可见、集中），而不是每个访问者的浏览器静默解析失败。
+
+净效果：请求还是一个、静态可缓存、无 token 暴露、口径与卡片严格一致，且 JSON 契约以后能扩展（你的流水线里本来就在抓 HuggingFace/CSDN/B 站数据，将来想上简历都是加个字段的事）。
+
+这个改动跨两个仓库，profile 仓库不在当前项目范围内——你批准的话，我两边都做：先给 ceilf6/ceilf6 提 JSON 发布的 PR，落地后再动 resume 侧的消费代码。
+
+明白，条目 8 记为「不改」——定位保持"全栈开发 × AI 应用"，口径是市场需要全栈、被问到后端就表态愿意学且学得快。这是你的地盘，我把决策记下来，面试预案里这题的答案你心里已经有了（建议到时候答得具体一点，比如"NodeJS 已经了解、下一步计划补 Express/数据库"，比空说"学得快"更有说服力）
+
+# 直播课
+
+[https://example.com/p/course/ecourse/course_2jj678vp4xHnPiB6c7sd9YwQMb8](https://example.com/p/course/ecourse/course_2jj678vp4xHnPiB6c7sd9YwQMb8)
+
+- https://example.com/detail/l_69c4916ee4b0694c5ba1cd92/4?course_id=course_2jj678vp4xHnPiB6c7sd9YwQMb8
+- harness
+
+---
+
+https://openrouter.ai/workspaces
+
+LLM_API_KEY
+
+LLM_BASE_URL
+
+https://openrouter.ai/api/v1
+
+LLM_MODEL
+
+anthropic/claude-opus-4.8
+
+LLM_PROVIDER
+
+openai
+
+---
+
+LinuxDo 上的白嫖教程固然好，但是浪费时间了
+
+```jsx
+ln -s /Users/bytedance/.claude/skills /Users/bytedance/.trae/skills
+```
+
+```python
+ln -s /Users/a86198/.codex/skills /Users/a86198/.trae-cn/skills
+```
+
+```jsx
+Continue working toward the goal. First inspect the current goal and repository state, then keep implementing and verifying until the goal is satisfied.
+```
+
+```jsx
+/goal 遵守仓库 Harness 和 /repo-evolver 的工作流程，以增量PR、小步快跑的方式，学习 ./CLAUDE-FABLE-5.md 优化 FrontAgent 的提示词系统，其中 ./CLAUDE-FABLE-5.md 可能会提到一些工具、插件等等，根据 md 的描述以及在线资料，创建适配 FrontAgent 的版本，具体就像 /Users/a86198/Desktop/Wiki/AI/2-AI-infra/Filesense-app 一样创建新的仓库、并按照工作流程接入 FrontAgent。goal 的终止条件是 repo-evolver 找不到任何再可以从 ./CLAUDE-FABLE-5.md 中学习用来优化 FrontAgent 的可优化点
+/pua 不要偷懒！我不相信这几轮扫描的“没有任何可改进点”结果，我需要你深入解析 ./CLAUDE-FABLE-5.md ，按照我上面的要求改进 FrontAgent 提示词系统、工具等等
+```
+
+```python
+cd /Users/a86198/Desktop/linuxdo-grow
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+CHROME_DEBUG_PORT=9222 python main.py
+```
+
+## 影响力
+
+推广项目: `用hyperframes做的视频，放抖音流量还真不错，每个都有几百，好的2-3000`
+
+抖音的流量比b站多不少，后面两个平台一起发、优先抖音
+
+首次发布时不要带任何第三方链接，会被风控、减少流量推送
+
+```python
+目标是最大化本项目的曝光率和收获star的概率
+1. 给本项目做长尾关键词优化、SEO和GEO优化
+2. 告诉我本项目 github 上的 Description 怎么写
+```
+
+在 LinuxDO 上的推广需要用模版否则不过审
+
+![image.png](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/image%204.png)
+
+你的简历完全没有表现出你的水平。我觉得你需要：（重要程度由高到低）
+
+把你github项目上部分优秀项目在你的简历中有所表达
+公司实习内容压缩，比如说技术栈就不用再写了
+不重要的奖项压缩
+另外你的简历UI要优化一下，能给你很加分。放弃掉还用pdf、word写简历的包袱，用html写，然后转pdf，例如这样
+
+```python
+## Friendly Links
+
+- [FrontAgent](https://github.com/ceilf6/FrontAgent) - Frontend AI coding agent platform with CLI, VS Code extension, desktop app, MCP server, RAG planning, Skills, SDD guardrails, browser automation, and LoRA planner models.
+- [Linux.do](https://linux.do/) - Chinese AI learning and developer community.
+- [Aionui](https://github.com/iOfficeAI/AionUi) - Mobile remote-control UI for letting AI agents operate tasks from a phone.
+- [OfficeCLI](https://github.com/iOfficeAI/OfficeCLI) - Office suite designed for AI agents.
+- [deepseek-pp](https://github.com/zhu1090093659/deepseek-pp) - Browser extension for DeepSeek web conversations.
+- [MuseAI](https://github.com/yejiming/MuseAI) - Local AI companion, text adventure, and interactive fiction app.
+- [RedBox](https://github.com/Jamailar/RedBox) - Local AI creation workspace for Xiaohongshu creators.
+- [1flowbase](https://github.com/taichuy/1flowbase) - Virtual model gateway for publishing multi-model workflows as OpenAI/Claude-compatible endpoints, with trace, token, latency, and cost visibility.
+```
+
+```jsx
+claude --dangerously-skip-permissions --system-prompt-file CLAUDE-FABLE-5.md
+```
+
+```jsx
+/goal 遵守仓库 Harness 和 /repo-evolver 的工作流程，以增量PR、小步快跑的方式，学习 ./CLAUDE-FABLE-5.md 优化 FrontAgent 的提示词系统，其中 ./CLAUDE-FABLE-5.md 可能会提到一些工具、插件等等，根据 md 的描述以及在线资料，创建适配 FrontAgent 的版本，具体就像 /Users/a86198/Desktop/Wiki/AI/2-AI-infra/Filesense-app 一样创建新的仓库、并按照工作流程接入 FrontAgent。goal 的终止条件是 repo-evolver 找不到任何再可以从 ./CLAUDE-FABLE-5.md 中学习用来优化 FrontAgent 的可优化点
+```
+
+```jsx
+Continue working toward the goal. First inspect the current goal and repository state, then keep implementing and verifying until the goal is satisfied.
+```
+
+```jsx
+sudo pmset restoredefaults
+```
+
+```jsx
+npm publish --registry https://registry.npmjs.org
+```
+
+例如在想 考研、考公 等路径，本质应该是在逃避，现实情况是 就业 是概率最切合的，也是一直为之努力的
+
+但是，好像选择哪条路其实并不重要
+
+像架构师，先写技术方案，把握目标
+
+team 的话会被限额
+
+子模块初始化
+
+```jsx
+git submodule update --init --recursive AI/1-LLM/machine-learning
+```
+
+```jsx
+pnpm version patch && pnpm run build && npx @vscode/vsce package --no-dependencies
+```
+
+```jsx
+pnpm build
+pnpm test
+npm publish --registry https://registry.npmjs.org --access public
+git tag -a v0.1.10 -m "Release 0.1.10"
+git push origin main develop v0.1.10
+gh release create v1.0.2 --verify-tag --latest --title "v1.0.2" --notes-file RELEASE_NOTES.md
+```
+
+```jsx
+npm version 1.0.3
+
+pnpm build
+
+pnpm pack
+
+npm publish /Users/ceilf6/Desktop/myrepos/Wiki/AI/3-Application/FrontAgent-app/frontagent-1.0.3.tgz --registry https://registry.npmjs.org --access public --ignore-scripts
+
+npm publish /Users/a86198/Desktop/Wiki/AI/3-Application/FrontAgent-app/frontagent-1.0.3.tgz --registry https://registry.npmjs.org --access public --ignore-scripts
+```
+
+使用本地的包，在 FrontAgent下跑
+
+```jsx
+npm link
+```
+
+notion 不小心点到评论：
+
+要把这一整行隐藏：
+
+1. 点击页面右上角 `••`
+2. 选择 **自定义页面（Customize page）**
+3. 关闭 **页面讨论（Page discussions）**
+
+```jsx
+cd /Users/a86198/Desktop/Wiki
+sh scripts/setup-hooks.sh
+source ~/.zshrc
+```
+
+```jsx
+git submodule add --depth 1 https://github.com/ceilf6/harness-kit AI/2-AI-infra/Harness-kit-app
+```
+
+```bash
+git submodule update --init Obsidion
+```
+
+```jsx
+git sparse-checkout init --cone && echo "sparse-checkout init done"
+
+cd /Users/a86198/Desktop/Lab/Browser/Chromium-source && git sparse-checkout set \
+  base \
+```
+
+# ideas
+
+- 蒸馏知识库 ⇒
+    - 但是网上的资源可能比你的知识库更好，所以目标应该是个性化的
+- 人格 - 观点、行事风格
+
+VSCode在某个目录下创建文件不需要点击到该目录文件夹，直接打开该目录下面的某个文件，然后点击上面的创建文件图标即可
+
+代理开太久会失败，记得点击开关重置试试
+
+使用、变现 - 闭环
+
+理解概念、放弃细节
+
+概念大爆炸，如果逐个详细实践会导致精力耗散，无法关注其本质
+
+最佳就是大致实践、思考本质，就像上数学课老师在上面讲本质、但是总有差生在抄笔记、导致思维脱节
+
+“跑不过老虎，跑过同伴“
+
+比较管理 Agents 能力
+
+思维导图一整个导出会导致细节太小
+
+一节节导出，选择一个节点后 “导出分支为“PNG
+
+现在这个时代在AI的帮助下，想学什么都很方便，唯一的阻碍就是自己心理上给自己的设限
+
+对照 JD 看看社会需要的，一点点去学习
+
+创新
+
+大模型本质是在人类给予的语料基础上进行的猜词游戏，所以大部分创作都是基于过往人类的优质输出，那么只有人类自己的创新思维才能突破上限
+
+就像 openclaw 它底层是由大模型完成的，但是上层例如网关层的统一思想等等都需要一位工程师的思维铸就
+
+产品思维：多看产品案例，拆解最佳解析
+
+```tsx
+如何想到这个点？我觉得还得加一个信息源。
+就是你看多了最佳的案例之后，然后你有了很大的信息源输入，
+你就能想到，基于这个信息源，别人之前有类似的东西做过
+```
+
+决策
+
+对事物有自己的一套理解、观点，保持个人的思考，而不是只知道概念，要理解 本质
+
+而不是 人云亦云 ，面试官也不一定对
+
+项目中遇到问题是如何探索、学习、思考、解决的？
+
+技术不是护城河，能增加对 大模型 的掌控感
+
+AI 相关的学习
+
+CDS
+
+好奇驱动学习
+
+# 看源码
+
+**一键闭合所有代码块**
+
+Ctrl + K 然后 Ctrl + 0
+
+**一键展开所有代码块**
+
+Ctrl + K 然后 Ctrl + J
+
+先不要陷入细节，从宏观上把握一块代码的目的
+
+每次 **[ptr]** 后在将对应**链接附到对应笔记处**，方便回头查看
+
+command + ⬇️ 可以快速滑动到页尾
+
+面试前可以在 牛客 搜搜面经
+
+[AI](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/AI%203190f8d8d1fd801c9cdadb5808a10a6f.md)
+
+[HTML](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/HTML%202e90f8d8d1fd80ac9b8edb4cd78be865.md)
+
+[CSS](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/CSS%202ea0f8d8d1fd80b7a957e20d3a85ef46.md)
+
+[JS](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/JS%202f90f8d8d1fd80439764c5069eea3898.md)
+
+[工程化](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E5%B7%A5%E7%A8%8B%E5%8C%96%202fa0f8d8d1fd8085a28cd07db743d60d.md)
+
+[浏览器](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E6%B5%8F%E8%A7%88%E5%99%A8%202f70f8d8d1fd8030b9e0e0a23bfe8961.md)
+
+[网络](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E7%BD%91%E7%BB%9C%202f50f8d8d1fd80f4b54df8af3fe66c9d.md)
+
+[React](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/React%202f90f8d8d1fd80188312c887484c0d30.md)
+
+[Vue](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/Vue%203180f8d8d1fd80c2bc47fb8d2a8b65a3.md)
+
+[NodeJS](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/NodeJS%2032f0f8d8d1fd80ca9da6e4a4b16a687a.md)
+
+[业务 & 产品](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E4%B8%9A%E5%8A%A1%20&%20%E4%BA%A7%E5%93%81%203170f8d8d1fd80b0816be6aa084595ae.md)
+
+[简历项目](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E7%AE%80%E5%8E%86%E9%A1%B9%E7%9B%AE%203010f8d8d1fd809b8f4be4f61652fbda.md)
+
+webpack详细版在 高薪就业阶段里面
+
+费曼学习法：在每节学习之后讲出来复述一遍
+
+随着AI发展，API使用弱化了，更加注重知识体系上
+
+[寿司](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E5%AF%BF%E5%8F%B8%203010f8d8d1fd80f99834e5664a87d77a.md)
+
+[面筋](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E9%9D%A2%E7%AD%8B%203010f8d8d1fd80ccba4bc3a8e507f643.md)
+
+[模式](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E6%A8%A1%E5%BC%8F%2032c0f8d8d1fd8077aefcc37bd8b7fcbd.md)
+
+[性能优化](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%2031a0f8d8d1fd801086f1d801c77ef516.md)
+
+[TS](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/TS%203190f8d8d1fd805eb9a6d5e35e2571f5.md)
+
+[SSR](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/SSR%203170f8d8d1fd80338738fcb250845e9c.md)
+
+[开发模式](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F%203190f8d8d1fd80e789f5ed956ae71dc5.md)
+
+[操作系统](%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%B2%89%E6%B7%80/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%203230f8d8d1fd809ea826d1c29e6d4d38.md)

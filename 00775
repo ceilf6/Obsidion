@@ -1,0 +1,23 @@
+# 26.04.23 王景宏日报
+
+Source: [KM 2758945584](https://km.example.com/collabpage/2758945584)
+
+## 今日完成
+
+- **poi懒加载货架滚动抖动修复**：定位并修复新增 boughtDeal 买过模块后 sectionHeader 滚动抖动问题
+    - 根本原因：boughtDeal 的 productType 是父分类（如 meal），但数据在 products.boughtDeal 下，优先级错误导致高度计算不一致，引发 FlatList offset 错误
+    - 修复1：[useListOperations.ts](https://dev.example.com/code/repo-detail/nibfe/lib-snack-poi/pr/264/overview) — 补充 boughtDeal 类型判断，确保 getRenderData 能正确填充 deal 数据
+    - 修复2：snackItem.tsx — 将 actualProductType 改为优先使用 type 而非 productType，确保渲染路径和数据查找路径一致
+    - 分析文档：[滚动抖动分析](https://km.example.com/page/2758825005)
+    - PR：[#259](https://dev.example.com/code/repo-detail/nibfe/lib-snack-poi/pr/259/overview)、[#264](https://dev.example.com/code/repo-detail/nibfe/lib-snack-poi/pr/264/overview)
+- **修复效果验证**：录制 iOS/Android 多机型（买过/已购 四种组合场景）修复后录屏，整理成文档
+    - 文档：[修复后记录](https://km.example.com/page/2758169114)
+- **DeepAgent 实践文档**：整理 Friday DeepAgent 创建、配置与提示词设计流程
+    - 文档：[DeepAgent实践](https://km.example.com/page/2758854727)
+- **MCP 学习笔记**：整理 MCP 协议原理、与 RAG/Function Calling 的关系及应用场景
+    - 文档：[MCP](https://km.example.com/page/2758358409)
+
+## 明日展望
+
+- 继续跟进 poi 懒加载货架联调，观察修复上线后的效果
+- 持续推进 DeepAgent 团队智能体配置与能力打通

@@ -1,0 +1,105 @@
+# 观察者模式
+
+有一个**对象**，是**观察者**，它用于**观察另外一个对象的属性值变化，当属性值变化后会收到一个通知**，可能会做一些事。
+
+本质都是 **get时利用闭包收集观察者、set时通知观察者**
+
+# Object.defineProperty
+
+https://github.com/ceilf6/Lab/commit/588438566d7879136ed778924e109578576da21f
+
+https://github.com/ceilf6/Lab/commit/5ee0c12a0109eb9b2a6e0c764225a539d0dc2c38
+
+一般会导致设置了**两个对象**，无法时时刻刻保证两个对象**一致性**
+
+所以 vue2 有 **$set** 和 **$delete** 用于**在 mounted 之后的属性更改**
+
+虽然可以直接通过**覆盖** target 来避免 ob 的创建，但是会导致污染原先对象、并且set中可能导致无限递归（并且注意要**闭包存储原先值**，否则深度响应化时会无限递归
+
+```jsx
+function observer(target) {
+    // 辅助函数：判断是否为对象（排除 null）
+    function isObject(val) {
+        return val !== null && typeof val === 'object'
+    }
+    // 辅助函数：递归渲染对象
+		function renderValue(val, indent = 0) {
+        if (!isObject(val)) { // 递归边界
+            return val
+        }
+        const spacing = '&nbsp;&nbsp;'.repeat(indent) // 根据深度决定缩进
+        let result = '{'
+        for (const key of Object.keys(val)) {
+            result += `<br>${spacing}&nbsp;&nbsp;${key}: ${renderValue(val[key], indent + 1)}`
+        }
+        result += `<br>${spacing}}`
+        return result
+    }
+    function render() {
+        let html = ""
+        for (const prop of Object.keys(ob)) {
+            html += `
+            <p><span>${prop}: </span><span>${renderValue(ob[prop])}</span></p>
+        `
+        }
+        div.innerHTML = html;
+    }
+
+    **const ob = {} // observer
+    const props = Object.keys(target) // 获得所有属性名进行遍历状态响应化
+    for (const prop of props) {
+        // 如果属性值是对象，递归观察
+        let value = isObject(target[prop]) ? 
+						observer(target[prop]) : target[prop] // 闭包
+
+        Object.defineProperty(ob, prop, { // 遍历委托人为观察者添加存取器属性
+            get() {
+                return value
+            },
+            set(val) {
+                // 如果新值是对象，也需要进行观察
+                value = isObject(val) ? observer(val) : val
+                target[prop] = val // 由于配置存取器属性的是 ob 而不是 target，所以不会无限递归
+                render() // 更新后触发重新渲染
+            },
+            enumerable: true
+            // 得开启 enumerable 否则在 render 中就找不到prop属性了
+        })
+    }**
+    
+    
+    render(); // 首次渲染
+    return ob
+}
+
+```
+
+# Proxy
+
+https://github.com/ceilf6/Lab/commit/89778f849e4ef2d1ddeba52822634cb8b3fd72d2
+
+```jsx
+            const proxy = new Proxy(target, {
+                set(target, prop, value) {
+                    Reflect.set(target, prop, value)
+                    render()
+                    return true // set 别忘记返回 true
+                },
+                get(target, prop) {
+                    const value = Reflect.get(target, prop)
+                    // 如果获取的值是对象，递归创建代理
+                    if (isObject(value)) {
+                        return observer(value)
+                    }
+                    return value
+                }
+            })
+```
+
+在不污染原先对象的情况下，无论是defineProperty 还是 Proxy，都是得对 obserber 函数返回的观察者对象进行操作，直接对原先对象操作观察者是收不到通知
+
+# 两者的区别总结如下
+
+- 代理原理：Object.defineProperty的原理是通过将数据属性**转变为存取器属性**的方式实现的属性读写代理。而Proxy则是因为这个内置的**Proxy对象内部有一套监听机制**，在传入handler对象作为参数构造代理对象后，一旦代理对象的某个操作触发，就会**进入handler中对应注册的处理函数**，此时我们就可以**有选择的使用Reflect将操作转发被代理对象上**。
+- 代理局限性：Object.defineProperty始终还是**局限于属性层面的读写代理，对于对象层面以及属性的其它操作代理它都无法实现**。鉴于此，由于数组对象push、pop等方法的存在，它对于数组元素的读写代理实现的并不完全。而使用**Proxy则可以很方便的监视数组操作**。
+- 自我代理：Object.defineProperty方式可以**代理到自身**（代理之后使用对象本身即可），也可以**代理到别的对象身上**（代理之后需要使用代理对象）。Proxy方式只能**代理到Proxy实例对象上**。这一点在其它说法中是**Proxy对象不需要侵入对象**就可以实现代理，实际上**Object.defineProperty方式也可以不侵入 - 代理到别的对象**。

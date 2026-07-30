@@ -1,0 +1,44 @@
+# 截止 26.6.1
+
+Source: [KM 2765525090](https://km.example.com/collabpage/2765525090)
+
+截止 26.6.1 团队 Skills 整体情况如下：
+
+**总览：** Friday 平台共有 45654 个 skill，咱们团队 41 人共创建了 **88 个 skill**，其中 **28 人**有至少 1 个 skill，**13 人**尚未创建。
+
+**按人员排名：**
+
+| 成员 | 数量 | Skill 名称 |
+| --- | --- | --- |
+| liyuqian06 | 14 | ac-alert-analyzer; ai-score-km; ai-usage-report; bundle-release-analysis; dealmapping-workflow-turing-platform; deep-research-br-version; km-image-insert; km-knowledge-square; km-quality-writing; mop-fe-raptor-error-analysis; mop-fedo-workflow; raptor-project-patrol; repo-analyzer; skill-km-sync |
+| wangjinghong02 | 10 | agent-cli-architect; agent-memory-lifecycle; agent-state-architect; design; frontend-reviewer; group-skill-stats; report-writer; requirement-interviewer; skill-lifecycle; tui-render-optimizer |
+| guyixin | 8 | ones-worktime-check; operator-ka-event-log; operator-mop-ops; operator-mop-rhhj-migration; operator-prd-calibration; operator-prd-scoring; user-mop-h5-check; user-mop-tt-analysis |
+| jiangzhiwei09 | 6 | brand-member-query; builder-skill; business-agent-check; herald-skill; jzw-member-weekly-report; pilot-skill |
+| lihuiliang | 6 | brand-access-mgmt; friday-a2a-agent; pr-reviewer; raptor-ffp-c; raptor-member-dashboard; video-perf-analyzer |
+| liuyu225 | 5 | luopan-toolkit; mop-raptor-alert-code-analysis; mop-raptor-alert-review; raptor-alert-code-analysis; raptor-alert-review |
+| fanchuyun | 4 | api-doc-gen; cookie-ann; damai-tracker; stella-lou |
+| yuanlu09 | 3 | user-mop-order; user-weather-query; util-pr-experience-analyzer |
+| lizeming02 | 3 | brand-onboarding; brand-onboarding-doc; daxiang-pub-account |
+| zhangbowen23 | 3 | food-member-integration; ka-water-level-report; resv-saas-integration |
+| yaoli04 | 3 | mop-brand-eval; mry-loadtest-prep; mry-poi-product-query |
+| wb_chengfeixiang | 3 | mop-brand-e2e-builder; mop-portal-deal-mapping; mop-portal-dish |
+| majiaxin04 | 2 | food-brand-resv-tech-report; food-brand-resv-weekly-report |
+| wb_huwenqiang02 | 2 | admin-user-query-hwq; qahome-v2 |
+| jiangpeng25 | 2 | llm-knowledge-base; ones-org-manpower |
+| wudongxia | 2 | raptor-error-classifier; task-eta-before-run |
+| liuhaohao | 1 | ones-team-worktime |
+| xiaoruoyin | 1 | mop-dish-manager |
+| panyuanyuan05 | 1 | food-ops-member-union-datareport |
+| xiejiatong02 | 1 | java-knowledge-generator |
+| zhangjun150 | 1 | mop-deal-mapping-monitor |
+| wb_gaotian03 | 1 | mrn-prefetch-dk |
+| wb_yudalin | 1 | dacan-joint-member-qa |
+| shuyue03 | 1 | openspec-tool |
+| lijiawei16 | 1 | food-mop-integration-assistant |
+| liuhaibo03 | 1 | daily-work-report |
+| wb_caizhiquan | 1 | operator-mop-lightweight-query |
+| wangyutong18 | 1 | food-resv-ops |
+
+**尚未创建 skill 的 13 人：** zhangxiangyu23、quekaixin、zhaobingqian02、wb_zhuyeheng、wb_sunchao07、xiaojie.chen、wb_chenyongqi05、xuanruiwei、wb_chenwenwei、guchengwei、zengyunchi、zhengyuling06、wb_chenyile02。
+
+覆盖率达 68%（28/41），整体 skill 建设还不错，头部几位同学贡献突出。

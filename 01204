@@ -1,0 +1,212 @@
+# 打包优化
+
+开发得差不多再开始优化
+
+# 分析打包结果
+
+bundle analyzer
+
+由于`vue-cli`是利用`webpack`进行打包，我们仅需加入一个`webpack`插件 
+**`webpack-bundle-analyzer`** 即可分析打包结果
+
+为了避免在开发环境中启动`webpack-bundle-analyzer`，我们仅需使用以下代码即可
+
+```jsx
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
+    .BundleAnalyzerPlugin;
+// vue.config.js
+module.exports = {
+  // 通过 **configureWebpack** 选项，可对 webpack 进行额外的配置
+  // 该配置最终会和 **vue-cli** 的默认配置进行合并（**webpack-merge**）
+  **configureWebpack**: {
+    plugins: [new BundleAnalyzerPlugin()]
+  },
+};
+```
+
+# 一. 优化公共库打包体积
+
+https://github.com/ceilf6/Lab/commit/475030a855b06fd49e0bb7943a4ec25a38c2d1a3
+
+### 1. 具名导出 ⇒ tree-shaking 树摇优化 Vuex
+
+像 Vue2 的 runtime 和 router 比较难 tree-shaking 
+
+而 vuex 用的**具名导出**，就比较好 tree-shaking **分析依赖**
+
+```jsx
+import {
+    // 树摇优化
+    Store, // 数据管理仓库
+    install // 安装插件到Vue
+} from 'vuex'
+```
+
+## 2. 使用CDN
+
+CDN全称为Content Delivery Network，称之为**内容分发网络**
+
+它的基本原理是：架设**多台服务器**，这些服务器定期从源站拿取资源保存本地，到让不同地域的用户能够通过访问最近的服务器获得资源
+
+![img](../../assets/img/20210203133956.png)
+
+我们可以**把项目中的所有静态资源都放到CDN上（收费）**，也可以利用现成免费的CDN获取公共库的资源
+
+HTTP2, 缓存 …
+
+![image.png](%E6%89%93%E5%8C%85%E4%BC%98%E5%8C%96/image.png)
+
+首先，我们需要通过 **externals** 告诉`webpack`**不要对公共库进行打包**
+
+```jsx
+// vue.config.js
+module.exports = {
+  configureWebpack: {
+    **externals**: {
+      vue: "Vue",
+      vuex: "Vuex",
+      "vue-router": "VueRouter",
+    }
+  },
+};
+```
+
+然后，在页面中**手动加入`cdn`链接**，这里使用[bootcn](https://www.bootcdn.cn/)
+
+```html
+<body>
+  <div id="app"></div>
+  <!-- ref cdn -->
+  <!-- 通过模版代码进行分流，否则开发环境也用CDN资源就无法使用Vue-dev -->
+  <% if(NODE_ENV==="production" ) { %>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.12/vue.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vuex/3.5.1/vuex.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue-router/3.4.7/vue-router.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.0/axios.min.js"></script>
+    <!-- built files will be auto injected -->
+    <% } %>
+</body>
+
+```
+
+（开发环境中不需要 scr 导入，那么可以通过 **模版代码** 进行分流
+
+因为 **index.html** 本质是通过 Node.js 的 **html-webpack-plugin** 进行吸纳的
+
+对于`vuex`和`vue-router`，使用这种**传统的方式引入**的话会**自动成为`Vue`的插件，因此需要去掉`Vue.use(xxx)`**
+
+我们可以使用下面的代码来进行兼容
+
+```jsx
+// store.js
+import Vue from "vue";
+import Vuex from "vuex";
+
+if(!window.Vuex){
+  // 没有使用传统的方式引入Vuex
+  Vue.use(Vuex);
+}
+
+// router.js
+import VueRouter from "vue-router";
+import Vue from "vue";
+
+if(!window.VueRouter){
+  // 没有使用传统的方式引入VueRouter
+  Vue.use(VueRouter);
+}
+```
+
+## 3. 启用现代模式
+
+为了兼容各种浏览器，`vue-cli`在内部使用了`@**babel**/present-env`对代码进行**降级**，你可以通过`.browserlistrc`配置来设置需要兼容的目标浏览器
+
+这是一种比较*偷懒*的办法，因为对于那些使用现代浏览器的用户，它们也*被迫*使用了降级之后的代码，而降低的代码中包含了大量的`polyfill`，从而提升了包的体积
+
+因此，我们希望提供**两种打包结果**：
+
+1. 降级后的包（大），提供给旧浏览器用户使用
+2. **未降级**的包（**小**），提供给**现代**浏览器用户使用
+
+除了应用`webpack`进行多次打包外，还可以利用`vue-cli`给我们提供的命令：
+
+—modern
+
+```bash
+vue-cli-service build **--modern**
+```
+
+# 二. 优化项目包体积
+
+https://github.com/ceilf6/Lab/commit/a9ad2ba0c1c58f6e711b671919dd5ac814f5ef54
+
+这里的项目包是指`src`目录中的打包结果
+
+## 页面分包 - 路由懒加载
+
+默认情况下，`vue-cli`会利用`webpack`将`src`目录中的所有代码打包成一个`bundle`
+
+这样就导致**访问一个页面时，需要加载所有页面的`js`代码**
+
+**利用`webpack`对`动态import()`的支持实现分包**
+
+本质上就是**异步组件**
+
+[异步组件](../Vue/Vue2/%E5%BC%82%E6%AD%A5%E7%BB%84%E4%BB%B6%203030f8d8d1fd80b48bf6c35d7b253919.md) 
+
+```jsx
+// routes
+export default [
+  {
+    name: "Home",
+    path: "/",
+    component: () => import(/* webpackChunkName: "home" */ "@/views/Home"),
+  },
+  {
+    name: "About",
+    path: "/about",
+    component: () => import(/* webpackChunkName: "about" */"@/views/About"),
+  }
+];
+```
+
+注意 import()函数 返回一个 Promise 得 () ⇒ 调用
+
+这样 index 中就会 prefetch （前提是打开现代模式
+
+preload 优先级比 prefetch 高（当前页面就会用到）
+
+# 优化首屏响应
+
+> 首页**白屏**受很多因素的影响
+> 
+
+`vue`页面需要通过`js`构建，因此在**`js`下载到本地之前，页面上什么也没有**
+
+一个非常简单有效的办法，即在页面中**先渲染一个小的加载中效果，等到`js`下载到本地并运行后，即会自动替换**
+
+利用 **copy-webpack-plugin 会直接复制 public 目录到 dist 中**，
+直接**在 public/index 中设置 loading img**
+
+https://github.com/ceilf6/Lab/commit/49857fe2ab326d9c7157f49ffe02776a4ea19441
+
+```html
+<div id="app">
+  <img src="loading.gif" />
+</div>
+```
+
+（
+
+静态资源有两种
+
+1. “static” / “public” 纯静态、**不参与打包**，会直接复制到 dist 中，不会优化压缩
+    
+    直接用绝对路径导入即可
+    
+2. “assets” 会参与打包
+    
+    文件会 hash 处理，得用 import 将文件作为模块导入
+    
+
+）

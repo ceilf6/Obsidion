@@ -1,0 +1,9 @@
+# Reconciler
+
+render 阶段中，**Reconciler 主要负责打标记**
+
+真正API调用得到同步的commit阶段
+
+[递 beginWork工作流程](递%20beginWork工作流程%2030d0f8d8d1fd80658750d9939c596021.md)
+
+[归 completeWork 工作流程](归%20completeWork%20工作流程%2030d0f8d8d1fd80b7ab1ac6139af3bcd0.md)

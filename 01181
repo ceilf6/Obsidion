@@ -1,0 +1,234 @@
+# 埋点深层上报链路
+
+Source: [KM 2754645174](https://km.example.com/collabpage/2754645174)
+
+## 链路总览
+
+```
+// 代码块
+this.food.mv(bid, valLab)
+=> Food.mv(bid, { ...valLab, queryid })
+=> Statistic.mv(...)
+=> lxTrackModuleView(...)
+```
+
+## 具体分析
+
+food 类型是 @meishi/biz-base-max 的 Food 类（附在最下面）
+
+其中上报方法是 mv
+
+```
+// 代码块
+  mv(bid: string, valLab?: object): void {
+    const lab = { ...valLab, ...this.commonParm };
+    return this.statistic.mv(bid, lab);
+  }
+```
+
+先将外部收集到的参数和 commonParm（它会自动补一个queryid） 拼接，接着调用 类静态方法mv
+
+```
+// 代码块
+  mv(bid: string, valLab?: object): void {
+    lxTrackModuleView({
+      channelName: this.channelName,
+      val_cid: this.cid,
+      pageInfoKey: this.pageInfoKey,
+      val_bid: bid,
+      val_lab: this.wrapObj(valLab),
+    });
+  }
+```
+
+他拼接上环境信息后调用 lxTrackModuleView 真实的曝光上报
+
+```
+// 代码块
+export const lxTrackModuleView = normalize(args => {
+  const {
+    channelName,
+    pageInfoKey,
+    val_bid,
+    val_cid,
+    val_lab,
+    success,
+    fail,
+    complete
+  } = args;
+  try {
+    LX.moduleView({
+      category: channelName,
+      bid: val_bid,
+      cid: val_cid,
+      valLab: val_lab,
+      pageInfoKey
+    });
+    success && success();
+    complete && complete();
+  } catch (e) {
+    fail && fail(e);
+    complete && complete(e);
+  }
+}, CONTAINER_NAME.MRN, 'lxTrackModuleView');
+```
+
+只是通过 normalize 统一 Promise回调风格、调用耗时和成功率统计 包了一层在 LX.moduleView外面
+
+LX.moduleView 在 mrn-sdk/src/index.ts (line 413) 做了几件事：
+
+- 校验 bid
+- 保证 valLab 是对象
+- 自动补 category
+- 给 valLab 加一个 mrnInfo，见 mrn-sdk/src/index.ts (line 442)
+- 用 setTimeout 延后发送，避免 mv 早于 pv，见 mrn-sdk/src/index.ts (line 447)
+
+真正发出去时，会优先走 MSI bridge，否则退回到原生桥 NativeModules.Statistics.moduleView，见 mrn-sdk/src/index.ts (line 47)。
+
+那么 埋点SDK 就通过桥接层交给了埋点系统，由系统 后端日志 清洗、落库、入数仓表
+
+## Food 类
+
+```
+// 代码块
+export class Food implements IFood {
+  readonly props: IConfig;
+
+  private _router: Router | undefined;
+  private _network: Network | undefined;
+  private _report: Report | undefined;
+  private _statistic: Statistic | undefined;
+  private _lifeCycle: LifeCycle | undefined;
+
+  constructor(props: IConfig) {
+    this.props = props;
+  }
+
+  private get report() {
+    if (!this._report) {
+      this._report = new Report({
+        appKey: this.props.appKey,
+        webCatKey: this.props.webCatKey,
+        extraParams: this.props.pageParams,
+      });
+    }
+    return this._report;
+  }
+
+  setCanReport(canReport: boolean) {
+    this.report.setCanReport(canReport);
+  }
+
+  error(e: Error | string, label?: string, tags?: object): Promise<void> {
+    return this.report.error(e, label, tags);
+  }
+
+  warn(e: Error | string, label?: string, tags?: object): Promise<void> {
+    return this.report.warn(e, label, tags);
+  }
+
+  async metric(
+    key: string,
+    label: string,
+    opt?: {
+      value?: number;
+      tags?: Record<string, string>;
+    },
+    ignoreLog?: boolean,
+  ): Promise<void> {
+    return this.report.metric(key, label, opt, ignoreLog);
+  }
+
+  private get network(): Network {
+    if (!this._network) {
+      // 这里传入pageParams, 在web侧用作通参设置
+      this._network = new Network({ report: this, pageParams: this.props.pageParams });
+    }
+    return this._network;
+  }
+
+  request<T>(config: IRequestConfig): Promise<T | null> {
+    return this.network.request<T>(config);
+  }
+
+  private get router(): Router {
+    if (!this._router) {
+      this._router = new Router({ report: this });
+    }
+    return this._router;
+  }
+
+  back(): void {
+    return this.router.back();
+  }
+
+  route(url: string, metricKey: string, options?: Record<string, string>): void {
+    return this.router.route(url, metricKey, options);
+  }
+
+  get statistic(): Statistic {
+    if (!this._statistic) {
+      this._statistic = new Statistic({
+        channelName: CHANNEL_NAME,
+        cid: this.props.cid,
+        rootTag: this.props.rootTag,
+        report: this,
+      });
+    }
+    return this._statistic;
+  }
+
+  get pageInfoKey(): string {
+    return this.statistic.pageInfoKey;
+  }
+
+  get commonParm(): object {
+    const queryParam = this.props.pageParams as { queryId: string };
+    return { queryid: queryParam?.queryId ?? '' };
+  }
+
+  pv(valLab?: object): void {
+    return this.statistic.pv(valLab);
+  }
+
+  pd(valLab?: object): void {
+    return this.statistic.pd(valLab);
+  }
+
+  mv(bid: string, valLab?: object): void {
+    const lab = { ...valLab, ...this.commonParm };
+    return this.statistic.mv(bid, lab);
+  }
+
+  mc(bid: string, valLab?: object, tag?: string, customTag?: { key: string; tag: object }): void {
+    const lab = { ...valLab, ...this.commonParm };
+    return this.statistic.mc(bid, lab, tag, customTag);
+  }
+
+  autoPVD(): IAutoPVD {
+    return this.statistic.autoPVD();
+  }
+
+  private get lifeCycle(): LifeCycle {
+    if (!this._lifeCycle) {
+      this._lifeCycle = new LifeCycle({ rootTag: this.props.rootTag });
+    }
+    return this._lifeCycle;
+  }
+
+  bindLifeCycleListener(listener: ILifeCycleListener) {
+    this.lifeCycle.bindLifeCycleListener(listener);
+  }
+
+  deleteLifeCycleListener(listener: ILifeCycleListener) {
+    this.lifeCycle.deleteLifeCycleListener(listener);
+  }
+
+  release(): void {
+    // 兜底处理autoPVD，防止内存泄漏
+    this.autoPVD().stop();
+    // 同兜底处理，防止内存泄漏
+    this._lifeCycle?.release();
+  }
+}
+```

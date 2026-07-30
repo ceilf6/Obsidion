@@ -1,0 +1,177 @@
+# 跨域,axios,mock
+
+> 本节课内容和vue没有任何关系！
+> 
+> 
+> vue cli: [https://cli.vuejs.org/zh/](https://cli.vuejs.org/zh/)
+> 
+> axios: [https://github.com/axios/axios](https://github.com/axios/axios)
+> 
+> mockjs：[http://mockjs.com/](http://mockjs.com/)
+> 
+
+# 远程获取数据的意义
+
+![image.png](%E8%B7%A8%E5%9F%9F,axios,mock/image.png)
+
+# 开发环境有跨域问题
+
+本地开发服务器在 前端页面的origin源 localhost:8080
+
+和后端返回数据的 测试服务器接口的源 域名、端口 不一致 ⇒ 跨域
+
+```mermaid
+sequenceDiagram
+浏览器->>前端开发服务器: <http://localhost:8080/>
+前端开发服务器->>浏览器: 页面
+浏览器->>后端测试服务器: ajax 跨域：<http://test-data:3000/api/news>
+后端测试服务器->>浏览器: JSON数据
+rect rgb(224,74,74)
+Note right of 浏览器: 浏览器阻止数据移交
+end
+
+```
+
+# 生产环境没有跨域问题
+
+```mermaid
+sequenceDiagram
+浏览器->>服务器: <http://www.my-site.com/>
+服务器->>浏览器: 页面
+浏览器->>服务器: ajax：<http://www.my-site.com/api/news>
+服务器->>浏览器: JSON数据
+
+```
+
+但是如果后端分为静态资源服务器和数据服务器的话就有跨域
+
+一般需要后端声明允许跨域，在响应头中加入 
+
+Access-Control-Allow-Origin
+
+```mermaid
+sequenceDiagram
+浏览器->>静态资源服务器: <http://www.my-site.com/>
+静态资源服务器->>浏览器: 页面
+浏览器->>数据服务器: ajax 跨域：<http://api.my-site.com/api/news>
+数据服务器->>浏览器: [允许www.my-site.com]JSON数据
+
+```
+
+# 解决开发环境的跨域问题
+
+```mermaid
+sequenceDiagram
+浏览器->>前端开发服务器: <http://localhost:8080/>
+前端开发服务器->>浏览器: 页面
+浏览器->>前端开发服务器: ajax：<http://localhost:8080/api/news>
+前端开发服务器->>后端测试服务器: 代理请求：<http://test-data:3000/api/news>
+后端测试服务器->>前端开发服务器: JSON数据
+前端开发服务器->>浏览器: JSON数据
+
+```
+
+注意
+
+**只有浏览器同源策略会导致跨域问题，服务器是没有的，**
+
+所以在开发环境中前端可以**先请求 localhost** 然后**由前端开发服务器代理转发**
+
+**配置 vue.config.js ，**像配置 webpack 一样去配置 devServer 属性
+
+```jsx
+// Vue-cli 的配置文件
+// 本质是配置 webpack
+
+module.exports = {
+    devServer: {
+        proxy: {
+            '/ceilf6': {
+                target: 'https://github.com',
+                changeOrigin: true,
+                secure: true
+            }
+        }
+    }
+}
+```
+
+使用过程中直接省略 target ，那么就会自动使用当前网页的 - 肯定不会跨域，这样到时候生产环境也不用改
+
+除非是 静态资源服务器和数据服务器是分开的，例如 http://www.my-site.com 和 
+
+http://**api**.my-site.com/
+
+```jsx
+await axios.get("/ceilf6/Lab/branch-and-tag-count")
+```
+
+## 实践中
+
+Vue devServer 实际只提供 **HTTP**
+
+HTTPS 会 TLS 握手失败
+
+# 为什么要Mock数据
+
+后端服务器还没有开发完成
+
+前端需要数据进行开发，不能等后端，就用 mock 数据
+
+```mermaid
+sequenceDiagram
+浏览器->>前端开发服务器: <http://localhost:8080/>
+前端开发服务器->>浏览器: 页面
+浏览器->>前端开发服务器: ajax：<http://localhost:8080/api/news>
+前端开发服务器->>后端测试服务器: 代理请求：<http://test-data:3000/api/news>
+后端测试服务器->>前端开发服务器: 404 （后端正在开发中）
+前端开发服务器->>浏览器: 404
+
+```
+
+MockJS 也是在浏览器中的，**直接在浏览器中进行拦截网络请求**
+
+本质是对 XHR 重新赋值
+
+```mermaid
+sequenceDiagram
+participant 浏览器
+participant MockJS
+participant 前端开发服务器
+activate MockJS
+Note left of MockJS: 定义ajax拦截规则
+deactivate MockJS
+浏览器->>前端开发服务器: <http://localhost:8080/>
+前端开发服务器->>浏览器: 页面
+浏览器->>MockJS: ajax：<http://localhost:8080/api/news>
+MockJS->>浏览器: 模拟的JSON数据
+
+```
+
+# 封装
+
+接口格式固定时
+
+```jsx
+import axios from "axios";
+import { toast } from "../utils";
+
+const ins = axios.create(); // 创建 axios 实例
+
+// 通过 interceptors 配置拦截器先处理响应
+ins.interceptors.response.use(function (resp) {
+    const resData = resp.data; // 从 HTTP 响应体里拿到真正的业务数据
+
+    if (resData.code !== 0) { // 业务状态码不成功
+        toast({
+            content: resData.msg,
+            type: "error",
+            duration: 2000,
+        });
+        return null;
+    }
+    return resData.data; // 业务数据中需要的 data ，所以从 resp 中相当于取了两层 dtaa
+})
+
+export default ins;
+```

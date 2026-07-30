@@ -1,0 +1,35 @@
+# 业务
+
+本质就是**组件包**需要一个工作流，然后根据包版本更新配置用到了这个包的对应**页面**依赖后发一个工作流
+
+从 概念 查看工程落地的思维
+
+**SKU(Stock Keeping Unit) 库存量单元**
+
+SKU是商品下的一个分类属性（商品下一个颜色或者尺码），与库存相关；酒店侧就是物理房型+早餐
+
+**SPU(Standard Product Unit) 标准化产品单元**
+
+SPU是一个商品编码，相当于一个有型号的大类，iphone4、iphone5属于不同的SPU；
+
+一个SPU可以对应多个SKU，简单的说： SPU就是一个草帽, SKU就是红草帽、白草帽
+
+POI: Point Of Internet 兴趣点，一个门店一个POI
+
+SOP 标准流程
+
+![6452cff7-6206-45c3-ac22-8d4b39c29bc7.png](%E4%B8%9A%E5%8A%A1/6452cff7-6206-45c3-ac22-8d4b39c29bc7.png)
+
+[秒提白皮书](%E4%B8%9A%E5%8A%A1/%E7%A7%92%E6%8F%90%E7%99%BD%E7%9A%AE%E4%B9%A6%2033e0f8d8d1fd8062aa8ccee7bda252b0.md)
+
+[订单详情页、退款页白皮书](%E4%B8%9A%E5%8A%A1/%E8%AE%A2%E5%8D%95%E8%AF%A6%E6%83%85%E9%A1%B5%E3%80%81%E9%80%80%E6%AC%BE%E9%A1%B5%E7%99%BD%E7%9A%AE%E4%B9%A6%2033e0f8d8d1fd805c9129c87e45842a9c.md)
+
+[门店选择页白皮书](%E4%B8%9A%E5%8A%A1/%E9%97%A8%E5%BA%97%E9%80%89%E6%8B%A9%E9%A1%B5%E7%99%BD%E7%9A%AE%E4%B9%A6%2033e0f8d8d1fd80b499fac9528e6abbff.md)
+
+[轻快POI页白皮书2026](%E4%B8%9A%E5%8A%A1/%E8%BD%BB%E5%BF%ABPOI%E9%A1%B5%E7%99%BD%E7%9A%AE%E4%B9%A62026%2033e0f8d8d1fd80f2a3c6d3ac13e2913f.md)
+
+[商品选购页白皮书](%E4%B8%9A%E5%8A%A1/%E5%95%86%E5%93%81%E9%80%89%E8%B4%AD%E9%A1%B5%E7%99%BD%E7%9A%AE%E4%B9%A6%2033e0f8d8d1fd8032935fc01c86563c0f.md)
+
+[提单页、秒提店内购物车说明](%E4%B8%9A%E5%8A%A1/%E6%8F%90%E5%8D%95%E9%A1%B5%E3%80%81%E7%A7%92%E6%8F%90%E5%BA%97%E5%86%85%E8%B4%AD%E7%89%A9%E8%BD%A6%E8%AF%B4%E6%98%8E%2033e0f8d8d1fd80d4afdbc3b94f13f3cb.md)
+
+[技术方案-秒提免费升杯](%E4%B8%9A%E5%8A%A1/%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88-%E7%A7%92%E6%8F%90%E5%85%8D%E8%B4%B9%E5%8D%87%E6%9D%AF%203760f8d8d1fd800daae3c2457c943e3e.md)

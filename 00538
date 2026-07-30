@@ -1,0 +1,34 @@
+# 反转列表 206
+
+```jsx
+var reverseList = function(head) {
+    // 判断 head === null 是为了兼容一开始链表就是空的情况
+    if (head === null || head.next === null) {
+        return head;
+    }
+    const newHead = reverseList(head.next); // 递 到尾拿到新的链表头
+    
+    const curNext = head.next // 归的过程进行翻转
+    curNext.next = head
+    head.next = null
+    return newHead; // 归的过程需要不断往回传新的链表头
+};
+```
+
+```jsx
+var reverseList = function(head) {
+    if(head===null)return null;
+
+    let l=head;
+    let r=head.next;
+    while(r!=null){
+        const temp=r.next;
+        r.next=l;
+        l=r;
+        r=temp;
+    }
+    head.next=null;//断开，设置链末为null ！
+    return l;
+}
+
+```

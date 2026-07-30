@@ -1,0 +1,7 @@
+# 分层思想
+
+学习了移动端跨端开发的 **KMP分层** 思想
+
+从 **依赖倒置原则** 出发，依据 **整洁架构** 将核心业务层封装到 business 中
+
+[通过分层共享策略，核心业务逻辑通过共享模块实现百分百复用，例如数据处理、校验规则等，而 UI 层通过 Compose Multiplatform 实现跨平台声明式开发](https://app.notion.com/p/UI-Compose-Multiplatform-2ca0f8d8d1fd80bbbf9cc2a3425c233a?pvs=21)

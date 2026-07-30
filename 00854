@@ -1,0 +1,84 @@
+# CSS属性
+
+https://github.com/ceilf6/Lab/commit/f509b08017963200729ecf6967116cf36236df3d
+
+# transform 变换目标
+
+变换本身
+
+定义元素的视觉变幻效果，是瞬间完成的、没有过渡过程
+
+# transition 变化过程的动画引擎
+
+过渡动画
+
+定义元素属性值变化时的过渡过程，本身不产生任何视觉效果，只负责“插值”、补帧
+
+用 transition 监听 transform 的变化，会在变化发生时补动画帧
+
+```html
+    <style>
+        .rotate {
+            transform: rotate(360deg);
+        }
+
+        img {
+            transform: rotate(0deg);
+            transition: transform 0.5s ease;
+        }
+    </style>
+
+<body>
+    <img src="../../../../assetsForTest/ceilf6.png" alt="">
+    <button onclick="rotateImg()">旋转</button>
+    <script>
+        function rotateImg() {
+            const img = document.querySelector('img')
+            // img.style.transform = 'rotate(180deg)'
+            img.classList.toggle('rotate') // 切换样式
+        }
+    </script>
+</body>
+```
+
+# animation 自定义插帧
+
+[**动画的本质是预先定义的一套css变化规则，然后给该规则取个名字**](CSS3%202f90f8d8d1fd80bbba09f110a2245268.md) 
+
+像 transition 需要外部触发，不支持 JS控制
+
+animation 属性是自动播放的，支持 JS 控制
+
+```html
+    <style>
+        @keyframes rotateAnimationName {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg)
+            }
+        }
+
+        .rotate {
+            animation: rotateAnimationName 2s infinite
+        }
+    </style>
+
+<body>
+    <img src="../../../../assetsForTest/ceilf6.png" alt="">
+    <button id="toggleBtn">自动循环旋转</button>
+    <script>
+        const img = document.querySelector('img')
+        const btn = document.querySelector('#toggleBtn')
+        function rotateImg() {
+            img.classList.toggle('rotate') // 切换样式
+            btn.textContent = img.classList.contains('rotate')
+                ? '停止动画'
+                : '自动循环旋转'
+        }
+        btn.addEventListener('click', rotateImg)
+    </script>
+</body>
+```

@@ -1,0 +1,203 @@
+# 组件通信
+
+# prop 父→子
+
+父组件向子组件传数据信息
+
+```jsx
+// 子组件
+  props: {
+    // 当前所在页
+    current: {
+      type: Number,
+      default: 1,
+    },
+    // 总数据条数
+    total: {
+      type: Number,
+      default: 0,
+    },
+    // 页容量
+    limit: {
+      type: Number,
+      default: 10,
+    },
+    // 分页器可见页码数量
+    visibleNumber: {
+      type: Number,
+      default: 10,
+    },
+  },
+```
+
+```jsx
+// 父组件
+    <pager
+      :current="current"
+      :total="total"
+      @pageChange="handlePageChange"
+    ></pager>
+    
+    <script>
+import pager from "./components/Pager";
+export default {
+  components: {
+    pager,
+  },
+  data() {
+    return {
+      visible: true,
+      total: 202,
+      current: 1,
+    };
+  },
+  methods: {
+    changeVisible() {
+      this.visible = !this.visible;
+    },
+    handlePageChange(newPage) {
+      // 注册事件 - 处理页码改变
+      this.current = newPage;
+      console.log(`加载第${this.current}页数据`);
+    },
+  },
+};
+</script>
+```
+
+# event 子→父 $emit
+
+子组件**抛出事件到父组件**（不能直接修改父组件数据，组件自己的数据自己负责）
+
+单向数据流：
+
+父组件传递给子组件
+
+子组件没有权利更改
+
+父组件传递的数据是属于父组件的，假如在其他地方也使用了该数据，那么更改会导致子组件影响了父组件、父组件的其他子组件
+
+![image.png](%E7%BB%84%E4%BB%B6%E9%80%9A%E4%BF%A1/image.png)
+
+抛出事件 [**$emit**](../Vue2/Vue%E5%AE%9E%E4%BE%8B%E6%88%90%E5%91%98%E5%B1%9E%E6%80%A7%202fc0f8d8d1fd80e29fadff7cf0e19622.md) ：子组件在某个时候发生了一件事，但自身无法处理，于是通过事件的方式通知父组件处理
+
+事件参数：子组件抛出事件时，传递给父组件的数据
+
+```jsx
+子组件配置对象中
+methods: {
+	handleClick(e, newPage) {
+    // 子组件向父组件抛出事件
+    this.$emit("pageChange", newPage);
+	  // 事件名称，相关数据
+  },
+},
+```
+
+注册事件：父组件声明，当子组件发生某件事的时候，自身将做出一些处理
+
+```jsx
+父组件中
+<pager @pageChange="handlePageChange"></pager>
+
+methods: {
+	handlePageChange(newPage) {
+	  // 注册事件 - 处理页码改变
+	  this.current = newPage;
+	  console.log(`加载第${this.current}页数据`);
+	},
+}
+```
+
+Vue 会自动将 `$emit` 的第二个参数传给处理函数的第一个参数
+
+所以要么直接挂载函数 @event=”handleEvent”
+
+要么 @event=”(param) ⇒ handleEvent(param)”
+
+# $listener
+
+[$listeners](../Vue2/Vue%E5%AE%9E%E4%BE%8B%E6%88%90%E5%91%98%E5%B1%9E%E6%80%A7%202fc0f8d8d1fd80e29fadff7cf0e19622.md) 
+
+# $refs 直接获取引用
+
+父组件中对子组件标记 ref 属性，就能收入 $refs 中
+
+直接 this.$refs.ChildComp 可以直接拿到整个子组件DOM元素对象
+
+[ref](../Vue2/%E5%AE%9E%E8%B7%B5%20toast%E6%B6%88%E6%81%AF%E6%8F%90%E7%A4%BA%202fd0f8d8d1fd80009334d154ca460007.md) 
+
+# 通过路由$router
+
+路由对象中携带的信息
+
+间接在不同组件中通信
+
+例如兄弟组件
+
+# 事件总线
+
+[事件总线 发布订阅模式](../Vue2/%E4%BA%8B%E4%BB%B6%E6%80%BB%E7%BA%BF%20%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85%E6%A8%A1%E5%BC%8F%203020f8d8d1fd80d2909ffe2d4c0abb0c.md) 
+
+# Vuex
+
+[数据共享 vuex](../Vue2/%E6%95%B0%E6%8D%AE%E5%85%B1%E4%BA%AB%20vuex%203020f8d8d1fd807d928de5db04f8194d.md) 
+
+# 实践
+
+## 父组件异步处理返回子组件
+
+[https://github.com/ceilf6/Lab/commit/cc063d8d86a63c6b6397662e2c9bff8ff68c770b](https://github.com/ceilf6/Lab/commit/cc063d8d86a63c6b6397662e2c9bff8ff68c770b)
+
+1. emit 中回调函数，类似于 React 中父组件传递给子组件处理函数、提供权力子组件影响父组件的数据
+    
+    ```jsx
+    this.$emit("buttonClicked", this.count, (msg) => {
+       this.isLoading = false;
+       this.msg = msg;
+    });
+    ```
+    
+    ```jsx
+    setTimeout(() => {
+       callback("1. 回调函数");
+    }, 1000);
+    ```
+    
+
+1. 父组件返回Promise，子组件通过 .$listeners 拿到父组件的 handle 函数引用（但是 listener 是直接调用的函数，没有触发事件的上报）
+    
+    ```jsx
+    if (this.$listeners.buttonClicked) {
+       const msg = await this.$listeners.buttonClicked();
+       this.msg = msg;
+       this.isLoading = false;
+    }
+    ```
+    
+    ```jsx
+    @click
+    ```
+    
+    ```jsx
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              // resolve("2. Promise + $listeners");
+              resolve("3. 直接 props 传下去");
+            }, 1000);
+          });
+    ```
+    
+2. 父组件直接 props 传下去处理函数，处理函数和 2 一样都是返回的 Promise
+    
+    ```jsx
+          if (this.click) {
+            const msg = await this.click(this.count);
+            this.isLoading = false;
+            this.msg = msg;
+          }
+    ```
+    
+    ```jsx
+    :click
+    ```

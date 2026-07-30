@@ -1,0 +1,27 @@
+# 26.04.24 王景宏日报
+
+Source: [KM 2759643241](https://km.example.com/collabpage/2759643241)
+
+## 今日完成
+
+- 联名套餐数据格式兼容分析：定位联名套餐与普通商品响应结构不一致的根因
+    - 进展：确认 `dealMappingType=30` 为联名套餐标志位（20 为普通），`comboDishGroupList` 存储联名套餐信息；整理响应字段差异对比
+    - 文档：[联名套餐无法走通](https://km.example.com/collabpage/2759161502)
+    - 下一步：基于字段差异推进兼容方案
+- 懒加载货架修复验证：完成多机型×多场景穷举测试，验证修复结果
+    - 进展：覆盖 iOS/Android 双端，买过/已购四种组合场景全部录制验证视频，A22 机型通过
+    - 文档：[修复后记录](https://km.example.com/collabpage/2758169114)
+    - 实验：配置实验白名单（Arena 实验 #442160），通过 appmock uuid 参数验证泳道环境
+    - 文档：[实验组-白名单](https://km.example.com/collabpage/2758688708)
+- POI 开发流程与发布规范整理：梳理 snack-poi → food-poi 打包发布全链路
+    - 进展：明确测试包/正式包两阶段流程，整理跟周迭代车（统一周迭代 20260427）的操作步骤，补充 Diva/Pillow 锁包二维码操作记录
+    - 文档：[POI开发流程](https://km.example.com/collabpage/2755368703)、[锁包二维码](https://km.example.com/collabpage/2758539803)
+- ka-skills 仓库梳理与日报自动化推进：整理 AI 点餐 Skill monorepo 结构，推进日报自动化工具
+    - 进展：梳理 ka-skills 仓库分层（skills/cli/shared/scripts/templates/website），明确秒提/大客业务 AI 点餐目标；日报自动器接入 citadel/skillhub/daxiang-sender/tt/calendar-mcp，Friday skill 已发布
+    - 文档：[ka-skills](https://km.example.com/collabpage/2759290975)、[日报自动器](https://km.example.com/collabpage/2758414734)
+
+## 明日展望
+
+- 跟进联名套餐兼容方案，推进代码实现与联调
+- 推进 POI 包跟周迭代车（统一周迭代 20260427）发布流程
+- 继续完善 ka-skills 秒提点单能力，打通选品→规格→下单完整链路

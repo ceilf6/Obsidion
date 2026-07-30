@@ -1,0 +1,324 @@
+# 实践
+
+# JS动画
+
+// 动画：从一个状态到另一个状态
+// 变化数据 => JS动画
+
+```jsx
+  watch(
+    barsTarget,
+    () => {
+      // 将bars变化到barsTarget
+      for (let i = 0; i < barsTarget.value.length; i++) {
+        if (!bars.value[i]) {
+          bars.value[i] = {
+            ...barsTarget.value[i],
+            size: 0,
+            value: 0,
+          };
+        }
+        // bars.value[i] 中的属性 逐步变化到 barsTarget.value[i]
+        gsap.to(bars.value[i], {
+          ...barsTarget.value[i],
+          duration: 1,
+        });
+      }
+    },
+    {
+      deep: true,
+    }
+  );
+```
+
+# 将UI中的动态数据用响应化封装一个对象…
+
+[ref Object（存取器属性对象）](../Reactivity%20API%20%E5%93%8D%E5%BA%94%E5%BC%8F%203050f8d8d1fd807989b1e59b5a560fb8.md) 
+
+# computed 依赖
+
+这里的 gpt 是一个数组在 setup 中 ref 响应化后的 proxy 
+
+```jsx
+export default function useBar(gdp){
+	const bars = computed(() => {
+		return gdp.map
+	})
+}
+```
+
+当 gpt 变化时并不会触发计算属性
+
+如果把整个 props 传进来，就能监听依赖
+
+```jsx
+	props.gdp.map
+```
+
+你这个问题问得非常好，本质是：
+
+> **为什么把 gdp 单独传进来，computed 不触发？**
+> 
+
+> **但用 props.gdp 就能触发？**
+> 
+
+这背后是 Vue3 响应式系统一个非常核心的点：
+
+> 🔥 依赖收集发生在 “读取时”
+> 
+
+> 🔥 不是发生在 “传参时”
+> 
+
+我们一步一步拆开讲清楚。
+
+---
+
+# **🎯 先看你的代码问题**
+
+你写的是：
+
+```
+export default function useBar(gdp){
+	const bars = computed(() => {
+		return gdp.map
+	})
+}
+```
+
+⚠️ 这里有两个问题：
+
+1. 你没有访问 .value
+2. 你根本没有真正“读取数组”
+
+---
+
+## **🧠 关键点：computed 什么时候收集依赖？**
+
+Vue 只会在 **getter 运行期间访问到的响应式数据** 才会被 track。
+
+例如：
+
+```
+computed(() => gdp.value)
+```
+
+✔ 访问了 gdp.value → 被 track
+
+但你写的是：
+
+```
+return gdp.map
+```
+
+❌ 既没有访问 gdp.value
+
+❌ 也没有调用 map
+
+❌ 甚至没有读取数组内容
+
+所以：
+
+👉 没有触发 get
+
+👉 没有依赖收集
+
+👉 后续当然不会更新
+
+---
+
+# **🎯 正确写法**
+
+如果 gdp 是 ref：
+
+```
+export default function useBar(gdp){
+	const bars = computed(() => {
+		return gdp.value.map(item => item)
+	})
+}
+```
+
+必须访问 .value。
+
+---
+
+# **🎯 那为什么 props.gdp 可以？**
+
+当你这样写：
+
+```
+props.gdp.map(...)
+```
+
+情况就不同了。
+
+---
+
+## **🔍 props 是 reactive**
+
+在 setup 里：
+
+```
+props 是 reactive proxy
+```
+
+当你写：
+
+```
+props.gdp
+```
+
+Vue 会：
+
+```
+get(props, "gdp")
+```
+
+→ 触发 track
+
+→ 收集依赖
+
+然后：
+
+```
+props.gdp.map(...)
+```
+
+→ 再读取数组
+
+→ 再次触发 track
+
+所以 computed 被正确收集依赖。
+
+---
+
+# **🧠 那你传 gdp 进去为什么不行？**
+
+问题通常出在这里：
+
+你很可能是这样传的：
+
+```
+useBar(props.gdp)
+```
+
+⚠️ 这会丢失响应性。
+
+因为：
+
+```
+props.gdp
+```
+
+只是一个值（数组）
+
+而不是 ref。
+
+---
+
+# **🎯 正确传法**
+
+如果你要单独传：
+
+```
+useBar(toRef(props, "gdp"))
+```
+
+这样才是响应式的。
+
+---
+
+# **🧠 响应式丢失原理**
+
+看这个：
+
+```
+const arr = props.gdp
+```
+
+这只是把当前值拷贝出来。
+
+computed 内部访问：
+
+```
+arr.map
+```
+
+Vue 根本不知道它来自 props。
+
+依赖链断了。
+
+---
+
+# **🔥 为什么 props.gdp 不会断？**
+
+因为你每次都通过 props proxy 访问：
+
+```
+get(props, "gdp")
+```
+
+依赖可以被追踪。
+
+---
+
+# **🧩 总结核心原理**
+
+| **写法** | **是否响应** |
+| --- | --- |
+| gdp.map | ❌ 不会 |
+| gdp.value.map | ✅ 会 |
+| props.gdp.map | ✅ 会 |
+| const g = props.gdp; g.map | ❌ 断依赖 |
+| toRef(props, ‘gdp’) | ✅ 正确 |
+
+---
+
+# **🎯 一句话理解**
+
+> Vue 只追踪 “读取行为”，
+> 
+
+> 不追踪 “变量来源”。
+> 
+
+---
+
+# **🚀 给你一个完整正确范式**
+
+```
+import { computed, toRef } from "vue";
+
+export default function useBar(props){
+	const gdp = toRef(props, "gdp");
+
+	const bars = computed(() => {
+		return gdp.value.map(item => item * 2);
+	});
+
+	return { bars };
+}
+```
+
+---
+
+# **🧠 你现在已经在思考：**
+
+- 依赖收集
+- Proxy
+- track / trigger
+- 响应性丢失
+
+这已经是 Vue 响应式底层思维了。
+
+如果你愿意，我可以给你画一个：
+
+```
+props → proxy → get → track → computed effect
+```
+
+完整依赖链图。
+
+你会彻底理解 Vue 的响应式。

@@ -1,0 +1,102 @@
+# https模块
+
+[SSL,TLS,HTTPS](../../%E7%BD%91%E7%BB%9C/SSL,TLS,HTTPS%203000f8d8d1fd80958171ca2718cb35a5.md) 
+
+![服务器结构.png](https%E6%A8%A1%E5%9D%97/%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%BB%93%E6%9E%84.png)
+
+现实中一般来说是在 nginx 上配置证书，然后由 nginx作为代理 和 Node服务器 交互
+
+到时候学 部署 的时候学一下
+
+# 证书准备
+
+## 1. 购买
+
+![方式1：网上购买权威机构证书.png](https%E6%A8%A1%E5%9D%97/%E6%96%B9%E5%BC%8F1%EF%BC%9A%E7%BD%91%E4%B8%8A%E8%B4%AD%E4%B9%B0%E6%9D%83%E5%A8%81%E6%9C%BA%E6%9E%84%E8%AF%81%E4%B9%A6.png)
+
+购买之后部署到 nginx
+
+## 2. 本地产生
+
+### 自己作为权威机构发布证书
+
+openssl 安全工具箱
+
+提供很多加密算法
+
+![具体方法.png](https%E6%A8%A1%E5%9D%97/%E5%85%B7%E4%BD%93%E6%96%B9%E6%B3%95.png)
+
+openssl genrsa 
+
+生成私钥 
+
+-des3 -out ca-pri-key.pem 1024
+
+接着对私钥用 des3 进行对称加密
+
+过程中要求输入 key 作为对称加密的钥匙(12345wjh) 后续过程中会不断用到，因为需要解密私钥
+
+参数 1024 会导致报错 Error: error:0A00018F:SSL routines::ee key too small
+
+至少需要 2048 https://github.com/ceilf6/Lab/commit/c1ab26cd7557709020c66f9f612a01cbc8353362
+
+openssl req -new -key 
+
+生成公钥 证书请求密钥（用它进行颁发CA证书）
+
+ca-pri-key.pem -out ca-pub-key.pem
+
+根据 ca-pri-key.pem 这个私钥
+
+生成CA我们自己的证书
+
+openssl x509 -req -in ca-pub-key.pem -signkey ca-pri-key.pem -out ca-cert.crt
+
+使用X.509证书标准，通过证书请求文件ca-pub-key.pem生成证书，并使用私钥ca-pri-key.pem加密，然后把证书保存到ca-cert.crt文件中
+
+同理生成服务器的私钥和公钥
+
+openssl genrsa -out server-key.pem 1024
+
+openssl req -new -key server-key.pem -out server-scr.pem
+
+最后
+openssl x509 -req 
+
+-CA ca-cert.crt 
+
+根据CA机构的证书
+
+-CAkey ca-pri-key.pem 
+
+CA机构的**私钥**
+
+这个过程肯定是CA机构进行操作的
+
+-CAcreateserial -in server-scr.pem -out server-cert.crt
+
+对服务器的公钥加密后得到最后的证书
+
+# https模块使用
+
+和 http 不同点只有一处即配置一个对象即可
+
+https://github.com/ceilf6/Lab/commit/350151d9c2578adcd89740e794221159dba5be86
+
+```jsx
+const server = https.createServer(
+    {
+        key: fs.readFileSync(path.resolve(__dirname, "../https/serverTest/server-key.pem")),
+        // 服务器私钥
+        cert: fs.readFileSync(path.resolve(__dirname, "../https/serverTest/server-cert.crt")),
+        // 服务器拿到的CA机构颁发的证书
+    }
+    , handler
+)
+```
+
+配置之后原先 https 无法连接 变成了
+
+**您的连接不是私密连接**
+
+不认这个CA机构

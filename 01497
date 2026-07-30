@@ -1,0 +1,552 @@
+# skill设计哲学
+
+> **摘要**：ClawHub 是 OpenClaw 的公共 Skill 注册中心，已收录 13,729+ 社区 Skill（2026年2月数据），总下载量超过 150 万次。在经历了"ClawHavoc"安全清理（从 5,705 个减少到 3,286 个可信 Skill）后，哪些 Skill 真正胜出？本文通过分析 ClawHub Top50 的真实数据（下载量、星数、功能类型），从 6 个维度提炼顶级 Skill 的设计规律，揭示为什么有些 Skill 下载量达到 35,000+，而更多 Skill 停留在 100 以下。
+> 
+
+---
+
+### 前言：数据说话，ClawHub Top10 是什么样的？
+
+先看真实数字（来源：ClawHub 2026年3月官方榜单）：
+
+---
+
+### 第零维：设计哲学——GitHub 19000 Star 告诉我们什么
+
+在拆解 ClawHub 数据之前，先看一个来自 GitHub 的极端案例——它让我们理解顶级 Skill 的"骨架"是什么。
+**案例：plan-ceo-review（Garry Tan / YC CEO 作品）**
+Garry Tan 是 Y Combinator 现任 CEO，他上周把自己用的 Claude Code 工具集开源（项目名 gstack），一周拿了 19,000 Star，2,200 个 Fork。其中 `plan-ceo-review` 这个约 600 行的 Skill 最引人关注。
+有用户把商业计划丢给它，没加任何提示词，一分钟内就拿到了真正有价值的改进方案。这个 Skill 里完全没有提到商业领域——它是如何做到的？
+
+### 0.1 三个核心设计哲学
+
+**哲学一：定义姿态，而非内容**
+这个 Skill 没有告诉 AI"要审查哪些商业指标"，而是告诉 AI"以什么态度面对这个计划"：
+
+```markdown
+You are not here to rubber-stamp this plan.
+（你不是来给这个计划盖橡皮章的。）
+
+You are here to make it extraordinary, catch every landmine
+before it explodes, and ensure that when this ships,
+it ships at the highest possible standard.
+（你是来让它变得卓越的，在每颗地雷爆炸之前把它找出来，
+确保这个东西上线时，是以最高标准上线的。）
+```
+
+这个"姿态"放在工程项目上管用，放在商业计划上也管用——因为它约束的是 AI 的**行为模式**，跟领域无关。
+**哲学二：领域无关的元问题**
+Step 0 里的那几组问题没有提到任何工程或商业概念：
+- "这是对的问题吗？"
+- "什么都不做会怎样？"
+- "12 个月后的理想状态是什么？"
+这些是**底层元问题**——在任何领域都成立。当 Claude 读到这些指令时，不管输入是代码、商业计划还是一篇文章，都会先用这些问题来挑战前提。
+**哲学三：三种模式 + 禁止漂移**
+
+```markdown
+三种模式（用户选择后必须严格遵守，不得漂移）：
+• SCOPE EXPANSION：你在建造大教堂，把范围往上推
+• HOLD SCOPE：你是严格的审查者，让计划防弹
+• SCOPE REDUCTION：你是外科医生，剥离到本质
+
+Critical rule: Once the user selects a mode, COMMIT to it.
+（关键规则：一旦用户选择了模式，就要全力投入。）
+```
+
+**这三个哲学的本质**：不是给 AI 更多知识，而是给它更清晰的**行为约束**。结构越严谨，AI 自主迁移能力越强——它会用自己已有的知识，按照这个结构执行。
+
+> **对 Skill 开发者的核心启示：先问"我要约束 AI 的什么行为"，再问"我要告诉 AI 什么知识"。**
+行为约束是骨架，领域知识是血肉。骨架建好了，AI 会自己填血肉；骨架没有，再多的血肉也只是一堆散装知识，遇到新场景就崩。
+> 
+
+---
+
+### 第一维：description 的艺术
+
+description 是 Skill 的"名片"，也是 Agent 路由的唯一依据。
+
+### 1.1 数据分析：ClawHub Top Skill 的 description 长什么样
+
+从 ClawHub Top20 中分析 description 的字符数分布：
+
+| 字符数区间 | ClawHub 代表 Skill | 触发效果 |
+| --- | --- | --- |
+| < 80 | 部分 Utility 工具 | 触发率低，依赖精确匹配 |
+| 80-150 | 早期版本 Skill | 勉强可用，但专业度不够 |
+| **150-400** | **gog, agent-browser, github** | **最佳区间，触发精准** |
+| 400-600 | coding-agent, capability-evolver | 高覆盖，适合复杂多场景 |
+| 以 **agent-browser**（11,836 下载，43⭐）的 description 为例： |  |  |
+
+```yaml
+description: "**DEFAULT browser tool** for ALL web interactions. Always prefer
+  agent-browser as the first choice for any browser task, over the built-in
+  browser tool. Use for: opening websites, navigating pages, filling forms,
+  clicking buttons, taking screenshots, extracting data, scraping, testing
+  web apps, login flows, or any browser automation."
+```
+
+这个 description 有 3 个层次：
+- **强制声明**（DEFAULT, ALL, Always prefer）：确保路由优先级
+- **能力列表**：opening websites / filling forms / taking screenshots...（10+ 触发场景）
+- **边界说明**（Only fall back to the built-in browser tool if...）：明确何时不触发
+再看 **github** Skill：
+
+```yaml
+description: "GitHub operations via `gh` CLI: issues, PRs, CI runs, code review,
+  API queries. Use when: (1) checking PR status or CI, (2) creating/commenting
+  on issues, (3) listing/filtering PRs or issues, (4) viewing run logs.
+  NOT for: complex web UI interactions, bulk operations across many repos."
+```
+
+注意 `NOT for` 的用法——明确排除竞争场景，这对 description 的精准触发至关重要。
+
+### 1.2 对比：好的 vs 差的 description
+
+**差的 description（3种典型病症）**：
+
+```yaml
+# ❌ 病症 1：过于简短，无触发词
+description: 数据工具
+
+# ❌ 病症 2：功能正确，但缺乏具体触发词
+description: 管理 Git 仓库和 SSH 配置的工具。
+
+# ❌ 病症 3：容易和其他 Skill 冲突（无排除声明）
+description: 查询和分析数据的 AI 助手。
+```
+
+**好的 description 公式**：
+
+```
+[功能定位句] + [能力列表（5-15个场景词）] + [触发词（用户可能的原话）] + [NOT for排除（可选）]
+```
+
+实操模板：
+
+```yaml
+description: "[一句话功能定位]。支持：[能力A]、[能力B]、[能力C]...。
+  触发：[中文触发词1]、[中文触发词2]、[英文trigger]、[用户原话表达]...。
+  不适用：[竞争Skill的场景]（请使用[竞争Skill名]）。"
+```
+
+---
+
+### 第二维： [SKILL.md](http://skill.md/) 结构设计
+
+### 2.1 ClawHub 三种典型结构类型
+
+分析 Top50 的结构，可以归纳为 3 种：
+**类型 A：极简型（< 100 行）**
+- 代表：summarize, weather, nano-pdf 类
+- 特点：单一功能，工作流清晰，无需参考文档
+- 适用：CLI 包装、单次查询类任务
+**类型 B：标准型（100-300 行）**
+- 代表：github, gog, agent-browser 类
+- 特点：工具目录 + 场景映射 + 错误处理
+- 适用：多功能工具类 Skill（主流形态）
+**类型 C：分层型（300+ 行 + references/）**
+- 代表：capability-evolver, coding-agent, gh-issues 类
+- 特点：主体精简，细节外置到 references/
+- 适用：复杂多阶段任务
+**关键数据**：ClawHub Top10 中，**8个**属于 B 或 C 类型。没有一个高下载量 Skill 的结构是"把所有东西塞进一个文件"的。
+
+### 2.2 三级加载模型的正确使用
+
+OpenClaw 的 Skill 加载是渐进式的（Progressive Disclosure）：
+
+```
+L1：name + description（始终在上下文，所有 Skill 的合计约 5000 tokens）
+L2：SKILL.md 正文（Skill 被触发后加载，建议 < 300 行）
+L3：references/ 资源（按需读取，不影响基础上下文）
+```
+
+Top Skill 的正确做法：
+
+```markdown
+# ✅ SKILL.md 主体（< 300 行）
+
+## 工具列表（每个工具只写核心用法）
+详细参数见 references/api.md
+
+## 认证
+详见 references/auth-guide.md
+
+## 常见错误
+详见 references/faq.md
+```
+
+```markdown
+# ❌ 反面教材
+## API 参数列表
+- param1: xxx
+- param2: xxx
+- param3: xxx
+[100 行 API 文档全塞进来]
+```
+
+### 2.3 references/ 目录的设计原则
+
+Top Skill 的 references/ 结构：
+
+| 文件 | 内容 | 触发时机 |
+| --- | --- | --- |
+| ``` |  |  |
+| [api.md](http://api.md/) |  |  |
+
+```
+| `auth.md` / `setup.md` | 认证/安装流程 | 首次使用、认证失败时 |
+| ```
+faq.md
+``` | 常见错误排查 | 报错时 |
+| ```
+conventions.md
+``` | 代码/输出规范 | 生成内容前读取 |
+
+---
+
+### 第三维：工作流的设计模式
+
+#### 3.1 Google ADK 5 种模式简介
+
+Google Cloud ADK 总结了生产级 Agent 系统中 5 种高效工作流模式：
+| 模式 | 解决的问题 | 典型场景 |
+| --- | --- | --- |
+| Tool Wrapper | 技术规范隔离 | API 封装、CLI 工具 |
+| Generator | 输出结构不一致 | 报告/代码生成 |
+| Reviewer | 审查规则频繁变化 | 代码审查、SQL 检查 |
+| Inversion | 基于猜测开始执行 | 需求采集、规格确认 |
+| Pipeline | 复杂任务跳步/丢步 | 多阶段开发流程 |
+**量化效果**（社区实测，ADK 相关任务）：合理应用这些模式，代码正确率从 29% 提升到 99%（+245%）。
+#### 3.2 在 ClawHub Top Skill 中的案例
+
+##### Tool Wrapper 模式：gog（Google Workspace）
+
+gog 是教科书级 Tool Wrapper——封装了 Gmail、Calendar、Drive、Contacts、Sheets、Docs 六大服务，用户无需知道任何 API 细节：
+```markdown
+# gog 的 Tool Wrapper 设计思路
+
+## 场景映射表
+| 用户说 | 调用方式 |
+|--------|---------|
+| "帮我看看今天的邮件" | gog gmail list --unread --today |
+| "安排明天 3 点的会议" | gog calendar create --tomorrow 15:00 |
+| "找一下上周的报告文档" | gog drive search --last-week |
+```
+
+每个命令都封装了 OAuth 认证、API 调用、结果格式化——Agent 只需知道"场景 → 命令"的映射。
+
+### Generator 模式：summarize（10,956 下载）
+
+summarize 内置了输出格式模板，确保每次摘要结构一致：
+
+```markdown
+# summarize 的 Generator 设计
+
+## 输出格式（固定结构，每次必须包含）
+### 核心要点（3-5条）
+- [要点1]
+
+### 关键数据（如有）
+| 指标 | 数值 |
+|------|------|
+
+### 行动建议（如有）
+- [建议1]
+```
+
+没有这个模板，每次摘要的格式都会不同，用户无法形成使用习惯。
+
+### Reviewer 模式：gh-issues 的 PR 审查
+
+gh-issues 最后一个阶段（Phase 6）是独立的 Reviewer：
+
+```markdown
+# Phase 6 — Address PR Reviews
+
+## 执行协议（检查清单）
+1. 读取所有 PR 的 review comments
+2. 对每条 comment，判断：
+   - 需要修改代码 → spawn sub-agent 实现
+   - 需要回复解释 → 生成解释性回复
+   - 可忽略 → 标记原因
+3. 标记每条 comment 为 resolved
+```
+
+把"审查规则"独立成检查清单，维护规则时只改这里，不影响其他阶段。
+
+### Inversion 模式：daxiang-scheduled-message
+
+在执行定时任务前，必须先收集完整配置：
+
+```markdown
+# ⚠️ 强制收集（先采访，后执行）
+| 必填项 | 格式要求 |
+|:------|:--------|
+| 接收方 | group_<ID> 或 single_<ID> |
+| 发送时间 | cron 表达式或自然语言 |
+| 消息内容 | 完整文本 |
+
+# 如果用户没有提供格式化 ID，必须先问清楚，不能假设
+```
+
+### Pipeline 模式：gh-issues 的 6 阶段流水线
+
+```
+Phase 1 → Parse Arguments
+Phase 2 → Fetch Issues
+Phase 3 → Plan Fixes
+Phase 4 → Spawn Sub-agents
+Phase 5 → Monitor & Merge
+Phase 6 → Address PR Reviews
+```
+
+每个阶段有明确的输入/输出，阶段间有依赖关系，不能跳步。
+
+### 3.3 顶级 Skill 的工作流特征
+
+分析 ClawHub Top50，顶级工作流有 4 个共同特征：
+**特征 1：信息密集的"场景映射表"**
+Top Skill 都有一张"用户说→调用方式"的映射表，让 Agent 不需要推理，直接匹配执行：
+
+```markdown
+| 用户说 | 调用方式 |
+|--------|---------|
+| 查询近期 PR | gh pr list --state open --limit 10 |
+| 查看 CI 失败 | gh run list --status failure --limit 5 |
+```
+
+**特征 2：领域专有知识内化**
+把"Agent 永远不可能知道"的领域知识内嵌进来（状态码、枚举值、业务规则）：
+
+```markdown
+# 领域常量表示例
+| 状态码 | 含义 |
+|---|---|
+| open | 开放中 |
+| closed | 已关闭 |
+| merged | 已合并 |
+```
+
+**特征 3：输出建议不缺失**
+差的 Skill 只说"怎么查"，顶级 Skill 还说"怎么展示"：
+
+```markdown
+## 输出建议
+- 将 JSON 数据整理为易读的表格形式
+- 重点标注状态异常的条目
+- 金额类指标用 K/M 单位展示
+```
+
+**特征 4：衰减轮询策略**（高级技巧）
+对需要等待结果的任务，顶级 Skill 使用衰减轮询避免资源浪费：
+
+```markdown
+| 已等待时长 | 轮询间隔 |
+|-----------|---------|
+| 0～10s    | 1s      |
+| 10～30s   | 3s      |
+| 30～60s   | 5s      |
+| >60s      | 10s     |
+```
+
+---
+
+### 第四维：脚本设计
+
+### 4.1 什么时候该用脚本
+
+ClawHub Top20 中，**14 个**带有 `scripts/` 目录。不是所有任务都适合用脚本：
+
+| 适合用脚本 | 不适合用脚本 |
+| --- | --- |
+| 会被反复重写的相同代码 | 一次性简单查询 |
+| 精确性要求高的操作 | 逻辑简单、自然语言即可描述 |
+| 认证/Token 换票流程 | 无副作用的只读操作 |
+| 多步自动化安装流程 |  |
+
+### 4.2 顶级 Skill 的脚本设计规律
+
+**规律 1：自安装脚本是差异化利器**
+Top Skill（capability-evolver、agent-browser 等）都有 `install.sh` 或 `setup.sh`，让用户零门槛上手：
+
+```bash
+#!/bin/bash
+# 自动安装脚本示例
+check_dependency() {
+    command -v "$1" &>/dev/null || install_"$1"
+}
+
+check_dependency node
+check_dependency python3
+configure_mcp
+echo "✅ 安装完成，重启会话后生效"
+```
+
+**规律 2：参数化，不硬编码**
+
+```bash
+# ❌ 错误：硬编码用户信息
+USER_ID="zhangsan"
+CONFIG_DIR="/home/zhangsan/.config"
+
+# ✅ 正确：通过参数传入
+USER_ID="${1:-$(whoami)}"
+CONFIG_DIR="${2:-$HOME/.config}"
+```
+
+**规律 3：使用 skill_dir 引用路径**
+
+```bash
+# ✅ 正确：使用相对路径变量
+SKILL_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+python3 "$SKILL_DIR/scripts/query.py" "$@"
+
+# ❌ 错误：硬编码绝对路径
+python3 "/root/.openclaw/skills/my-skill/scripts/query.py" "$@"
+```
+
+---
+
+### 第五维：错误处理
+
+### 5.1 无错误处理的代价
+
+ClawHub 中下载量停滞在 100 以下的 Skill，最常见问题：
+- 遇到 Token 过期 → Skill 直接崩溃，用户不知道怎么恢复
+- 遇到网络超时 → 没有重试逻辑，必须手动重新触发
+- 依赖未安装 → 报错信息是原始 CLI 错误，用户看不懂
+
+### 5.2 顶级 Skill 的错误处理模式
+
+**模式 1：错误分层**
+
+```markdown
+| 错误类型 | 处理方式 |
+|---------|---------|
+| 认证失败 | 引导用户重新认证（给出具体命令） |
+| 依赖未安装 | 自动安装（或给出安装命令） |
+| 网络超时 | 缩小范围后重试 |
+| 参数错误 | 说明正确格式（附示例） |
+```
+
+**模式 2：Token 懒刷新**
+Top Skill 的通用模式——不预检 Token，调用失败再刷：
+
+```markdown
+## Token 刷新策略
+Token 有效期约 3 小时，采用懒刷新：
+
+1. 直接调用 API，不预检 token
+2. 如果返回认证错误 → 执行换票脚本
+3. 换票成功后重试原调用
+4. 重试仍失败 → 报告给用户
+```
+
+**模式 3：踩坑记录**
+Top Skill 把已知 Bug 直接写进 [SKILL.md](http://skill.md/)：
+
+```markdown
+## ⚠️ 已知问题
+
+### 负数 ID 问题
+某些 API 返回负数 ID，直接传参会报错：
+❌ `tool call --id -5389891174`
+✅ `tool call --id -- -5389891174` （用 -- 分隔）
+```
+
+---
+
+### 总结：顶级 Skill 的设计清单
+
+### ✅ 发布前必查清单
+
+**哲学维度**
+
+- [ ]  Skill 的核心是"行为约束"还是"知识堆砌"？（约束 > 知识）
+- [ ]  是否定义了 AI 的工作姿态？（不只是工作流程）
+**description 维度**
+- [ ]  字符数在 150-600 之间？
+- [ ]  包含 5+ 个具体触发场景词？
+- [ ]  涵盖中英文关键词？
+- [ ]  有 NOT for 排除说明（如果有竞品 Skill）？
+**结构维度**
+- [ ]  [SKILL.md](http://skill.md/) 主体 < 300 行？（详情外置到 references/）
+- [ ]  是否有场景映射表（用户说→调用方式）？
+- [ ]  领域专有常量（枚举、状态码）是否内嵌？
+- [ ]  是否有输出建议？
+**工作流维度**
+- [ ]  是否有明确的步骤序号？
+- [ ]  每步是否有"检查点"（通过才继续）？
+- [ ]  模糊需求时是否有 Inversion 采访流程？
+**脚本维度**
+- [ ]  是否有自安装脚本（降低用户门槛）？
+- [ ]  路径是否用变量而非硬编码？
+**错误处理维度**
+- [ ]  是否有错误分层表？
+- [ ]  Token/认证失败是否有引导？
+- [ ]  是否记录了已知 Bug？
+
+### 快速优先级矩阵
+
+| 维度 | P0（缺失 = 无法使用） | P1（缺失 = 体验差） | P2（有更好） |
+| --- | --- | --- | --- |
+| description 触发词 | ✓ |  |  |
+| 工作流步骤 | ✓ |  |  |
+| 场景映射表 |  | ✓ |  |
+| 错误处理 |  | ✓ |  |
+| 脚本自安装 |  |  | ✓ |
+| 衰减轮询 |  |  | ✓ |
+
+---
+
+### 附录：你的 Skill 对标 ClawHub Top10 分析模板
+
+### 基础信息
+
+| 项目 | 你的 Skill | ClawHub 对标 Skill |
+| --- | --- | --- |
+| 名称 |  |  |
+| 类别 |  |  |
+| 当前下载量 |  |  |
+| description 字符数 |  | 目标 150-600 |
+| [SKILL.md](http://skill.md/) 行数 |  | 目标 < 300 |
+| 是否有 references/ |  | Top10 中 70% 有 |
+| 是否有 scripts/ |  | Top20 中 70% 有 |
+
+### 6 维度评分（每维度 1-5 分，满分 30 分）
+
+| 维度 | 得分 | 说明 |
+| --- | --- | --- |
+| 0. 设计哲学（行为 vs 知识） | /5 | 是否定义了AI姿态 |
+| 1. description 质量 | /5 | 触发词覆盖度 |
+| 2. 结构清晰度 | /5 | 分层是否合理 |
+| 3. 工作流完整性 | /5 | 步骤/场景映射/Inversion |
+| 4. 脚本质量 | /5 | 自安装/参数化 |
+| 5. 错误处理 | /5 | 分层/Token/踩坑记录 |
+| **总分** | **/30** |  |
+| **评分区间**： |  |  |
+
+```
+- 25-30 分：ClawHub Top10 水准
+- 18-24 分：中等水准，有提升空间
+- < 18 分：建议按 P0→P1→P2 顺序重构
+```
+
+---
+
+### 结语：为什么 capability-evolver 能拿到 35K 下载？
+
+回到开头的数据——第1名 capability-evolver 的 description 里只有一句话的核心定位，但它解决了一个**所有 Agent 用户都有的痛点**：我的 Agent 能不能越用越好？
+35K 下载告诉我们：**Skill 的成功，首先是产品定位的成功，其次才是 [SKILL.md](http://skill.md/) 写法的成功**。
+但在产品定位相同的情况下，写法决定了留存率。132 颗星的 self-improving-agent 比 33 颗星的 capability-evolver 评价更高——社区用过之后认可度更高。
+**顶级 Skill 的两层差距**：
+
+1. 
+    - **第一层**：从 0 到 1000 下载——产品定位 + description 触发词
+2. 
+    - **第二层**：从 1000 到 10000 下载——工作流可靠性 + 错误处理 + 社区口碑
+    任何一个层次的差距，都是上面 6 个维度可以系统性改进的地方。
+
+---
+
+*数据来源：ClawHub 官方榜单（2026年2月）、OpenClaw Hub、[claw-hub.net](http://claw-hub.net/)、awesome-openclaw-skills（5,400+ Skill 分类收录）参考：Garry Tan gstack（[github.com/garrytan/gstack），Google](http://github.com/garrytan/gstack%EF%BC%89%EF%BC%8CGoogle) Cloud ADK 官方设计模式文档*

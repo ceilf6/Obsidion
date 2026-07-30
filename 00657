@@ -1,0 +1,40 @@
+# 打通飞书
+
+你现在去**飞书开放平台**按这个顺序做：
+
+1. 打开你的应用
+2. 进入 App Capability -> Bot
+3. 开启 Bot 能力
+4. 给机器人设置一个名称
+5. 进入 Permissions
+6. 至少确保这些权限已经开了：
+    - im:message
+    - im:message:readonly
+    - im:message:send_as_bot
+    - im:chat.access_event.bot_p2p_chat:read
+    - im:chat.members:bot_access
+    - contact:user.employee_id:readonly
+7. 进入 Event Subscription
+8. 选择 Use long connection to receive events
+9. 添加事件：im.message.receive_v1
+10. 去 Version Management & Release 发布应用
+11. 如果你们租户有审核流，等管理员批准
+12. 在飞书里把这个 bot 加到你要测试的会话，或者直接给它发私信
+
+然后你回来再测一次：
+
+`node dist/index.js channels status --probe`
+
+正常的话，probe failed 会消失，至少会变成可连通状态。
+
+补充一点：
+
+- 你填的是 feishu，这表示中国版飞书，没问题
+- 你现在用的是 websocket 模式，所以不需要 verificationToken 和 encryptKey
+
+如果你做完上面 4 个关键动作：
+
+- 启用 Bot
+- 开权限
+- 开长连接事件订阅
+- 发布应用

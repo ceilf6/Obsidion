@@ -1,0 +1,103 @@
+# 属性描述符
+
+https://github.com/ceilf6/Lab/commit/4bbf99a0344b1c1bdbe93e597895211b0d719cc7
+
+Property Descriptor 属性描述符  是一个**普通对象**，用于描述一个属性的相关信息
+
+通过**`Object.getOwnPropertyDescriptor(对象, 属性名)`**可以得到一个对象的某个属性的属性描述符
+
+- **value**：属性值
+- **configurable**：该**属性的描述符是否可以修改**
+    
+    设为 false 就不能再修改了
+    
+- **enumerable**：该属性是否可以被枚举
+    
+    for in 或 Object.keys() 等等都找不到该属性
+    
+- **writable**：该**属性是否可以被重新赋值**
+
+> `Object.getOwnPropertyDescriptors(对象)`可以得到某个对象的所有属性描述符
+> 
+
+如果需要为某个对象添加属性时 或 修改属性时， 配置其属性描述符，可以使用下面的代码:
+
+```jsx
+Object.**defineProperty**(**对象, 属性名, 描述符对象)**;
+
+Object.**defineProperties(对象, 多个属性的描述符)**
+```
+
+## 存取器属性
+
+**属性描述符中**，如果配置了 **get 和 set** 中的任何一个，则该属性，不再是一个普通属性，而变成了**存取器属性**。(get和set无法与value/writable一起设置)
+
+“Invoke property getter”
+
+get 和 set配置均为函数，如果一个属性是存取器属性，则**读取该属性时，会运行get方法**，将get方法得到的返回值作为属性值；如果给该属性**赋值，则会运行set方法**。
+
+**不再是在内存中管理 obj.a** ，而是类似于 **直接运行**get()和set(val)
+
+存取器属性最大的意义，在于可以**控制属性**的**读取和赋值**。
+
+```html
+<body>
+    <p>
+        <span>姓名：</span>
+        <span id="name"></span>
+    </p>
+    <p>
+        <span>年龄：</span>
+        <span id="age"></span>
+    </p>
+    <script>
+        const spanName = document.getElementById("name")
+        const spanAge = document.getElementById("age")
+
+        const user = {}
+
+        Object.defineProperties(user, {
+            name: {
+                get() {
+                    return spanName.innerText;
+                },
+                set(val) {
+                    spanName.innerText = val;
+                }
+            },
+            age: {
+                get() {
+                    return +spanAge.innerText;
+                },
+                set(val) {
+                    if (typeof val !== "number") {
+                        throw new TypeError("年龄必须是一个数字")
+                    }
+                    if (val < 0) {
+                        val = 0;
+                    } else if (val > 200) {
+                        val = 200;
+                    }
+                    spanAge.innerText = val;
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
+```
+
+```jsx
+export default function HTMLModelElement() {
+    Object.defineProperty(this, "innerHTML", {
+        get() {
+            // 获取UI页面中元素内容
+        },
+        set(val) {
+            // 更新元素
+            // 触发重新渲染
+        }
+    })
+}
+```

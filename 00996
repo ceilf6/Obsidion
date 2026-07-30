@@ -1,0 +1,153 @@
+# 效率提升
+
+> 客户端渲染效率比vue2提升了1.3~2倍
+> 
+> 
+> SSR（服务端渲染）效率比vue2提升了2~3倍
+> 
+
+> 面试题：vue3的效率提升主要表现在哪些方面？
+> 
+
+# 静态提升
+
+在预编译template ⇒ render 的过程中
+
+下面的**静态节点会被提升**
+
+- 元素节点
+- 没有绑定动态内容
+
+Vue3 **不会对静态节点反复创建渲染函数**，而是上提、然后**在render中重复使用**
+
+```jsx
+// vue2 的静态节点
+render(){
+  createVNode("h1", null, "Hello World")
+  // ...
+}
+
+// vue3 的静态节点
+const hoisted = createVNode("h1", null, "Hello World")
+function render(){
+  // 直接使用 hoisted 即可
+}
+```
+
+**静态属性**会被提升
+
+```html
+<div class="user">
+  {{user.name}}
+</div>
+```
+
+```jsx
+const hoisted = { class: "user" }
+
+function render(){
+  createVNode("div", hoisted, user.name)
+  // ...
+}
+```
+
+# 预字符串化
+
+```html
+<div class="menu-bar-container">
+  <div class="logo">
+    <h1>logo</h1>
+  </div>
+  <ul class="nav">
+    <li><a href="">menu</a></li>
+    <li><a href="">menu</a></li>
+    <li><a href="">menu</a></li>
+    <li><a href="">menu</a></li>
+    <li><a href="">menu</a></li>
+  </ul>
+  <div class="user">
+    <span>{{ user.name }}</span>
+  </div>
+</div>
+```
+
+当编译器遇到大量连续的静态内容，会直接将其编译为一个普通字符串节点
+
+这样就不需要每次都创建大量虚拟节点，直接对比 static node 的预字符串化结果
+
+```jsx
+const _hoisted_2 = _createStaticVNode("<div class=\\"logo\\"><h1>logo</h1></div><ul class=\\"nav\\"><li><a href=\\"\\">menu</a></li><li><a href=\\"\\">menu</a></li><li><a href=\\"\\">menu</a></li><li><a href=\\"\\">menu</a></li><li><a href=\\"\\">menu</a></li></ul>")
+```
+
+![image.png](%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/image.png)
+
+![image.png](%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/image%201.png)
+
+# 缓存
+
+## 事件处理函数
+
+```html
+<button @click="count++">plus</button>
+```
+
+```jsx
+// vue2
+render(ctx){
+  return createVNode("button", {
+    onClick: function($event){
+      ctx.count++;
+    }
+  })
+}
+
+// vue3
+render(ctx, _cache){
+  return createVNode("button", {
+    onClick: cache[0] || (cache[0] = ($event) => (ctx.count++))
+  })
+}
+```
+
+## **运行时缓存机制**
+
+vnode 存储到 _cache 中进行复用
+
+![image.png](%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/image%202.png)
+
+# Block Tree
+
+vue2在 patch过程 对比新旧树的时候，并不知道哪些节点是静态的，哪些是动态的，因此只能一层一层比较，这就**浪费了大部分时间在比对静态节点**上
+
+Vue3 在编译过程中会对节点打标记是动态还是静态的，就不需要浪费时间在静态节点比对上
+
+```html
+<form>
+  <div>
+    <label>账号：</label>
+    <input v-model="user.loginId" />
+  </div>
+  <div>
+    <label>密码：</label>
+    <input v-model="user.loginPwd" />
+  </div>
+</form>
+```
+
+![image.png](%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/image%203.png)
+
+![image.png](%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/image%204.png)
+
+# PatchFlag
+
+vue2在对比每一个节点时，并不知道这个节点哪些相关信息会发生变化，因此只能将所有信息依次比对
+
+```html
+<div class="user" data-id="1" title="user name">
+  {{user.name}}
+</div>
+```
+
+直接打标记 PatchFlag 来标记哪部分是动态的
+
+![image.png](%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/image%205.png)

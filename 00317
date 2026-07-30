@@ -1,0 +1,7 @@
+# cc中转站缓存命中率
+
+Source: [KM 2764197350](https://km.example.com/collabpage/2764197350)
+
+cc 会设置 cch 来避免套餐用户直接使用 token，结果中转站没有忽略该字段导致一直无法命中缓存
+
+我们可以手动配置 "CLAUDE_CODE_ATTRIBUTTION_HEADER": "0" 进入 env 避免这一现象

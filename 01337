@@ -1,0 +1,260 @@
+{
+  "main": {
+    "id": "fa1ed01f13d69030",
+    "type": "split",
+    "children": [
+      {
+        "id": "9c34b9513a0f625d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3101ac62cd7a8d99",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "关系图谱"
+            }
+          },
+          {
+            "id": "9c998679dc2b3021",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "LLM Wiki.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "LLM Wiki"
+            }
+          },
+          {
+            "id": "93df450c81db3fd6",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "学校 题目优先/_README.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "_README"
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "31101365d2ac524f",
+    "type": "split",
+    "children": [
+      {
+        "id": "9f5602ea2ebdb7ea",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "32215ba8de5b231b",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "e0d83cb3b0233a35",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "896dd45f512f7079",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "8b41089bf9bd6d24",
+    "type": "split",
+    "children": [
+      {
+        "id": "39f6a5a4192f0509",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "133ca1b5b96b735d",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "LLM Wiki.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "LLM Wiki 的反向链接列表"
+            }
+          },
+          {
+            "id": "06cf92035c27f946",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "LLM Wiki.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "LLM Wiki 的出链列表"
+            }
+          },
+          {
+            "id": "23b2725298884215",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "c78ab6208c1ac7b0",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "4e99f6e615eb61dc",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "LLM Wiki.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "LLM Wiki 的大纲"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false
+    }
+  },
+  "active": "93df450c81db3fd6",
+  "lastOpenFiles": [
+    "LLM Wiki.md",
+    "学校 题目优先/数据结构/最小生成树/kruskal/截屏2026-01-09_19.10.31.png",
+    "学校 题目优先/质量管理/一/1 2 质量的判定逻辑与生产全链路 34e0f8d8d1fd80809622fad522a7ffc7.md",
+    "学校 题目优先/质量管理/一/1 1 底层逻辑 34e0f8d8d1fd8027b900fc7caaa77e65.md",
+    "学校 题目优先/数据结构/线性表/链表 2da0f8d8d1fd80b9a6e9e65ed32c53bb.md",
+    "学校 题目优先/数据结构/线性表/截屏2026-01-05_18.39.51.png",
+    "学校 题目优先/数据结构/最小生成树/kruskal 2e30f8d8d1fd80c28eaec5dba1bab315.md",
+    "学校 题目优先/数据结构/最小生成树/kruskal",
+    "学校 题目优先/数据结构/最小生成树/image.png",
+    "学校 题目优先/数据结构/时间复杂度、空间复杂度/截屏2026-01-06_08.41.24.png",
+    "学校 题目优先/数据结构/时间复杂度、空间复杂度/截屏2026-01-05_13.18.30.png",
+    "学校 题目优先/数据结构/字符串/image.png",
+    "学校 题目优先/数据结构/字符串/image 4.png",
+    "学校 题目优先/数据结构/字符串/image 3.png",
+    "学校 题目优先/数据结构/字符串/image 2.png",
+    "学校 题目优先/数据结构/字符串/image 1.png",
+    "学校 题目优先/项目管理/在线任务 2980f8d8d1fd80c99eecc1e49fd444d1.md",
+    "学校 题目优先/项目管理/PERT 2990f8d8d1fd8041b2c9e780033b774d.md",
+    "学校 题目优先/质量管理/术语 34e0f8d8d1fd809684f4fac454a4f4dd.md",
+    "学校 题目优先/质量管理/一 34e0f8d8d1fd803788b1fe9079101c0a.md",
+    "学校 题目优先/质量管理/一",
+    "学校 题目优先/数据结构/队 2e00f8d8d1fd80f79269fc7b2f5e29e8.md",
+    "学校 题目优先/数据结构/顺序与链式 2e00f8d8d1fd80e18e0ac8ac4ff38fb3.md",
+    "学校 题目优先/数据结构/邻接表 2d80f8d8d1fd809cb556e047097ecf49.md",
+    "学校 题目优先/数据结构/递归 2e00f8d8d1fd80cabcc7fcc5567056c6.md",
+    "学校 题目优先/数据结构/线性表 2df0f8d8d1fd80018c4eff1e17eb8e37.md",
+    "学校 题目优先/数据结构/线性表",
+    "学校 题目优先/数据结构/树 2e10f8d8d1fd807bb404e60bb58c5ea7.md",
+    "学校 题目优先/数据结构/栈 2e00f8d8d1fd80518f43d92e7e5f8e0d.md",
+    "学校 题目优先/数据结构/最小生成树 2e20f8d8d1fd8037881ac4b74fb46ff8.md",
+    "学校 题目优先/数据结构/时间复杂度、空间复杂度 2df0f8d8d1fd80ff943fe2c9971d5d20.md",
+    "学校 题目优先/数据结构/最小生成树",
+    "学校 题目优先/数据结构/时间复杂度、空间复杂度",
+    "学校 题目优先/数据结构/数组 2db0f8d8d1fd80e9a359ea1289cd4949.md",
+    "学校 题目优先/数据结构/存储结构 2df0f8d8d1fd8043b773e4854d7a61f8.md",
+    "学校 题目优先/数据结构/字符串 2e00f8d8d1fd8077b3aefc9604e2009c.md",
+    "学校 题目优先/数据结构/堆 2da0f8d8d1fd80e684fbc872aa5ee535.md",
+    "学校 题目优先/数据结构/字符串",
+    "学校 题目优先/数据结构/C++语言基础 2df0f8d8d1fd808b9712f2c37b51e989.md",
+    "学校 题目优先/数字电路/第四章 2a20f8d8d1fd80578074f2d9fab8ae31.md",
+    "学校 题目优先/数字电路/第二章 逻辑函数与组合电路基础 2990f8d8d1fd80c9994bd5de49b2f56c.md",
+    "学校 题目优先/数字电路/第四章",
+    "学校 题目优先/数字电路/第二章 逻辑函数与组合电路基础",
+    "学校 题目优先/数字电路/第三章 组合逻辑电路设计 29e0f8d8d1fd80998a8fd8acc7e40dd6.md",
+    "学校 题目优先/数字电路/第一章 数字电路基础",
+    "学校 题目优先/工程化学/第三章 2 化学键"
+  ]
+}

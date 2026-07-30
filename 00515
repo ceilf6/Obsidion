@@ -1,0 +1,33 @@
+# 防抖 节流
+
+防抖：只有最后一次
+
+```jsx
+function debounce(fn, wait) {
+    let timer = null // 注意闭包层次，闭包计时器
+    return function (...args) {
+        if (timer) {
+            clearTimeout(timer)
+        }
+        timer = setTimeout(() => {
+            fn.apply(this, args) 
+            // 注意 this 和 args参数 的丢失问题
+        }, wait)
+    }
+}
+```
+
+节流：固定时间内最多执行一次
+
+```jsx
+export function throttle(fn, wait) {
+    let lastTime = 0 // 闭包上次执行时间
+    return function (...args) {
+        const now = Date.now()
+        if (now - lastTime > wait) {
+            lastTime = now
+            fn.apply(this, args)
+        }
+    }
+}
+```

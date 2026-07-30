@@ -1,0 +1,9 @@
+# Vite
+
+构建工具
+
+除了 .js 后缀名外，其他后缀名都需要加
+
+index.html 不像 webpack 中放到 public ，而是直接在根目录
+
+[Vite原理](Vite/Vite%E5%8E%9F%E7%90%86%203040f8d8d1fd80e3a052c3f8a47c7130.md)

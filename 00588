@@ -1,0 +1,25 @@
+# 沉淀Lab作为知识库RAG
+
+Core 在规划前自动做一次 rag_query 并把结果注入 Planner
+
+[实践](实践%203250f8d8d1fd80f194effa64b3e0d04c.md)
+
+[技术方案优缺分析](技术方案优缺分析%203250f8d8d1fd800daa66ea312a253b24.md)
+
+## 1
+
+选择以 README 作为根节点，展开知识图谱，README中每个链接都是一条边，用于获取目标知识
+
+https://github.com/ceilf6/FrontAgent/commit/cebb4d108eb5fe7210502bb3b028fa982d973971
+
+这样就避免了克隆整个大仓库，而是以我整理的README作为入口
+
+## 2
+
+如果 README-only 可能会过滤有用知识，升级为基于整个Lab(除子模块外)的 hybrid search
+
+https://github.com/ceilf6/FrontAgent/commit/62f2b1bbb80be3675efd418e58b5b6311fb8ddd4
+
+[嵌入模型选择](嵌入模型选择%203260f8d8d1fd80a6b2e7c3b4f99b906c.md)
+
+[chunk分块](chunk分块%203260f8d8d1fd80d6a572fae24f7ecf97.md)

@@ -1,0 +1,223 @@
+# 面试题
+
+# 面试题考点
+
+## Promise的基本概念
+
+![image-20210618161125894](../../../assets/img/20210618161125.png)
+
+## 链式调用规则
+
+![image-20210621103501094](../../../assets/img/20210621103501.png)
+
+![image-20210621103501094](../../../assets/img/20210621103501.png)
+
+## Promise的静态方法
+
+## async和await
+
+## 事件循环
+
+根据目前所学，进入事件队列的函数有以下几种：
+
+- `setTimeout`的回调，宏任务（macro task）
+- `setInterval`的回调，宏任务（macro task）
+- Promise的**静态方法**`then`函数回调，**微任务**（micro task）
+- `requestAnimationFrame`的回调，宏任务（macro task）
+- 事件处理函数，宏任务(macro task)
+
+# 面试题
+
+1. 下面代码的输出结果是什么
+    
+    ```jsx
+    const promise = new Promise((resolve, reject) => {
+        console.log(1);
+        resolve(); // 即使 Promise 状态改变了，但是不影响同步代码的执行
+        console.log(2);
+    })
+    
+    promise.then(() => {
+        console.log(3);
+    })
+    
+    console.log(4);
+    
+    ```
+    
+2. 下面代码的输出结果是什么
+    
+    ```jsx
+    const promise = new Promise((resolve, reject) => {
+        console.log(1);
+        setTimeout(()=>{
+          console.log(2)
+          resolve();
+        	console.log(3);
+        })
+    })
+    
+    promise.then(() => {
+        console.log(4);
+    })
+    
+    console.log(5);
+    
+    ```
+    
+3. 下面代码的输出结果是什么
+    
+    ```jsx
+    const promise1 = new Promise((resolve, reject) => {
+    	setTimeout(() => {
+        resolve()
+      }, 1000)
+    })
+    const promise2 = promise1.catch(() => {
+      return 2;
+    })
+    
+    console.log('promise1', promise1)
+    console.log('promise2', promise2)
+    
+    setTimeout(() => {
+      console.log('promise1', promise1)
+      console.log('promise2', promise2)
+    }, 2000)
+    
+    ```
+    
+4. 下面代码的输出结果是什么
+    
+    ```jsx
+    async function m() {
+        const n = await 1;
+        console.log('=== n', n);
+        return n
+    }
+    
+    const mReturn = m()
+    
+    console.log('=== mReturn', mReturn);
+    
+    setTimeout(() => {
+        console.log('=== mReturn', mReturn);
+    }, 0)
+    ```
+    
+5. 下面代码的输出结果是什么
+    
+    ```jsx
+    async function m(){
+      const n = await 1;
+      console.log(n);
+    }
+    
+    (async ()=>{
+      await m();
+      console.log(2);
+    })();
+    
+    console.log(3);
+    
+    ```
+    
+6. 下面代码的输出结果是什么
+    
+    ```jsx
+    async function m1(){
+      return 1;
+    }
+    
+    async function m2(){
+      const n = await m1();
+      console.log(n)
+      return 2;
+    }
+    
+    async function m3(){
+      const n = m2();
+      console.log(n);
+      return 3;
+    }
+    
+    m3().then(n=>{
+      console.log(n);
+    });
+    
+    m3();
+    
+    console.log(4);
+    
+    ```
+    
+7. 下面代码的输出结果是什么
+    
+    ```jsx
+    Promise.resolve(1)
+      .then(2)
+      .then(Promise.resolve(3))
+      .then(console.log)
+    
+    ```
+    
+8. 下面代码的输出结果是什么
+    
+    ```jsx
+    var a;
+    var b = new Promise((resolve, reject) => {
+      console.log('promise1');
+      setTimeout(()=>{
+        resolve();
+      }, 1000);
+    }).then(() => {
+      console.log('promise2');
+    }).then(() => {
+      console.log('promise3');
+    }).then(() => {
+      console.log('promise4');
+    });
+    
+    a = new Promise(async (resolve, reject) => {
+      console.log(a);
+      await b;
+      console.log(a);
+      console.log('after1');
+      await a
+      resolve(true);
+      console.log('after2');
+    });
+    
+    console.log('end');
+    
+    ```
+    
+9. 下面代码的输出结果是什么
+    
+    ```jsx
+    async function async1() {
+        console.log('async1 start');
+        await async2();
+        console.log('async1 end');
+    }
+    async function async2() {
+    	console.log('async2');
+    }
+    
+    console.log('script start');
+    
+    setTimeout(function() {
+        console.log('setTimeout');
+    }, 0)
+    
+    async1();
+    
+    new Promise(function(resolve) {
+        console.log('promise1');
+        resolve();
+    }).then(function() {
+        console.log('promise2');
+    });
+    console.log('script end');
+    
+    ```

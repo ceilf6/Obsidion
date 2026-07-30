@@ -1,0 +1,31 @@
+# 26.04.22 王景宏日报
+
+Source: [KM 2758715462](https://km.example.com/collabpage/2758715462)
+
+## 今日完成
+
+- 日报自动器设计与文档沉淀：设计通过 Friday Skills 打通内部平台权限、自动收集工作语料并生成日报的工具方案
+    - 进展：梳理基础 skills 依赖（citadel、skillhub、oa-skills、daxiang-sender），整理报告 skill 结构和使用示范，沉淀到学城；补全 TT/ONES 来源支持，修复 collabpage grant 限制，完善配置化能力
+    - 文档：[https://km.example.com/collabpage/2758414734](https://km.example.com/collabpage/2758414734)
+    - 代码：[https://github.com/ceilf6/ceilf6-skills/tree/main/daily-report-writer](https://github.com/ceilf6/ceilf6-skills/tree/main/daily-report-writer)
+    - 提交：ceilf6-skills 49649db（feat: daily-report-writer skill，6 files changed，358 insertions(+)，1 deletion(-)）
+    - 状态：方案设计完成，skill 已可用，持续完善中
+- 滚动抖动分析与修复：排查 nibfe/lib-snack-poi 滚动抖动问题
+- claw 接入大象平台文档完善：梳理大象开发者平台配置全流程并沉淀到学城
+    - 进展：补充了权限申请（MIS→UID 转换需申请 queryEmpIdentityByMisList 权限）、WS 事件回调（使用 com.example.catenative.dxopen 通道）、应用可见性配置等关键步骤
+    - 文档：[https://km.example.com/collabpage/2754365867](https://km.example.com/collabpage/2754365867)
+    - 状态：文档沉淀完成，联调验证待推进
+- Diva 包快速下线技巧：编写 JS 脚本将 a 标签跳转改为 blank 方式，解决批量下线时需反复回退的体验问题
+    - 背景：Diva 上包过多导致锁包失败，需批量下线，但默认跳转覆盖当前页且回退后分页重置
+    - 方案：通过 document.addEventListener 拦截点击事件，强制用 [window.open](http://window.open)(_blank) 打开
+    - 文档：[https://km.example.com/collabpage/2758980875](https://km.example.com/collabpage/2758980875)
+- DeepAgent 实践：创建并配置团队 Deep Agent，沉淀创建流程、提示词工程和 skills 配置方案
+    - 进展：在 Friday 平台创建 Deep Agent，配置团队智能体提示词（含准确优先、证据优先、能力打通等核心原则），接入学城等基础 skills
+    - 文档：[https://km.example.com/page/2758854727](https://km.example.com/page/2758854727)
+    - 使用入口：[https://skills.example.com/app/chat/MjA0Njg2MjYyNzYyMzUyMjM3NQ==](https://skills.example.com/app/chat/MjA0Njg2MjYyNzYyMzUyMjM3NQ==)
+    - 状态：已完成基础配置，可通过网页交互和接口调用使用
+
+## 明日展望
+
+- 滚动抖动修复：跟进 PR #259、#264 review 反馈，推进合并
+- 日报自动器：完善自动转发、配置化和过往日报对比能力，用于生成阶段性总结

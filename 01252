@@ -1,0 +1,75 @@
+# MCP
+
+Source: [KM 2758358409](https://km.example.com/collabpage/2758358409)
+
+[https://modelcontextprotocol.io/docs/getting-started/intro](https://modelcontextprotocol.io/docs/getting-started/intro)
+
+MCP(Model Context Protocol) 和 function_calling schema 等等一样，都是一个开源标准，用于将人工智能应用与外部连接，像 本地文件、数据库、搜索引擎、工作流程等等，进而增强大模型的能力与输出质量
+
+> MCP 仅专注于上下文交换协议 - 不规定 AI 应用如何使用 LLM 或管理所提供的上下文
+> 
+
+## 背景
+
+随着AI应用的爆发式增长，如何让AI系统有效且高效的接入企业的数据和工具成为了一个普遍存在的问题。拿智能生活助手举例，为了逃离 “**数据孤岛**” ，可能需要借助搜索、天气、地图、邮件等多种外部工具以及数据。传统API开发方式要求开发人员预先为每个服务或数据源编写定制化的集成代码，通过命令式编程方式内置到AI智能体代码中，通常每个外部工具的API接口有不同的接入方式，假设有1000个AI助手和1000个外部工具，理论上需要编写1000×1000=100万个独立的连接代码
+
+那么应该如何帮助AI系统有效且高效的接入企业的数据和工具呢？Anthropic公司（Claude的创造者）给出了自己的答案，该公司于2024年11月推出了MCP开放协议，用来连接大模型的外部数据和工具。MCP就像是专为AI应用设计的通用接口，类似我们日常使用的USB-C。正如USB-C简化了不同设备与计算机的连接方式，MCP简化了AI模型与数据、工具和服务之间的交互方式
+
+在MCP出现之前，开发者必须编写代码，并通过API将AI智能体与外部系统连接，这意味着每个集成都需要预先编码。MCP出现之后，理论上直接在AI智能体中配置可用的MCP服务器即可，无需编写任何代码，具体如何调用都无需关心，无需重新编译代码，显著提升了AI智能体功能扩展的效率和便捷性。有了MCP的加持，复刻最近爆火出圈的Manus也会事半功倍。
+
+## With
+
+MCP 不是 RAG 或者 Function Calling 的替代，后面两者更像是 MCP 的拓展抓手
+
+### RAG
+
+RAG 侧重的是将数据文档转为向量数据库供大模型检索召回
+
+MCP 既能读、也能做，重点在于如何衔接到读与做
+
+### Function Calling
+
+Function Calling 规定模型**如何发起一次结构化工具调用**，具体体现为 JSON Schema ，模型产出要调用的函数名和参数，真正执行者是应用代码，然后将结果返回大模型
+
+**Function Calling** 里，schema 的核心作用是：告诉模型“这个函数有哪些参数、参数类型是什么”。OpenAI 的 function tool 定义里 `parameters` 就是一个 **JSON Schema object**，并且还有 `strict` 用于严格参数校验
+
+MCP 聚焦 外部能力的统一接入AI ，是一个**开放的集成协议**，是一种**生态标准**，采用 client-server 架构，定义了 host、client、server 之间如何发现能力、建立连接、认证、交换消息。MCP 不只管“工具调用”，还定义了 **tools、resources、prompts、notifications** 等原语，以及传输层（如 stdio、HTTP）和初始化/能力协商流程。
+
+**MCP** 里，schema 不只是“这次调用的参数长什么样”，还属于整个协议里“能力发现与描述”的一部分。MCP server 会把工具**暴露**出来，工具带着名字、描述、`inputSchema`、可选 `outputSchema` 等元信息，客户端/宿主再据此让模型发现和调用这些能力
+
+可以看成 MCP 暴露 tool schema 让模型发现、发起 Function Calling 调用让代码执行
+
+## 架构
+
+[图片](https://km.example.com/api/file/cdn/2758358409/234011050956?&contentType=1&isNewContent=false)
+
+<span style="color:rgb(62, 62, 62)">MCP 采用客户端-服务器架构，MCP 主机——如 </span>[Claude Code](https://www.anthropic.com/claude-code)<span style="color:rgb(62, 62, 62)"> 或 </span>[Claude Desktop](https://www.claude.ai/download)<span style="color:rgb(62, 62, 62)"> 等 AI 应用——建立与一个或多个 MCP 服务器的连接。MCP 主机通过为每个 MCP 服务器创建一个 MCP 客户端来实现这一点。每个 MCP 客户端与其对应的 MCP 服务器保持专用连接。</span>
+
+<span style="color:rgb(62, 62, 62)">使用 </span><span style="color:rgb(62, 62, 62)">**stdIO**</span><span style="color:rgb(62, 62, 62)"> 传输的</span><span style="color:rgb(62, 62, 62)">**本地**</span><span style="color:rgb(62, 62, 62)"> MCP 服务器通常服务单个 MCP 客户端，而使用 Streamable </span><span style="color:rgb(62, 62, 62)">**HTTP**</span><span style="color:rgb(62, 62, 62)"> 传输的</span><span style="color:rgb(62, 62, 62)">**远程**</span><span style="color:rgb(62, 62, 62)"> MCP 服务器通常会服务多个 MCP 客户端</span>
+
+- **MCP 主机**<span style="color:rgb(62, 62, 62)">：协调和管理一个或多个 MCP 客户端的 </span><span style="color:rgb(62, 62, 62)">**AI 应用**</span><span style="color:rgb(62, 62, 62)">（如 Claude Desktop等）</span>
+- *MCP 客户端 **<span style="color:rgb(62, 62, 62)">：一个组件，负责维护与 MCP 服务器的连接，并从该 MCP 服务器获取上下文供 MCP 主机使用</span>
+- *MCP 服务器 **<span style="color:rgb(62, 62, 62)">：为 MCP 客户端提供上下文的程序（提供服务） - </span><span style="color: ">连接到本地或远程数据源</span>
+- <span style="color: ">本地数据源：MCP服务器安全访问的文件、数据库或服务 - stdio</span>
+- <span style="color: ">远程服务：MCP服务器访问的基于互联网的外部API或服务 - HTTP stream</span>
+
+### 层次
+
+### 1、Data Layer 内层数据层
+
+<span style="color:rgb(62, 62, 62)">定义基于 JSON-RPC 的客户端-服务器通信协议，包括</span>
+
+- <span style="color:rgb(62, 62, 62)">生命周期管理：MCP是有状态协议，处理客户端与服务器之间的连接初始化、能力协商和连接终止</span>
+- <span style="color:rgb(62, 62, 62)">服务器功能：使服务器能够提供核心功能，包括 AI 操控工具，上下文数据资源，以及客户端交互模版</span>
+- <span style="color:rgb(62, 62, 62)">客户端功能：使服务器能够请求客户端从主机 LLM 采样，从用户获取输入并向客户端记录消息</span>
+- 实时更新通知和长期运行操作的进度跟踪等额外功能
+- 协议原始元素：定义客户端和服务器之间提供什么
+    - Tools 可以调用的操作，例如文件操作、数据库查询等
+    - Resources 为 AI应用提供上下文信息的数据源，例如数据库、本地文件
+    - Prompts 可重复使用的模版，例如系统提示
+
+### 2、Transport Layer 外层传输层
+
+<span style="color:rgb(62, 62, 62)">定义支持客户端与服务器之间数据交换的通信机制和通道，包括传输专用连接建立、消息框架和授权</span>
+
+<span style="color:rgb(62, 62, 62)">有两种形式，就是上面说的 本地Stdio 和 远程HTTP流式传输</span>

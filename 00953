@@ -1,0 +1,124 @@
+# 行盒、行块盒
+
+常见的行盒-包含具体内容的元素：span、strong、em、i、img、video、audio
+
+## 行盒显著特点
+
+1. 盒子沿着内容延伸
+2. **行盒无法设置宽高**，因为其**以内容为准**
+调整行盒的宽高，应该使用**字体**大小、**行高**、字体类型，**间接**调整
+
+行盒认为内容的高度应该取决于行高
+
+1. 内边距（填充区）
+水平方向有效，垂直方向仅会影响背景，不会实际占据空间（所以可能导致行盒背景遮挡其他行的内容）
+2. 边框
+和内边距一样，水平方向有效，**垂直方向不占据空间**
+3. 外边距
+和之前一样，水平方向有效，**垂直方向无效**
+
+```css
+        .a1 {
+            color: white;
+            background-color: red;
+            /* 
+            width: 100px;
+            无效，因为 a 元素是行盒，其宽度是由内容决定
+            */
+            padding: 0 20px;
+        }
+
+        .a2 {
+            color: white;
+            background-color: red;
+
+            display: inline-block;
+            width: 100px;
+            text-align: center;
+            /* 盒高=行高 实现垂直居中 */
+            height: 100px;
+            line-height: 100px;
+        }
+```
+
+# 行块盒
+
+display: inline-block
+
+1. 不独占一行
+2. 盒模型中所有尺寸都有效（**垂直方向占据空间**）
+
+**垂直方向有效的行盒**
+
+## 行块盒常用于做分页器
+
+```css
+nav a {
+    border: 1px solid #e1e2e3;
+    text-decoration: none;
+    color: #38f;
+    width: 34px;
+    height: 34px;
+    line-height: 34px;
+    text-align: center;
+
+    display: inline-block;
+}
+
+nav a:hover {
+    border-color: #38f;
+    background-color: blue;
+}
+
+/* 
+.selected {
+    border: none;
+    color: #000;
+    background: initial;
+} 
+优先级仍然不够高，会被 hover 的时候覆盖
+*/
+/* 所以加一层 a 元素选择器提高特殊性 */
+nav a.selected {
+    border: none;
+    color: #000;
+    background: initial;
+}
+```
+
+## 空白折叠
+
+空白折叠会发生在行盒（包括行块盒）内部 或 行盒（包括行块盒）之间
+
+```html
+        <!-- 如果换行了就会导致空白折叠 -->
+        <a href="">1</a><a href="">2</a>
+        <a href="">3</a>
+        <a href="">4</a>
+        <a href="" class="selected">5</a>
+        <a href="">6</a>
+       
+ // 1, 2 之间没有空白，其他都有空白间隔
+```
+
+## 可替换元素 和 非可替换元素
+
+大部分元素，页面上显示的结果，取决于元素内容：称为 非可替换元素
+
+少部分元素，页面上显示的结果，取决于元素**属性**：称为 可替换元素
+
+可替换元素有 img, video, audio 等
+
+绝大部分可替换元素均为**行盒**
+
+可替换元素类似于行块盒，盒模型中**所有尺寸都有效**
+
+在视频、图片填充有属性
+
+object-fit: 
+
+fill 默认是填充满
+
+contain 保持宽高比
+
+fill 保持宽高比又要填充，只能裁剪了

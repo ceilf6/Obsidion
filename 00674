@@ -1,0 +1,57 @@
+# 真题
+
+# 1
+
+![image.png](工程师沉淀/操作系统/操作系统/真题%20!!/真题/image.png)
+
+# 2
+
+![image.png](工程师沉淀/操作系统/操作系统/真题%20!!/真题/image%201.png)
+
+# 3
+
+![image.png](工程师沉淀/操作系统/操作系统/真题%20!!/真题/image%202.png)
+
+# 4
+
+https://github.com/ceilf6/operating-system/blob/main/sandbox/09_2-05.sh
+
+# 5
+
+## 5.1
+
+- sed: stream editor 流编辑器
+- -e: 表示后面是要操作的命令
+- 4,6: 限定了操作范围是 4 到 6 行
+- s/ / / : substituer 替换
+    - 匹配 [^a-z][^a-z]* 连续非小写字母字符串
+    - to\1to 在其前后都加上 to
+    - fichier 目标文件名
+
+Cette commande agit uniquement sur les lignes 4 à 6 du fichier. Elle remplace, sur chacune de ces lignes, la première suite de caractères qui ne sont pas des lettres minuscules par la même suite entourée de `to`.
+
+该命令仅作用于文件第 4 至第 6 行，把每行中第一段连续的非小写字母字符序列替换为在其前后各加上 `to` 的形式
+
+## 5.2
+
+一种方法通过符号处理
+
+```bash
+chmod g-r,o-x fichier
+```
+
+二 八进制数字表示
+
+```bash
+chmod 710 fichier
+```
+
+## 5.3
+
+```bash
+ln -s 目标 链接名
+```
+
+# 6
+
+https://github.com/ceilf6/operating-system/blob/main/sandbox/04-TD2.sh

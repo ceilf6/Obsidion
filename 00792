@@ -1,0 +1,80 @@
+# LCR 146 - 54 螺旋遍历二维数组
+
+# 法1 扫地机器人
+
+```jsx
+/**
+ * @param {number[][]} array
+ * @return {number[]}
+ */
+var spiralArray = function(array) {
+    // 扫地机器人
+    if(!array) return [] // 特判
+
+    const mX = array.length
+    const mY = array[0] ? array[0].length : 0 // 特判
+    const vis = Array.from({length: mX},() => new Array(mY).fill(0))
+    let x = 0
+    let y = 0
+    let curD = 0
+    const D = [[0,1],[1,0],[0,-1],[-1,0]]
+    const ans = []
+    for(let total = mX*mY;total;--total){
+        vis[x][y] = 1
+        ans.push(array[x][y])
+        let newX = x+D[curD][0]
+        let newY = y+D[curD][1]
+        if(newX>=mX || newY>=mY || newX<0 || newY<0 || vis[newX][newY]){
+            // 越界 或者 已经走过
+            curD = (curD+1)%4
+            newX = x+D[curD][0]
+            newY = y+D[curD][1]
+        }
+        x = newX
+        y = newY
+    }
+    return ans
+};
+```
+
+# 法2 DFS
+
+```jsx
+var spiralArray = function(array) {
+    if(!array) return [] // 特判
+
+    const mX = array.length
+    const mY = array[0] ? array[0].length : 0 // 特判
+    const ans = []
+
+    const maxStep = Math.floor((Math.min(mX, mY) + 1) / 2)
+    
+    // 一圈是一层
+    function dfs(step){
+        if(step >= maxStep) return
+        
+        for(let i=step;i<mY-step;i++){
+            ans.push(array[step][i])
+        }
+        for(let j=step+1;j<mX-step;j++){
+            ans.push(array[j][mY-step-1])
+        }
+        if(mX-step-1 !== step){
+            for(let i=mY-step-2;i>=step;i--){
+                ans.push(array[mX-step-1][i])
+            }
+        }
+        if(mY-step-1 !== step){
+            for(let j=mX-step-2;j>step;j--){
+                ans.push(array[j][step])
+            }
+        }
+        dfs(step+1)
+    }
+    dfs(0)
+
+    return ans
+}
+```
+
+# 法3 边界收缩模拟

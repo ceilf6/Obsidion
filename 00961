@@ -1,0 +1,151 @@
+# 实践: toast消息提示
+
+# 开启css module
+
+需要将样式文件命名为`xxx.module.ooo`
+
+`xxx`为文件名
+
+`ooo`为样式文件后缀名，可以是`css`、`less`
+
+# 得到组件渲染的Dom
+
+```jsx
+/**
+  通过 render 以及 $el 获取某个组件渲染的Dom根元素
+*/
+function getComponentRootDom(comp, props) {
+    const vm = new Vue({
+        render: h => h(comp, { props })
+    })
+    vm.$mount();
+    return vm.$el;
+}
+```
+
+```jsx
+const IconDOM = getComponentRootDom
+(Icon, { type: type })
+```
+
+# 扩展vue实例
+
+对Vue构造函数原型注入猴子补丁
+
+```jsx
+Vue.prototype.$func = function(){
+
+}
+```
+
+这样所有Vue实例组件都共享了隐式原型，都有这些补丁
+
+![image.png](%E5%AE%9E%E8%B7%B5%20toast%E6%B6%88%E6%81%AF%E6%8F%90%E7%A4%BA/image.png)
+
+# ref
+
+通过对子组件加入 ref 属性，那么父元素的 $refs 中就会保存引用
+
+```jsx
+<p ref="para">
+
+$refs: {
+	para: p元素
+}
+
+console.log(this.$refs);
+```
+
+![image.png](%E5%AE%9E%E8%B7%B5%20toast%E6%B6%88%E6%81%AF%E6%8F%90%E7%A4%BA/image%201.png)
+
+```html
+// 通过 ref 父组件就能直接拿到整个子组件DOM元素对象：数据、方法...
+console.log(this.$refs.comp.a, this.$refs.comp.b);
+this.$refs.comp.a = 3;
+this.$refs.comp.b = 4;
+this.$refs.comp.m1();
+
+```
+
+> 通过`ref`可以直接操作`dom`元素，甚至可能直接改动子组件，这些都不符合`vue`的设计理念。
+- 组件自己的数据自己管理
+- 不要直接操作DOM
+> 
+> 
+> 除非迫不得已，否则不要使用`ref`
+> 
+
+# 实际过程中
+
+## 注入的应该是图标元素的outerHTML
+
+i 元素是 :: before 伪元素来显示图标
+
+innerHTML是空的
+
+- **`innerHTML`**：获取元素**内部**的 HTML 内容
+- **`outerHTML`**：获取元素**自身及其内部**的完整 HTML
+
+## 通过CSS module 为toast添加样式
+
+```jsx
+import styles from '@/styles/toast.module.less'
+
+toast.className = styles.toast;
+```
+
+CSS module **编译**后全局唯一的类样式例如 .toast_3fK2a_1
+
+那么 import 进来的其实是一个
+
+```jsx
+styles = {
+  toast: "toast_3fK2a_1"
+}
+```
+
+只需要为目标添加类名即可
+
+### type不同类型的类名
+
+不能直接 toast.className = `toast-${type} ${styles.toast}`;
+
+```jsx
+console.log(styles)
+```
+
+![image.png](%E5%AE%9E%E8%B7%B5%20toast%E6%B6%88%E6%81%AF%E6%8F%90%E7%A4%BA/image%202.png)
+
+可以看到是编译过的
+
+正确的还是得通过属性去拿
+
+```jsx
+    // 设置样式
+    // 1. styles.toast styles.toast
+    // 2. type的分类样式 styles[`toast-${type}`]
+    toast.className = `${styles.toast} ${styles[`toast-${type}`]}`;
+```
+
+## 拿容器
+
+$refs
+
+```jsx
+  methods: {
+    showToast() {
+      if (!this.message.trim()) {
+        alert("请输入提示内容");
+        return;
+      }
+
+      // $refs => 根据选择获取容器
+      let container = null;
+      if (this.selectedContainer === "custom") {
+        container = this.$refs.customContainer;
+      }
+
+      toast(this.message, this.selectedType, this.duration, container);
+    },
+  },
+```

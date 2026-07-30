@@ -1,0 +1,373 @@
+# 状态管理
+
+React 中的**状态管理（State Management）可以按照作用范围（Scope）和复杂度**大致分为几类。从简单到复杂，大致有以下常见方式：
+
+---
+
+# **一、本地状态（Local State）**
+
+这是 **React 最基础的状态管理方式**，状态只在当前组件内部使用。
+
+```
+const [count, setCount] = useState(0)
+```
+
+### **常见 Hook**
+
+| **Hook** | **用途** |
+| --- | --- |
+| useState | 简单状态 |
+| useReducer | 复杂状态逻辑 |
+| useRef | 持久引用，不触发渲染 |
+
+### **特点**
+
+优点：
+
+- 简单
+- React 官方推荐
+- 不需要额外库
+
+缺点：
+
+- **无法跨组件共享**
+
+适用场景：
+
+- 表单状态
+- UI状态（modal、loading）
+- 局部逻辑
+
+---
+
+# **二、Props 传递（Props Drilling）**
+
+父组件管理状态，然后通过 **props** 传递给子组件。
+
+```
+function Parent(){
+  const [user,setUser] = useState()
+
+  return <Child user={user}/>
+}
+```
+
+### **特点**
+
+优点：
+
+- React 最原始的数据流
+- 清晰、可预测
+
+缺点：
+
+- **props drilling（层层传递）**
+
+例如：
+
+```
+App
+ └─ Layout
+     └─ Sidebar
+         └─ Avatar
+```
+
+如果 Avatar 需要 user：
+
+```
+App → Layout → Sidebar → Avatar
+```
+
+适用：
+
+- 组件层级较浅
+
+---
+
+# **三、Context API（React 内置全局状态）**
+
+React 提供的**跨组件状态共享机制**。
+
+```
+const ThemeContext = createContext()
+
+function App(){
+  return (
+    <ThemeContext.Provider value="dark">
+        <Page/>
+    </ThemeContext.Provider>
+  )
+}
+```
+
+使用：
+
+```
+const theme = useContext(ThemeContext)
+```
+
+### **特点**
+
+优点：
+
+- React 官方
+- 适合跨层级状态共享
+
+缺点：
+
+- **更新会触发整个 consumer subtree**
+- 不适合高频更新状态
+
+适用场景：
+
+- theme
+- auth
+- language
+
+---
+
+# **四、Reducer + Context（轻量全局状态）**
+
+很多项目会把 **Context + useReducer** 组合起来做简单的全局状态管理。
+
+例如：
+
+```
+const StoreContext = createContext()
+
+function reducer(state, action){
+  switch(action.type){
+    case "add":
+      return {...state, count: state.count + 1}
+  }
+}
+```
+
+Provider：
+
+```
+function StoreProvider({children}){
+  const [state, dispatch] = useReducer(reducer, {count:0})
+
+  return (
+    <StoreContext.Provider value={{state, dispatch}}>
+      {children}
+    </StoreContext.Provider>
+  )
+}
+```
+
+优点：
+
+- 不需要第三方库
+- Redux思想
+
+缺点：
+
+- Context 更新粒度粗
+
+---
+
+# **五、Redux（经典状态管理）**
+
+Redux 是 React 最经典的状态管理方案。
+
+核心思想：
+
+```
+State
+  ↓
+Action
+  ↓
+Reducer
+  ↓
+New State
+```
+
+示例：
+
+```
+dispatch({type: "ADD_TODO"})
+```
+
+React 绑定：
+
+- react-redux
+
+现代 Redux：
+
+- **Redux Toolkit**
+
+```
+const slice = createSlice({
+  name: 'counter',
+  initialState: 0,
+  reducers:{
+    increment: state => state + 1
+  }
+})
+```
+
+### **优点**
+
+- 单一状态树
+- 可预测
+- DevTools
+- 中间件（redux-thunk / saga）
+
+### **缺点**
+
+- 模板代码多
+- 学习成本高
+
+适用：
+
+- 大型项目
+- 状态复杂
+
+---
+
+# **六、轻量状态管理库**
+
+现在 React 社区很多项目已经**不用 Redux**，而使用更轻量方案。
+
+## **1 Zustand**
+
+```
+import { create } from 'zustand'
+
+const useStore = create(set => ({
+  count: 0,
+  inc: () => set(state => ({count: state.count+1}))
+}))
+```
+
+使用：
+
+```
+const count = useStore(state => state.count)
+```
+
+优点：
+
+- API 简单
+- 无 Provider
+- 性能好（selector）
+
+---
+
+## **2 Jotai**
+
+**原子化状态**
+
+```
+const countAtom = atom(0)
+
+const [count, setCount] = useAtom(countAtom)
+```
+
+特点：
+
+- 类似 Recoil
+- 原子状态
+- 细粒度更新
+
+---
+
+## **3 Recoil（Meta）**
+
+```
+const countState = atom({
+  key: "count",
+  default: 0
+})
+```
+
+特点：
+
+- **原子状态**
+- 依赖图
+- selector
+
+---
+
+# **七、Server State（服务器状态管理）**
+
+现代 React 项目中，很多状态其实来自服务器。
+
+典型库：
+
+### **TanStack Query（React Query）**
+
+```
+const { data } = useQuery({
+  queryKey: ['todos'],
+  queryFn: fetchTodos
+})
+```
+
+功能：
+
+- 缓存
+- 请求去重
+- 自动刷新
+- optimistic update
+
+所以现在很多项目：
+
+```
+Client State → Zustand
+Server State → React Query
+```
+
+---
+
+# **八、状态管理方式总结**
+
+| **类型** | **工具** | **适用** |
+| --- | --- | --- |
+| 本地状态 | useState | 组件内部 |
+| 组件共享 | props | 简单传递 |
+| 跨组件 | Context | theme/auth |
+| 中等复杂 | Context + Reducer | 小型全局状态 |
+| 大型项目 | Redux Toolkit | 复杂逻辑 |
+| 现代轻量 | Zustand | 推荐 |
+| 原子状态 | Jotai / Recoil | 细粒度 |
+| 服务器状态 | React Query | API数据 |
+
+---
+
+# **九、现代 React 项目常见组合**
+
+现在最常见架构：
+
+```
+UI state
+   ↓
+useState
+
+Global state
+   ↓
+Zustand
+
+Server state
+   ↓
+React Query
+```
+
+而不是：
+
+```
+Redux 管一切
+```
+
+---
+
+如果你是**准备前端面试**，面试官通常还会追问一个非常重要的问题：
+
+> **为什么 Redux 逐渐被 Zustand / React Query 替代？**
+> 
+
+这里涉及到 **客户端状态 vs 服务器状态** 的架构变化。
+
+如果你愿意，我可以给你讲一个**非常系统的 React 状态管理架构图（从 React → Redux → Zustand → React Query 的演进）**，这个在面试里非常加分。

@@ -1,0 +1,145 @@
+# 读取属性值
+
+属性计算符 [ ] 中括号可以动态取值
+
+### **1 .属性**
+
+这是**点语法**，适合属性名是固定写死的时候。
+
+```
+const user = { name: "Tom", age: 18 };
+
+console.log(user.name); // Tom
+console.log(user.age);  // 18
+```
+
+特点：
+
+- 写法简洁
+- 属性名必须是**合法标识符**
+- 适合你明确知道要访问哪个属性
+
+比如这些可以：
+
+```
+obj.name
+obj.userInfo
+obj.$data
+obj._id
+```
+
+这些就不行：
+
+```
+obj.1abc     // 非法
+obj.my-name  // 会被当成减法
+obj.class a  // 非法
+```
+
+---
+
+### **2 ['属性']**
+
+这是**中括号语法**，本质上是用一个表达式来取属性。
+
+```
+const user = { name: "Tom", age: 18 };
+
+console.log(user["name"]); // Tom
+console.log(user["age"]);  // 18
+```
+
+特点：
+
+- 属性名可以是字符串
+- 可以是变量
+- 可以是运行时计算出来的值
+- 可以访问特殊属性名
+
+例如：
+
+```
+const key = "name";
+console.log(user[key]); // Tom
+```
+
+这时如果写成：
+
+```
+console.log(user.key);
+```
+
+取到的是 key 这个属性，不是变量 key 的值。
+
+---
+
+### **3 最大区别：中括号可以动态取值**
+
+```
+const obj = { a: 1, b: 2 };
+const prop = "a";
+
+console.log(obj.prop);   // undefined
+console.log(obj[prop]);  // 1
+```
+
+因为：
+
+- obj.prop 等价于访问 "prop"
+- obj[prop] 会先求出变量 prop 的值 "a"，再访问 obj["a"]
+
+---
+
+### **4 中括号能访问特殊属性名**
+
+```
+const obj = {
+  "my-name": "Tom",
+  "123": "number key",
+  "hello world": "hi"
+};
+
+console.log(obj["my-name"]);     // Tom
+console.log(obj["123"]);         // number key
+console.log(obj["hello world"]); // hi
+```
+
+这些都不能用点语法正常访问。
+
+---
+
+### **5 总结**
+
+可以这样记：
+
+- **属性名固定、合法** → 用 .属性
+- **属性名来自变量、表达式，或者带特殊字符** → 用 [属性]
+
+例如：
+
+```
+obj.name        // 固定属性
+obj[key]        // 动态属性
+obj["my-name"]  // 特殊属性名
+```
+
+再给你一个最常见的对比例子：
+
+```
+const person = {
+  name: "Alice",
+  age: 20
+};
+
+const field = "name";
+
+console.log(person.name);    // Alice
+console.log(person[field]);  // Alice
+console.log(person.field);   // undefined
+```
+
+因为 person.field 访问的是 "field"，不是变量 field 里的 "name"。
+
+你要的话，我还可以顺手给你讲一下：
+
+**对象属性赋值时 .属性 = 和 [属性] = 的区别**。

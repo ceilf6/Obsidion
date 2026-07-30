@@ -1,0 +1,118 @@
+# 日报自动器
+
+Source: [KM 2758414734](https://km.example.com/collabpage/2758414734)
+
+> 显示 “[Bot 异常通知] Agent 响应超时，请稍后重试” 不一定是任务挂了，可能是因为生成日报这个任务需要时间很长，所以等待其发送群消息结果就好，否则重复任务会发送很多消息
+> 
+
+### 需求
+
+通过内部的 skills 打通内部平台权限，自动收集目标 mis 在内部各个平台的活动作为信息语料，然后通过提示词进行规范生成文档，并支持自动转发等等功能，提高工作效率，避免在工作中不时的打断记录影响效率
+
+### 基础skills
+
+在 ~/.claude/skills 中为智能体配置能力
+
+- citadel 学城文档相关
+- skillhub 查询内部skills
+- daxiang-sender
+- tt
+- calendar-mcp
+
+以及各种个性化的技能
+
+### 报告skill
+
+Friday link [🔗 链接卡片](https://skills.example.com/skills/skill-detail?activeTab=overview&activeTestTab=cases&id=47757)
+
+[https://github.com/ceilf6/ceilf6-skills/tree/main/daily-report-writer](https://github.com/ceilf6/ceilf6-skills/tree/main/daily-report-writer)
+
+### 通过配置文件提高技能的使用程度
+
+```
+// 代码块
+# Daily report profile configuration.
+# To adapt this skill for another person, add a profile and set active_profile.
+# Keep user-specific values here, not in SKILL.md or workflow references.
+
+active_profile: "wangjinghong02"
+
+profiles:
+  wangjinghong02:
+    user_mis: "wangjinghong02"
+    display_name: "王景宏"
+    author_email: "wangjinghong02@meituan.com"
+    timezone: "Asia/Shanghai"
+
+    parent_document:
+      url: "<https://km.example.com/collabpage/2754620560>"
+      content_id: "2754620560"
+
+    title:
+      pattern: "{yy}.{mm}.{dd} {display_name}日报"
+
+    report:
+      sections:
+        done: "今日完成"
+        next: "明日展望"
+      legacy_next_section_aliases:
+        - "回来展望"
+      style: "detailed_process"
+
+    delivery:
+      enabled: true
+      daxiang_group_id: "70507076229"
+      permission: "仅浏览"
+      message_template: |-
+        今日日报已创建：{title}
+        {document_link}
+
+    sources:
+      citadel_recent_edit_limit: 30
+      commit_author_email: "{author_email}"
+      date_timezone: "{timezone}"
+```
+
+### 问题记录
+
+1. codex 接入内网经常失败，推荐还是用 catpaw CLI
+2. sendGroupTextMsg 的 {content} 便捷封装不可靠，实际可见路径是“先加 bot，再用 sendGroupMsg + body.text + markdown extension”。我会把这个打通后的路径固化进日报 skill，避免下次又走回静默成功的旧路径
+[https://github.com/ceilf6/ceilf6-skills/commit/9516018ee33494f11263a0d1502c8f680460e640](https://github.com/ceilf6/ceilf6-skills/commit/9516018ee33494f11263a0d1502c8f680460e640)
+并且 agent 执行效果可能不好，通过脚本进行强制纠正
+[https://github.com/ceilf6/ceilf6-skills/commit/04612f7456485a978afbb2bb9addaba4ba297325](https://github.com/ceilf6/ceilf6-skills/commit/04612f7456485a978afbb2bb9addaba4ba297325)
+3. "确认了：**备份文档是 citadel grant 命令本身的内置安全机制**，与 daily-report-writer 无关。
+`citadel grant`（以及 `modify`、`revoke`）在执行授权前会自动创建一份权限快照文档，目的是操作可回滚——如果授权出错，可以用备份还原。这是 citadel 权限管理工具的设计，不可通过参数关闭。
+如果这些备份文档堆积在你的学城空间里很碍事，可以手动删除，或者告诉我帮你清理。"
+要求在创建文档后，自动删除 citadel grant 创建的“权限”文档
+[https://github.com/ceilf6/ceilf6-skills/commit/df3a47ee65dabab04f31c116844011b62d43533e](https://github.com/ceilf6/ceilf6-skills/commit/df3a47ee65dabab04f31c116844011b62d43533e)
+4. 学城、大象中链接格式
+[https://github.com/ceilf6/ceilf6-skills/commit/dc91fa7bd21c953da77f87f6241b93a6c00ebcd3](https://github.com/ceilf6/ceilf6-skills/commit/dc91fa7bd21c953da77f87f6241b93a6c00ebcd3)
+
+### 使用示范
+
+配合 [https://km.example.com/collabpage/2754365867](https://km.example.com/collabpage/2754365867)为其配置目标 skill 等依赖
+
+[image.png](https://km.example.com/api/file/cdn/2758414734/233709178126?contentType=1&isNewContent=false)
+
+### 主动要求
+
+接着可以主动在大象中命令其生成
+
+[image.png](https://km.example.com/api/file/cdn/2758414734/233711110958?contentType=1&isNewContent=false)
+
+[image.png](https://km.example.com/api/file/cdn/2758414734/233713186685?contentType=1&isNewContent=false)
+
+### 每日定时触发
+
+通过 crontab 编写脚本唤醒智能体
+
+### 自动转发到群聊
+
+> 查看群ID[https://km.example.com/page/932080475](https://km.example.com/page/932080475)
+> 
+
+在 references/config.yaml 进行配置
+
+### 可选配置
+
+如果希望生成的文档更有人情味，可以试试将自己的过往日报进行蒸馏，得到个人书写风格的技能

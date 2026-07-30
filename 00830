@@ -1,0 +1,25 @@
+# 26.04.29 王景宏日报
+
+Source: [KM 2760121584](https://km.example.com/collabpage/2760121584)
+
+## 今日完成
+
+- M端罗盘配置能力扩展：梳理并更新 Popcorn M端 ShelfABConfig 技术方案，完成分组角标、团单配置两个变动点的代码路径分析
+    - 进展：分组角标升级为类型+文本两段式配置协议，团单配置二级新增系统抓取能力，影响范围确认到 hooks.ts 和 recallDeal/index.tsx
+    - 文档：[M端 Popcorn 变更](https://km.example.com/collabpage/2759434466)、[M端罗盘改动技术方案（新）](https://km.example.com/collabpage/2760080604)
+    - 状态：进行中，后端接口文档待出，前端协议已拟定并标注 TODO
+- AI IDE 账号管理工具调研：调研 cockpit-tools 多账号切换方案，验证 Codex 免费额度利用路径并完成文档沉淀
+    - 文档：[cockpit 通用 AI IDE 账号管理工具](https://km.example.com/collabpage/2759499934)、[白嫖codex](https://km.example.com/collabpage/2760031598)
+    - 进展：方案可行，免费号池通过邮箱别名注册，cockpit 支持按账号类型切换并优先消耗 team 额度
+- AI 技术月刊学习：阅读 2026年4月刊，覆盖 Spec Coding、Harness Engineering、多 Agent 协作等方向
+    - 文档：[2026年4月刊](https://km.example.com/collabpage/2759459216)
+    - 进展：梳理了规模分级（5K/30K 行仓库对 spec 策略的差异）及 AI 驱动研发闭环的核心思路
+- Atlas 智能浏览器调研：探索 OpenAI Atlas 特性，记录 DOM 感知、截屏对话、任务代理及关键词限制等关键观察
+    - 文档：[Atlas](https://km.example.com/collabpage/2759729296)
+    - 进展：验证了测验类关键词触发拒绝、改用模拟练习+代理模式可绕过的行为边界
+
+## 明日展望
+
+- 跟进后端接口文档，对齐分组角标协议数据结构并完成前端适配
+- 完善 M端 Popcorn 变更 PRD 新需求点（二级筛选项配置能力与一级拉齐）
+- 继续推进 cockpit / AI IDE 账号工具的团队侧落地方案

@@ -1,0 +1,23 @@
+# 字符串相关
+
+str**.charCodeAt**( i )
+
+获取字符串str第i个位置字符的Unicode编码值
+
+```tsx
+str.charCodeAt(i) - 48
+```
+
+48 即 ‘0’的Unicode编码
+
+等价于
+
+```tsx
+str[i] - 48
+```
+
+虽然 字符-数字 默认得到数字
+
+但是 字符-字符 默认得到的是NaN
+
+[大数操作](大数操作%203220f8d8d1fd80bd97c3ccd1ed159702.md)

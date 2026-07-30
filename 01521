@@ -1,0 +1,487 @@
+# 记忆体系
+
+## OpenClaw 记忆体系实践调研
+
+### 一、OpenClaw 原生记忆机制（理解这个是前提）
+
+OpenClaw 的记忆体系是**文件即记忆**，每次会话启动时按固定顺序加载：
+
+```
+L1 每次必加载  →  SOUL.md / USER.md / AGENTS.md（写入 System Prompt）
+L2 按日加载    →  memory/YYYY-MM-DD.md（今天 + 昨天）
+L3 按需检索   →  MEMORY.md + memory_search（向量语义搜索）
+```
+
+这个三层结构是 OpenClaw 的**默认设计**，用户不需要做任何配置就会生效。
+
+### memory_search：L3 层的核心机制
+
+L3 层的"按需检索"由 `memory_search` 工具驱动，值得单独理解一下它的工作原理。
+**它做的事情**：把你说的话转换成一个向量（可以理解为一段数字指纹），然后在 [MEMORY.md](http://memory.md/) + memory/*.md 的所有内容里，找出语义最相近的片段返回给 AI。
+和普通的关键词搜索（Ctrl+F）不同——你说"上次那个发布报错"，它能找到记录里写着"bundle 部署失败 401 鉴权问题"的那段，因为它比较的是**意思的相似度**，不是字面是否一致。
+**触发时机**：AI 收到消息后，**自己判断**是否需要调用 memory_search。这里是第一个坑——AI 并不是每次都会主动搜，尤其当当前对话上下文已经很长时，它往往觉得"我已经知道够多了"而跳过搜索，直接用可能过期的记忆回答。
+**检索范围**：默认只索引 [MEMORY.md](http://memory.md/) 和 memory/ 目录下的文件。[SOUL.md](http://soul.md/)、[USER.md](http://user.md/)、[LESSONS.md](http://lessons.md/) 等文件**不在**默认索引范围内，除非手动配置。
+
+<details>
+<summary>手动配置的方法</summary>
+
+### memory_search 范围配置
+
+根据官方文档（`/root/.nvm/.../openclaw/docs/concepts/memory.md`），有三种方式扩大索引范围：
+
+---
+
+### 1. 最简单：extraPaths（加额外目录）
+
+在 `openclaw.json` 里配置：
+代码块
+
+```
+agents: {
+  defaults: {
+    memorySearch: {
+      extraPaths: ["../team-docs", "/srv/shared-notes/overview.md"]
+    }
+  }
+}
+```
+
+```
+- 支持绝对路径或工作区相对路径
+- 目录会递归扫描所有 `.md` 文件
+- 只支持 Markdown，不支持 txt/docx 等
+```
+
+实际效果：把 [SOUL.md](http://soul.md/)、[LESSONS.md](http://lessons.md/)、[BUSINESS.md](http://business.md/) 等文件加进来。
+
+---
+
+### 2. QMD 后端（推荐，更强）
+
+默认的 SQLite 向量索引换成 QMD（BM25 + 向量 + reranking 混合）：
+代码块
+
+```
+memory: {
+  backend: "qmd",
+  qmd: {
+    includeDefaultMemory: true,  // 继续索引默认的 MEMORY.md + memory/*.md
+    paths: [
+      { name: "lessons", path: "~/.openclaw/workspace/LESSONS.md" },
+      { name: "soul",    path: "~/.openclaw/workspace/SOUL.md" },
+      { name: "tools",   path: "~/.openclaw/workspace/TOOLS.md" }
+    ],
+    update: { interval: "5m" }
+  }
+}
+```
+
+优点：混合检索（精确 token 命中 + 语义相似），对业务术语、命令名这类"精确词"更准。
+
+---
+
+### 3. Session 历史索引（实验性）
+
+把历史对话也纳入检索：
+代码块
+
+```
+agents: {
+  defaults: {
+    memorySearch: {
+      experimental: { sessionMemory: true },
+      sources: ["memory", "sessions"]
+    }
+  }
+}
+```
+
+效果：能搜到"上上周某次对话里说过的事"。
+
+---
+
+| 文件 | 默认是否索引 | 怎么加进去 |
+| --- | --- | --- |
+| [MEMORY.md](http://memory.md/) | ✅ 是 | — |
+| memory/YYYY-MM-DD.md | ✅ 是 | — |
+| [SOUL.md](http://soul.md/) | ❌ 否 | extraPaths 或 qmd.paths |
+| [USER.md](http://user.md/) | ❌ 否 | extraPaths 或 qmd.paths |
+| [LESSONS.md](http://lessons.md/) | ❌ 否 | extraPaths 或 qmd.paths |
+| [TOOLS.md](http://tools.md/) | ❌ 否 | extraPaths 或 qmd.paths |
+| 历史对话 | ❌ 否 | sessionMemory: true |
+
+---
+
+**最常用场景**：想让 memory_search 也能找到 [LESSONS.md](http://lessons.md/) / [SOUL.md](http://soul.md/) 里的内容，直接用 extraPaths 最省事，不需要改后端。
+
+</details>
+
+**召回精度**：memory_search 是模糊匹配，对于"业务系统叫什么名字""这个工具用哪个命令"这类精确性要求高的知识，向量搜索不如直接把它写进 L1（每次必加载）来得可靠。
+**以下方案都是在这个基础上的改进或补丁** — 原生机制能解决"记什么、怎么存"，但在 6 类常见场景下仍然不够用。
+
+---
+
+### 二、6 类高频痛点
+
+| 痛点 | 具体表现 | 为什么原生机制不够 |
+| --- | --- | --- |
+| ① 业务背景缺失 | AI 只有"人格"，没有业务认知，反复问"你指的是什么" | [SOUL.md/USER.md](http://soul.md/USER.md) 大多只写人格和偏好，**业务黑话、系统名称从未写入** |
+| ② 记忆调用错误 | 漏搜、错搜，给出基于错误上下文的建议 | memory_search 由模型**自主判断**要不要调，没有强制触发机制 |
+| ③ 只记进展不记弯路 | 任务记录只有成功路径，复盘时不知道踩过哪些坑 | 写日志是"任务触发"而非"规则强制"，**失败路径主动被遗漏** |
+| ④ 长任务无反馈 | 执行卡住或报错时不即时反馈，用户干等 | 任务与通知逻辑解耦，**没有进度推送机制** |
+| ⑤ 记忆冲突 | 业务逻辑变了，AI 还在用过时的规则 | [MEMORY.md](http://memory.md/) **只追加不更新**，没有冲突检测与版本管理 |
+| ⑥ 一错再错 | 犯了同样的错误，禁忌没有被持续生效 | 禁忌和教训分散在日志里，**没有专门的"红线文件"被强制加载** |
+
+---
+
+### 三、实践方案
+
+### 方案一：把业务黑话写进必加载文件（解决痛点①）
+
+**来源**：[SOUL.md + USER.md 配置实践 · cnblogs](https://www.cnblogs.com/oddmeta/p/19760686)、[OpenClaw 进阶配置 · tbbbk.com](https://tbbbk.com/openclaw-advanced-config-guide/)**问题根因**：[SOUL.md](http://soul.md/) 大多只写 AI 的人格，[USER.md](http://user.md/) 只写用户偏好。但"业务术语"这类知识从来没人写进去，导致 AI 每次都要重新问。
+**具体做法**：在 [SOUL.md](http://soul.md/) 里新增一节，或单建 `BUSINESS.md` 并在 [AGENTS.md](http://agents.md/) 声明必读：
+
+```markdown
+## 业务术语字典（写入 SOUL.md 或 BUSINESS.md）
+
+| 黑话 | 含义 |
+|------|------|
+| 大客前端 | 美团大客户前端组，负责 B 端商家产品的前端研发 |
+| bundle | 美团 APP 中的独立 JS 模块，每个业务线对应一个 bundle |
+| Diva | 美团内部 bundle 发布系统，负责前端资源管理和灰度发布 |
+| ONES | 美团内部项目管理系统（类 Jira） |
+| Raptor | 美团前端监控平台，负责 JS 错误、性能等异常上报 |
+| KM / 学城 | 美团内部知识管理平台（km.example.com） |
+```
+
+**效果**：业务字典随 [SOUL.md](http://soul.md/) 每次加载进 System Prompt，AI 永远知道这些黑话是什么意思，无需重复解释。
+
+---
+
+### 方案二：强制记忆召回规则（解决痛点②）
+
+**来源**：[AI Agent 记忆系统实战 · jishuzhan.net](https://jishuzhan.net/article/2026115349788295170)、[OpenClaw 记忆完全指南 · ythx-101.github.io](https://ythx-101.github.io/openclaw-qa/memory-system.html)**问题根因**：原生的 memory_search 是"模型自己决定要不要搜"，而模型并不总是做出正确判断——尤其在上下文中已有足够多内容时，容易跳过搜索直接回答。
+**具体做法**：在 [AGENTS.md](http://agents.md/) 里写死强制触发规则：
+
+```markdown
+## 强制记忆召回规则（最高优先级）
+
+收到用户消息后，**必须先执行以下步骤，再开始回答**：
+
+1. 识别消息中的关键实体（人名、项目名、工具名、业务术语）
+2. 对每个关键实体执行 memory_search
+3. 若搜到相关记录，**明确引用**后再给出建议
+4. 若搜不到，说"我没有关于 xxx 的记录"，而非凭印象作答
+```
+
+**五步查记忆顺序**（社区总结）：
+
+1. 
+    - 读今天和昨天的日记（`memory/YYYY-MM-DD.md`）
+2. 
+    - grep 关键词搜 [MEMORY.md](http://memory.md/) + [TOOLS.md](http://tools.md/)
+3. 
+    - 用 memory_search 语义搜索
+4. 
+    - 搜工作区文件（`find skills/ scripts/`）
+5. 
+    - 确认没现成方案 → 再动手
+
+> 教训：80% 的"新问题"都是旧问题的变种，先查记忆能省大量时间。
+— [ythx-101.github.io · OpenClaw 记忆完全指南](https://ythx-101.github.io/openclaw-qa/memory-system.html)
+> 
+
+---
+
+### 方案三：弯路强制记录（解决痛点③）
+
+**来源**：[无恒的记忆系统设计 · clawd.org.cn #7169](https://clawd.org.cn/forum/post?id=7169)**问题根因**：写日志的动机是"任务完成"，失败路径因为"没有结果"所以主动被略过。日志只记成功，复盘时看不到当时踩了哪些坑。
+**具体做法 A**：在 [AGENTS.md](http://agents.md/) 中加入失败路径强制记录规则：
+一般 claw 做了安全防护，不允许主动写入 [AGENTS.md](http://agents.md/)。
+然后太多东西写入 [AGENTS.md](http://agents.md/) 容易污染上下文。
+所以其实不是很推荐
+
+```markdown
+## 日志写入规范
+
+每次任务结束后，无论成功还是失败，必须记录：
+
+成功时写：
+- HH:MM 做了什么 → 结果
+- 关键决策点（为什么选这个方案）
+
+失败时额外写：
+- HH:MM 尝试了什么 → 为什么失败
+- ⚠️ 禁止下次再用：[具体做法]
+- 根因：[分析]
+
+格式要求：每条日志必须有时间戳（HH:MM），哪怕是估算值。
+```
+
+**具体做法 B**：单建 `LESSONS.md` 专门归档禁忌，并声明每次会话必读：
+
+```markdown
+# LESSONS.md - 禁忌与教训
+
+## [工具] kmedit
+- ❌ 不要用 citadel 编辑已有文档内容（citadel 只支持创建，不支持编辑）
+- ✅ 编辑已有文档内容必须用 kmedit
+
+## [工具] kmedit apply ops JSON
+- ❌ 不能手写含中文的 JSON 文件（bun 的 JSON parser 不接受 raw UTF-8 中文）
+- ✅ 必须用 python3 json.dump(ensure_ascii=False) 生成
+
+## [业务] S3 上传
+- ❌ 上传后不能直接用 --object-name openclaw/xxx.png，路径会多一层 hash
+- ✅ 上传后用 curl -sI 验证真实 URL 再使用
+```
+
+---
+
+### 方案四：记忆冲突管理（解决痛点⑤）
+
+**来源**：[OpenClaw 记忆系统升级方案 · rclogs.com](https://www.rclogs.com/2026/02/openclaw-memory-architecture)**问题根因**：[MEMORY.md](http://memory.md/) 通常只追加，旧规则和新规则同时存在，AI 不知道哪个优先，有时用错了过时的规则。
+**做法 A：规则带版本号**
+
+```markdown
+## 工时填写规范
+
+> 最后更新：2026-03-18
+> 历史规则（已废弃）：使用 8h/4h → 现在改为 1d/0.5d
+
+当前规则：使用人天制（1d = 全天，0.5d = 半天），禁止用小时
+```
+
+**做法 B：Heartbeat 定期审计**（在 [HEARTBEAT.md](http://heartbeat.md/) 里加）
+
+```markdown
+## 周期任务
+- 每周日：扫描 MEMORY.md，标记"最后使用 > 30 天"的规则，提示用户确认是否过时
+- 发现冲突规则时：不自动合并，先询问用户哪个优先
+```
+
+[**rclogs.com](http://rclogs.com/) 实测数据**：引入分层管理 + 定期清理后，会话检索从 87MB raw 降至 3.2MB clean，embedding 从约 50k chunks 降到 1588 chunks（2 分钟完成），检索质量更高、成本更低。
+
+---
+
+### 方案五：记忆检索增强（超越默认 memory_search）
+
+openclaw 记忆机制硬核原理：[【Agent Memory篇】03：OpenClaw的Hybrid Search 混合检索引擎_openclaw混合检索-CSDN博客](https://blog.csdn.net/u013010473/article/details/159393357)**模型调用记忆检索的流程第一层（索引 / Layer 1）**：模型调用 memory_search，系统返回轻量级元数据（如文件路径、标题、相关度分数等）。
+**第二层（详情 / Layer 2）**：memory_search 同时返回包含行范围的内容片段（Snippet，约700字符），不暴露全文。
+**第三层（深潜 / Layer 3）**：当片段信息不足以确认细节时，模型再主动调用 memory_get，按路径与确切的行范围读取原始 Markdown 的完整源内容。
+
+### 默认方案的局限
+
+OpenClaw 默认的 memory_search 是向量检索（语义相似度），对自然语言描述效果好，但有两类短板：
+① 精确 token 检索弱：搜 nodeId、错误字符串、变量名等精确词时，向量相似度不可靠
+② 多次写入同一话题会产生大量近似片段：搜索结果前 5 条可能都是在重复同一件事（router 配置/工时规则等），有效信息密度低
+
+### 方案 A：混合检索（Hybrid BM25 + Vector）——内置，零配置
+
+OpenClaw 内置 Hybrid Search，把向量语义相似度和 BM25 关键词检索的结果加权合并。默认已开启，无需配置。
+
+> [【OpenClaw 记忆机制】第8课：混合搜索（Hybrid）- 向量(70%) + BM25(30%) 的融合逻辑 - 知乎](https://zhuanlan.zhihu.com/p/2004163540672587159)**🤝 为什么需要混合？只用向量的问题：**
+- 搜”Brave API key” → 找到很多关于 API 的内容，但可能漏掉精确包含”Brave”的段落
+**只用关键词的问题：**
+- 搜”那个搜索工具” → 关键词完全匹配不上
+**权重调整指南：**
+| **场景** | **建议权重** | **原因** |
+| --- | --- | --- |
+| 日常对话、自然语言查询 | 向量 0.8 / 关键词 0.2 | 语义理解更重要 |
+| 技术文档、代码查询 | 向量 0.4 / 关键词 0.6 | 精确术语更重要 |
+| 通用场景 | 向量 0.7 / 关键词 0.3 | 平衡，OpenClaw 默认 |
+适合：记忆里有大量精确 token（ID、变量名、错误字符串、人名），或者搜索词和文件里的措辞差异很大。
+可选调参（openclaw.json）：
+> 
+
+```
+agents: {
+  defaults: {
+    memorySearch: {
+      query: {
+        hybrid: {
+          enabled: true,
+          vectorWeight: 0.7,   // 语义权重
+          textWeight: 0.3,     // 关键词权重
+        }
+      }
+    }
+  }
+}
+```
+
+### 方案 B：MMR 去重（Maximal Marginal Relevance）——内置，默认关闭
+
+**问题的由来**
+设想这样一个场景：用户查询「OpenClaw的配置方法」，系统返回了6条结果，其中5条都是关于**同一个配置文件的不同段落**—虽然它们都高度相关，但用户真正需要的是「不同方面」的配置信息（数据库配置、Embedding配置、搜索配置等）。
+纯粹按相关性分数排序的检索系统，无法避免这种结果同质化问题这就是MMR（MaximalMarainaRelevance）算法诞生的背景
+解决「搜索结果高度重复」问题。MMR 在合并向量+BM25 结果后，迭代选出「和已选结果差异最大的下一条」，让 top-K 覆盖不同话题角度而不是重复同一段。
+场景：[MEMORY.md](http://memory.md/) 里多次写过同一类事（比如多次记录工时规则），memory_search 总是返回一堆重复片段。
+
+```
+agents: {
+  defaults: {
+    memorySearch: {
+      query: {
+        mmr: {
+          enabled: true,
+          lambda: 0.7   // 1.0=纯相关性，0.0=最大多样性，默认 0.7
+        }
+      }
+    }
+  }
+}
+```
+
+### 方案 C：QMD 后端（BM25 + 向量 + Reranking）——实验性，效果最强
+
+QMD 是一个独立的本地搜索 sidecar（开源），OpenClaw 以 memory.backend = "qmd" 接入。相比内置引擎，多了 Reranking（重排序）步骤（可以理解为用一个本地小模型在做一次召回关键词的排序），**召回精度更高**。
+安装步骤：（这块有很多网上的教程，其实**可以让你的 claw 自己配置**）
+
+```bash
+# 1. 安装 QMD CLI
+bun install -g <https://github.com/tobi/qmd>
+# 或直接下载 release binary
+
+# 2. 确认 qmd 在 PATH 里
+qmd --version
+```
+
+配置（openclaw.json）：
+
+```
+memory: {
+  backend: "qmd",
+  citations: "auto",
+  qmd: {
+    includeDefaultMemory: true,
+    update: { interval: "5m" },
+    limits: { maxResults: 6, timeoutMs: 4000 },
+    // 可选：额外索引目录
+    paths: [
+      { name: "notes", path: "~/notes", pattern: "**/*.md" }
+    ]
+  }
+}
+```
+
+注意：QMD 需要支持扩展的 SQLite（macOS 用 brew install sqlite）；Windows 走 WSL2。如果 QMD 挂掉，OpenClaw 自动 fallback 到内置引擎，不影响使用。
+
+### 方案 D：Session 历史索引（让 memory_search 能搜历史对话）
+
+默认 memory_search 只索引 .md 文件，不索引历史对话记录。开启 QMD 的 sessions 模式后，OpenClaw 会把 session 对话记录导出为 JSONL → 纳入 QMD 索引，让 Agent 能搜到「上周讨论过这个问题时怎么说的」。
+
+```
+memory: {
+  backend: "qmd",
+  qmd: {
+    sessions: {
+      enabled: true,
+      retentionDays: 30
+    }
+  }
+}
+```
+
+### 方案 E：扩展索引范围（extraPaths）——最简单的升级
+
+默认只索引 [MEMORY.md](http://memory.md/) + memory/*.md。如果你把知识分散在多个目录（团队文档、笔记目录等），用 extraPaths 把它们加进来：
+
+```
+agents: {
+  defaults: {
+    memorySearch: {
+      extraPaths: [
+        "../team-docs",
+        "/srv/shared-notes/overview.md",
+        "~/notes"
+      ]
+    }
+  }
+}
+```
+
+注意：只支持 .md 文件，目录会递归扫描。
+
+### 选哪个？
+
+日常 OpenClaw 用户：默认内置方案就够，如果搜索结果重复开 MMR。
+记忆量大 + 精确度要求高：上 QMD。首次配置成本约 10 分钟，之后全自动。
+想搜历史对话：QMD + sessions 模式。
+[来源：OpenClaw 官方文档 memory.md](https://docs.openclaw.ai/zh-CN/concepts/memory)、[QMD GitHub](https://github.com/tobi/qmd)
+
+### 方案六：长任务进度反馈（解决痛点④）
+
+Br人工提示：可以用这个[🌠AI卡片 使用指南 - 学城](https://km.example.com/collabpage/2570993067)**来源**：[Cron/Heartbeat/Memory 协同实践 · clawd.org.cn #4515](https://clawd.org.cn/forum/post?id=4515)**问题根因**：Agent 执行长任务时，主会话被占用，用户无法知道进度，出错了也不会主动告知。
+**具体做法**：在 [AGENTS.md](http://agents.md/) 写入长任务规范，结合 `daxiang-streaming-card1` skill 推送进度：
+
+```markdown
+## 长任务执行规范
+
+执行预计超过 30 秒的任务时：
+1. 立即通过流式卡片发送"处理中"状态（send → stream → finish）
+2. 每完成一个重要子步骤，stream 更新进度
+3. 出错时立即 finish(FAIL) + 说明原因，不静默重试
+4. 任务完成后主动发验收材料，不等用户询问
+```
+
+---
+
+### 四、各痛点解法速查
+
+| 痛点 | 推荐方案 | 核心操作 | 难度 |
+| --- | --- | --- | --- |
+| ① 业务背景缺失 | 方案一 | 把业务字典写入 [SOUL.md/BUSINESS.md](http://soul.md/BUSINESS.md) | ⭐ 低 |
+| ② 记忆调用错误 | 方案二 | 在 [AGENTS.md](http://agents.md/) 写强制召回规则 | ⭐ 低 |
+| ③ 只记成功不记弯路 | 方案三 | 失败路径强制记录 + [LESSONS.md](http://lessons.md/) | ⭐ 低 |
+| ④ 长任务无反馈 | 方案六 | 流式卡片 + [AGENTS.md](http://agents.md/) 规范 | ⭐⭐ 中 |
+| ⑤ 记忆冲突 | 方案四 | 规则带更新日期 + Heartbeat 定期审计 | ⭐⭐ 中 |
+| ⑥ 一错再错 | 方案三+五 | [LESSONS.md](http://lessons.md/) 必读 + SQLite 精确禁忌库 | ⭐⭐ 中 |
+
+---
+
+### 五、落地建议（三步走）
+
+### 第一步：5 分钟可做（最高性价比）
+
+1. 
+    - **在 [SOUL.md](http://soul.md/) 新增业务术语字典**：把团队名、系统名、常用黑话写进去（模板见方案一）
+2. 
+    - **新建 [LESSONS.md](http://lessons.md/)**：把历史踩过的坑迁移进来，在 [AGENTS.md](http://agents.md/) 声明每次必读
+3. 
+    - [**AGENTS.md](http://agents.md/) 加强制召回规则**：三行规则，让 memory_search 从"可选"变成"强制"
+
+### 第二步：系统化（中期优化）
+
+```
+- Heartbeat 加记忆审计：每周日检查 [MEMORY.md](<http://MEMORY.md>) 中超过 30 天未更新的规则
+- 日志时间戳规范化：每条日志必须有 HH:MM，便于复盘
+- 弯路单独归档：失败路径用 `⚠️ 弯路：` 前缀标注
+```
+
+### 第三步：高阶方案（必要时引入）
+
+```
+- memory_search 混合检索调优：vectorWeight 0.7 + textWeight 0.3（BM25）
+	- 详见[AI Agent 记忆系统实战：OpenClaw Memory 最佳实践 - 技术栈](<https://jishuzhan.net/article/2026115349788295170>)
+- [BUSINESS.md](<http://BUSINESS.md>)、[LESSONS.md](<http://LESSONS.md>) 纳入 memory_search 索引范围
+- 使用 QMD 代替原生搜索
+```
+
+---
+
+### 六、参考资料
+
+| 来源 | 链接 | 内容价值 |
+| --- | --- | --- |
+| OpenClaw 官方文档 | [https://docs.openclaw.ai/zh-CN/concepts/memory](https://docs.openclaw.ai/zh-CN/concepts/memory) | 记忆系统官方设计说明 |
+| OpenClaw 中文社区 #4409 | [https://clawd.org.cn/forum/post?id=4409](https://clawd.org.cn/forum/post?id=4409) | 三层记忆系统设计实践 |
+| OpenClaw 中文社区 #7169 | [https://clawd.org.cn/forum/post?id=7169](https://clawd.org.cn/forum/post?id=7169) | 无恒的个人记忆系统设计 |
+| OpenClaw 中文社区 #4515 | [https://clawd.org.cn/forum/post?id=4515](https://clawd.org.cn/forum/post?id=4515) | Cron/Heartbeat/Memory 协同实践 |
+| AI Agent 记忆系统实战 | [https://jishuzhan.net/article/2026115349788295170](https://jishuzhan.net/article/2026115349788295170) | 三层记忆模型 + 混合检索配置 |
+| OpenClaw 记忆完全指南 | [https://ythx-101.github.io/openclaw-qa/memory-system.html](https://ythx-101.github.io/openclaw-qa/memory-system.html) | 五步查记忆实践 |
+| OpenClaw 记忆系统升级 | [https://www.rclogs.com/2026/02/openclaw-memory-architecture](https://www.rclogs.com/2026/02/openclaw-memory-architecture) | 87MB→3.2MB 优化实测 |
+| SQLite 个人知识库方案 | [https://www.53ai.com/news/Openclaw/2026030803274.html](https://www.53ai.com/news/Openclaw/2026030803274.html) | SQLite+FTS5 零运维方案 |
+| 七个配置文件实践 | [https://www.cnblogs.com/oddmeta/p/19760686](https://www.cnblogs.com/oddmeta/p/19760686) | SOUL/USER/AGENTS 配置指南 |
+| OpenClaw 进阶配置教程 | [https://tbbbk.com/openclaw-advanced-config-guide/](https://tbbbk.com/openclaw-advanced-config-guide/) | 记忆系统、子 Agent 进阶 |
+| OpenClaw 落地踩坑经验 | [https://www.infoq.cn/article/qqej2Tccv9CRP2R82TYk](https://www.infoq.cn/article/qqej2Tccv9CRP2R82TYk) | 企业/业务落地真实经验 |

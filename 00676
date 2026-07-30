@@ -1,0 +1,35 @@
+# Node核心
+
+概述
+
+![NodeJS.png](Node%E6%A0%B8%E5%BF%83/NodeJS.png)
+
+单线程异步
+
+没有多线程竞争
+
+IO处理速度快
+
+不适合运算
+
+![image.png](Node%E6%A0%B8%E5%BF%83/image.png)
+
+NodeJS一般作为和浏览器打交道的前台中间层转发请求，因为他是异步的、没有切换线程开销，支持的吞吐量大
+
+真正的后端服务还有一个大的
+
+[全局对象](Node%E6%A0%B8%E5%BF%83/%E5%85%A8%E5%B1%80%E5%AF%B9%E8%B1%A1%2032f0f8d8d1fd8055b5ecc661f758d68f.md)
+
+[模块化](Node%E6%A0%B8%E5%BF%83/%E6%A8%A1%E5%9D%97%E5%8C%96%2032f0f8d8d1fd801d80eaef254a1fe044.md)
+
+[基本内置模块](Node%E6%A0%B8%E5%BF%83/%E5%9F%BA%E6%9C%AC%E5%86%85%E7%BD%AE%E6%A8%A1%E5%9D%97%2032f0f8d8d1fd80108f95fe4545612ef6.md)
+
+[文件](Node%E6%A0%B8%E5%BF%83/%E6%96%87%E4%BB%B6%203310f8d8d1fd80338fbbccb0ae2613b4.md)
+
+[net模块](Node%E6%A0%B8%E5%BF%83/net%E6%A8%A1%E5%9D%97%203310f8d8d1fd80c28f3ceee30fb1a0f7.md)
+
+[http模块](Node%E6%A0%B8%E5%BF%83/http%E6%A8%A1%E5%9D%97%203310f8d8d1fd8069b1ebf26361cae3a5.md)
+
+[https模块](Node%E6%A0%B8%E5%BF%83/https%E6%A8%A1%E5%9D%97%203320f8d8d1fd802fa70dc78522c4d37f.md)
+
+[生命周期 事件循环](Node%E6%A0%B8%E5%BF%83/%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%20%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF%203320f8d8d1fd8010937ff1f56cd3acaa.md)

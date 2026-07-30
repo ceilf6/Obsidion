@@ -1,0 +1,96 @@
+# DUO平台开发
+
+- rn_meishi_food-mop-cart-list 购物车页
+    - pageId：12443
+    - 构建产物：只需要选 MRN，购物车页暂时没有 web 侧
+- rn_meishi_c-group-order-submit 囤点提单页
+    - pageId：12413
+
+![image.png](DUO%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91/image.png)
+
+[DUO项目分析](DUO%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91/DUO%E9%A1%B9%E7%9B%AE%E5%88%86%E6%9E%90%203340f8d8d1fd80d788e5c2a1f8566887.md)
+
+ka-mop-max-duo 是组件monorepo仓库
+
+存储了各个组件，运行时通过duo-page组装
+
+duo-page 是页面宿主+协议运行时+请求编排层
+
+[duo-page数据来源](DUO%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91/duo-page%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90%203340f8d8d1fd80c8925ff4fe7301f9f5.md)
+
+food-cart 等组件仓库存储了具体组件的 请求、组织 等协议
+
+[DUO启动记录](DUO%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91/DUO%E5%90%AF%E5%8A%A8%E8%AE%B0%E5%BD%95%203330f8d8d1fd8026b8c0dc9f09d45ae5.md)
+
+联调
+
+appmock 扫描设备后，通过域名映射实现代理转发后就能用后端的服务了
+
+开发完毕后去 FEDO 平台创建分支，然后把代码合到目标分支feature/fedo-…上
+
+在“测试环境部署与日志展示”中发布变更组件的包（如果有多个包就用,分割）
+
+pull下看新版本号，将新版本号同步到DUO的“依赖”上
+
+然后点击 DUO 的“任务” 点开 “RD开发自测“
+
+去
+
+然后去发布中扫二维码锁住MRN包，看效果，没问题就给后端
+
+鸿蒙的话注意得调整用H5
+
+发布
+
+创建 feature 分支 节点上有 “源分支” release/fedo-… 就是目标的发包分支
+
+将 feature/fedo-… 合并到 release/fedo-….
+
+低代码平台开发
+
+考虑到团购有些组件是个人开发者没有权限，那么只能在该平台上进行组装
+
+在服务器上生成用户界面，并通过 API 将其发送到客户端
+
+支持多人协同、和code平台、ones平台打通
+
+支持数据Mock
+
+物料生产 柚子智能物料工作台 yooz.example.com
+
+[DUO 开发 - For 大客前端](DUO%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91/DUO%20%E5%BC%80%E5%8F%91%20-%20For%20%E5%A4%A7%E5%AE%A2%E5%89%8D%E7%AB%AF%203330f8d8d1fd801b859af4ba740f7a3f.md)
+
+组件和物料是同一个意思
+
+> 
+> 
+> 
+> 更接近的理解是：
+> 
+> 不是“每个组件都一定是一个包”，而是“这个页面由一组物料节点拼出来，其中 `proCode` 物料通常对应独立发布的 npm 包，`lowCode` 物料则更像平台里的低代码物料/配置化节点”。你这个仓库里就能看到这种区分，比如 [componentsMap.json](https://www.notion.so/Users/ceilf6/Desktop/duo-food-order-submit/componentsMap.json) 里同时有：
+> 
+> - `materialType: "proCode"` + `npm` + `npmVersion`，这类基本就是独立物料包
+> - `materialType: "lowCode"` + `name`，这类不是当前仓库里的独立源码包形态
+> 
+> 另外，DUO 页面不只是“组件升级记录”。这个仓库里实际存了页面编排和运行配置本身，比如：
+> 
+> - 页面依赖和物料版本映射在 [componentsMap.json](https://www.notion.so/Users/ceilf6/Desktop/duo-food-order-submit/componentsMap.json)、[dependencies.json](https://www.notion.so/Users/ceilf6/Desktop/duo-food-order-submit/dependencies.json)
+> - 页面结构编排在 [struct.groovy](https://www.notion.so/Users/ceilf6/Desktop/duo-food-order-submit/struct.groovy)
+> - 数据源入参/出参映射在 [dataSourceMap.groovy](https://www.notion.so/Users/ceilf6/Desktop/duo-food-order-submit/dataSourceMap.groovy)
+> - 页面级构建配置在 [pageBuildConfig.json](https://www.notion.so/Users/ceilf6/Desktop/duo-food-order-submit/pageBuildConfig.json)
+> 
+> 所以更准确地说：
+> 
+> 1. 页面是由很多 DUO 物料节点组装出来的。
+> 2. 其中一部分物料节点确实对应独立包，并通过版本号引用。
+> 3. 当前页面仓库主要保存“页面装配关系 + DSL 配置 + 依赖版本”，不是只保存 commit 信息。
+> 4. Git 提交历史里“升级组件/升级版本”很多，说明它经常通过改依赖版本来升级页面；但历史里也有大量 `struct.groovy`、`dataSourceMap.groovy` 的业务改动，所以不只是包更新记录。
+> 
+> 如果你愿意，我可以下一步直接把“DUO 页面仓库 vs 组件仓库 vs 发布产物”这三层关系给你画成一张很清晰的结构图。
+> 
+
+数据都直接从服务器接口获取
+
+[01. 入门文档](DUO%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91/01%20%E5%85%A5%E9%97%A8%E6%96%87%E6%A1%A3%203330f8d8d1fd8040bc71fe4d73fd6276.md)
+
+[02. DUO 页面生命周期配置](DUO%E5%B9%B3%E5%8F%B0%E5%BC%80%E5%8F%91/02%20DUO%20%E9%A1%B5%E9%9D%A2%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E9%85%8D%E7%BD%AE%203330f8d8d1fd80d49deafa6b3a68ba1b.md)

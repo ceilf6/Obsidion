@@ -1,0 +1,7 @@
+# 无标题
+
+灰度发布: 手动放量：手动设置灰度的百分比，不会随着时间增长，需要人工调整到100%或是点自动增长重新回到灰度（从“手动放量”切换到“自动增长”后，比率会重新回到0%开始重新灰度）。
+自动增长：录入比率后，每10分钟会按照录入的比例自动增长一次。例如录入5%，则每10分钟增长5%，200分钟后会自动全量。Diva会向发布人推送灰度进度。
+一键下线：点击后会下线全部正在发布的bundle。
+完成灰度: 完成灰度：点击后会检查当前的放量比例，并在日志内展示。只有所有bundle已全量才会继续向下流转。
+文件: https://km.example.com/api/file/cdn/1728761485/47215031817?contentType=1&isNewContent=false, https://km.example.com/api/file/cdn/1728761485/47225610075?contentType=1&isNewContent=false, https://km.example.com/api/file/cdn/1728761485/47225537619?contentType=1&isNewContent=false

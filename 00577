@@ -1,0 +1,40 @@
+# 2. AI infra基建能力层
+
+基础能力层，让 LLM 变成可用系统的基础设施
+
+介于 LLM 和 应用之间
+
+```jsx
+Application
+   (AI IDE / ChatGPT / Agent)
+        │
+        ▼
+Agent Framework
+   (LangGraph)
+        │
+        ▼
+LLM SDK
+   (LangChain)
+        │
+        ▼
+AI Infra
+(RAG / Memory / Tools)
+        │
+        ▼
+Foundation Model
+(GPT / Claude / Llama)
+```
+
+[skill](skill%203210f8d8d1fd803184dffa2bc4922175.md)
+
+[Agent框架](Agent框架%203190f8d8d1fd80d597d5d8c44228f985.md)
+
+[**Agent Memory**](Agent%20Memory%203190f8d8d1fd80228ceaec37e6d673fa.md)
+
+[RAG检索增强生成](RAG检索增强生成%203190f8d8d1fd8080b196d02405640bfe.md)
+
+[Tool/Function Calling](Tool%20Function%20Calling%203190f8d8d1fd80a988dfde7f84cfc164.md)
+
+[LLM SDK](LLM%20SDK%203190f8d8d1fd802c9740c6e591283940.md)
+
+[MCP](MCP%203360f8d8d1fd80db966eea531d0ca5d1.md)

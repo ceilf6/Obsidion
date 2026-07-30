@@ -1,0 +1,192 @@
+# git flow
+
+[2.4 **分支模型**](https://www.notion.so/2-4-3300f8d8d1fd807ba4e9c2a9710bd7f9?pvs=21) 
+
+```tsx
+main
+ │
+ ├───────────────┐
+ │               │
+ │            hotfix
+ │               │
+ │               ▼
+ │              merge
+ │
+ └─────┐
+       │
+    develop
+       │
+       ├── feature/login
+       ├── feature/cart
+       └── feature/search
+              │
+              ▼
+           merge
+       │
+       └── release/1.2
+                │
+                ▼
+              main
+```
+
+git flow 是一种 Git 分支管理策略
+
+主要用于解决多人协作时，同步进行 开发 / 测试 / 发布 / 热修复，保持主分支稳定可发布
+
+固定的分支角色 + 明确的合并流程 管理代码生命周期
+
+# 核心分支
+
+Git Flow 有两条长期存在的主分支
+
+## main / master
+
+永远保持可发布状态
+
+每个 commit 代表一个**生产版本**
+
+通常会打 tag
+
+```tsx
+master
+ ├── v1.0
+ ├── v1.1
+ └── v1.2
+```
+
+## develop
+
+开发主分支
+
+**集成**所有开发中的功能
+
+提供一个隔离环境
+
+不保持稳定
+
+开发流程是
+
+```tsx
+main
+  ↑
+develop
+  ↑
+feature branches
+```
+
+# 三种辅助分支
+
+## feature
+
+用于开发新功能
+
+```tsx
+develop
+   │
+   └─ create feature branch
+         │
+         └─ 开发功能
+               │
+               └─ merge 回 develop
+```
+
+例如 开发新功能时
+
+```tsx
+git checkout develop
+git checkout -b feature/login
+```
+
+开发完成后
+
+```tsx
+git checkout develop
+git merge feature/login
+git branch -d feature/login
+```
+
+## release
+
+在 develop 功能完成后，发布准备
+
+一般用于
+
+- 修复 bug
+- 更新版本号
+- 更新 changelog
+
+```tsx
+develop
+   │
+   └── release/1.2
+           │
+           ├─ 修复 bug
+           ├─ 调整配置
+           └─ merge → main
+                      ↑
+                    tag
+```
+
+发布完成后
+
+- merge到 main
+- merge回 develop
+
+```tsx
+git checkout develop
+git checkout -b release/1.2
+```
+
+发布
+
+```tsx
+git checkout main
+git merge release/1.2
+git tag v1.2
+```
+
+再合回 develop
+
+```tsx
+git checkout develop
+git merge release/1.2
+```
+
+## hotfix
+
+线上紧急修复bug，直接从发布分支main牵出来
+
+```tsx
+main
+ │
+ └── hotfix/1.2.1
+        │
+        └─ 修复 bug
+             │
+             ├─ merge → main
+             └─ merge → develop
+```
+
+例如
+
+```tsx
+git checkout main
+git checkout -b hotfix/1.2.1
+```
+
+修复完成后
+
+```tsx
+git checkout main
+git merge hotfix/1.2.1
+git tag v1.2.1
+```
+
+再同步到 develop
+
+```tsx
+git checkout develop
+git merge hotfix/1.2.1
+```
+
+[实践更换默认分支…](git%20flow/%E5%AE%9E%E8%B7%B5%E6%9B%B4%E6%8D%A2%E9%BB%98%E8%AE%A4%E5%88%86%E6%94%AF%E2%80%A6%203190f8d8d1fd80c8af1fd6d987438551.md)

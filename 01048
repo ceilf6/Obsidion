@@ -1,0 +1,245 @@
+# 懒加载相关
+
+本质就是通过 **动态import()** + bundler code splitting
+
+# **一、React.lazy()（核心 API）**
+
+React.lazy 用于 **动态加载组件（Code Splitting）**。
+
+### **基本用法**
+
+```jsx
+import React, { Suspense } from "react";
+
+const Home = React.lazy(() => import("./Home"));
+
+export default function App() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Home />
+    </Suspense>
+  );
+}
+```
+
+### **运行流程**
+
+1. React.lazy 返回一个 **懒加载组件**
+2. React **第一次渲染到该组件时**
+3. 才会执行 import("./Home")
+4. Webpack / Vite 会生成 **独立 chunk**
+5. 下载完成后再渲染组件
+
+### **必须配合**
+
+### **Suspense**
+
+因为组件加载是 **异步的**，React 需要 fallback UI：
+
+```
+<Suspense fallback={<Spinner />}>
+  <LazyComponent />
+</Suspense>
+```
+
+---
+
+# **二、Suspense**
+
+Suspense 是 **异步组件的边界控制组件**。
+
+作用：
+
+- 在组件 **加载完成之前显示 fallback UI**
+
+```
+<Suspense fallback={<Loading />}>
+  <LazyComponent />
+</Suspense>
+```
+
+可以嵌套：
+
+```
+<Suspense fallback={<Loading />}>
+  <Header />
+  <Suspense fallback={<SmallLoading />}>
+    <LazyChart />
+  </Suspense>
+</Suspense>
+```
+
+---
+
+# **三、startTransition（React 18）**
+
+用于 **非紧急更新**，可以和懒加载结合。
+
+```
+import { startTransition } from "react";
+
+startTransition(() => {
+  setPage("dashboard");
+});
+```
+
+作用：
+
+- 标记 **低优先级更新**
+- React 可以 **先渲染重要 UI**
+
+常见场景：
+
+```
+点击切换页面 → 懒加载新页面
+```
+
+---
+
+# **四、useTransition**
+
+useTransition 是 startTransition 的 hooks 版本。
+
+```
+const [isPending, startTransition] = useTransition();
+
+function handleClick() {
+  startTransition(() => {
+    setPage("dashboard");
+  });
+}
+```
+
+可以结合懒加载显示 loading：
+
+```
+{isPending && <Loading />}
+```
+
+---
+
+# **五、useDeferredValue**
+
+用于 **延迟更新某个值**。
+
+适合：
+
+- 大列表
+- 搜索结果
+
+```
+const deferredQuery = useDeferredValue(query);
+
+const results = useMemo(() => {
+  return search(deferredQuery);
+}, [deferredQuery]);
+```
+
+这样可以避免：
+
+```
+输入卡顿
+```
+
+---
+
+# **六、next/dynamic（Next.js）**
+
+如果你做 SSR / Next.js，还会用：
+
+```
+import dynamic from "next/dynamic";
+
+const Chart = dynamic(() => import("../components/Chart"), {
+  loading: () => <p>Loading...</p>,
+});
+```
+
+特点：
+
+- 支持 SSR
+- 支持关闭 SSR
+
+```
+dynamic(() => import("./Chart"), { ssr: false })
+```
+
+---
+
+# **七、路由懒加载（React Router）**
+
+React Router 通常配合 lazy：
+
+```
+const Home = React.lazy(() => import("./pages/Home"));
+
+<Routes>
+  <Route
+    path="/"
+    element={
+      <Suspense fallback={<Loading />}>
+        <Home />
+      </Suspense>
+    }
+  />
+</Routes>
+```
+
+React Router v6.4 以后：
+
+```
+{
+  path: "/",
+  lazy: () => import("./pages/Home")
+}
+```
+
+---
+
+# **八、图片懒加载（浏览器原生）**
+
+React 中也经常用：
+
+```
+<img src="img.jpg" loading="lazy" />
+```
+
+或者使用：
+
+```
+IntersectionObserver
+```
+
+---
+
+# **九、总结（React懒加载API）**
+
+| **API** | **作用** |
+| --- | --- |
+| React.lazy | 懒加载组件 |
+| Suspense | 加载中 UI |
+| startTransition | 低优先级更新 |
+| useTransition | transition hook |
+| useDeferredValue | 延迟更新值 |
+| dynamic() | Next.js 懒加载 |
+| lazy route | React Router 懒加载 |
+
+---
+
+💡 **面试常考总结**
+
+React 懒加载本质是：
+
+```
+动态 import() + Suspense
+```
+
+底层依赖：
+
+```
+import() → bundler code splitting → 按需加载 chunk
+```
+
+---
+
+如果你愿意，我可以再给你一份 **React 懒加载面试最完整答案（包括原理 + Fiber处理 + Suspense机制）**，很多大厂面试会问到这一层。

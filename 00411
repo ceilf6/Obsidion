@@ -1,0 +1,23 @@
+# abstract
+
+用于定义抽象类和抽象成员
+
+只定义规范，不直接实现完整对象
+
+1. 不能被直接new实例化，只能被继承
+2. 只写声明、不实现，要求子类必须实现
+    
+    ```jsx
+    abstract class Animal {
+      abstract makeSound(): void;
+    }
+    
+    class Dog extends Animal {
+      makeSound(): void {
+        console.log("wang");
+      }
+    }
+    ```
+    
+
+类似于 C++的纯虚函数 和 Java的抽象方法

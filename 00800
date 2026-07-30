@@ -1,0 +1,71 @@
+# 计算属性 computed
+
+**computed() 返回的一定是一个 Ref 对象**
+
+Vue2 中的计算属性有两个参数 get 和 set
+
+通过 get 获取原始数据
+
+通过 set 影响原始数据
+
+Vue3 中计算属性中最佳设计只设置 get
+
+相当于只把 computed 看为一个快照，无法影响原始数据
+
+https://github.com/ceilf6/Lab/commit/421e1ac98192549ffcb2a017f1310f907209c39f
+
+https://github.com/ceilf6/Lab/commit/850b9924b43558f09cbe9736562b52293524ada6
+
+类似于生命周期函数，Vue3 将计算属性也抽离出了一个函数
+
+```jsx
+import { ref, onMounted, onUnmounted, computed } from "vue";
+import filter from '../utils/todoStorage'
+
+const filterEnum = ["all", "active", "completed"]
+
+export default function useFilter(todoRef) {
+    const filterRef = ref("all")
+
+    // 筛选方式响应 与 hash 连接
+    const onHashChange = () => {
+        // trim 左边不需要的 #/
+        const hash = location.hash.replace(/#\/?/, "");
+        if (filterEnum.includes(hash)) {
+            filterRef.value = hash
+        } else {
+            filterRef.value = "all"
+            location.hash = "" // "" 虽然是无效会第二次走到这分支，但是 "" => "" 不会触发 hashchange
+        }
+    }
+
+    onMounted(() => {
+        window.addEventListener("hashchange", onHashChange)
+    })
+
+    onUnmounted(() => {
+        window.removeEventListener("hashchange", onHashChange)
+    })
+
+    const filteredTodoRef = computed({
+        get() {
+            return filter(todoRef.value, filterRef)
+        }
+    })
+
+    const remainingRef = computed(() => {
+        return filter(todosRef.value, "active").length;
+    });
+
+    const completedRef = computed(() => {
+        return filter(todosRef.value, "completed").length;
+    });
+
+    return {
+        filterRef,
+        filteredTodoRef,
+        remainingRef,
+        completedRef,
+    }
+}
+```

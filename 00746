@@ -1,0 +1,53 @@
+# 反向暴露方法
+
+原文记录链接 https://blog.csdn.net/2301_78856868/article/details/150923925
+
+**单向数据流**、向上暴露方法从而提供能力
+
+但是这样会导致 createPoster 和 海报DOM节点 的关联很松，一个组件模块内部都是松的话会导致外面调用的时候，**createPoster 不知道选哪个 DOM 节点**，而且需要注意调用函数的时机和 DOM节点渲染 的时机，**调用获取海报图片的函数必须在 DOM节点渲染之后**，这样就有点复杂了
+
+通过 expose 让组件暴露方法，使得 `Poster` 对外提供 `createPoster`
+
+```jsx
+//<script setup> // expose、defineExpose需要在setup内执行
+import type { ProjectData } from '@/apis/project'
+import html2canvas from 'html2canvas'
+import { ref, nextTick } from 'vue'
+ 
+const props = defineProps<{
+  img: File
+  projectData: ProjectData
+}>()
+ 
+const posterElementRef = ref<HTMLElement>()
+ 
+const **createPoster** = async (): Promise<File> => {
+  if (!posterElementRef.value || !props.projectData) {
+    throw new Error('Poster element not ready or project data is undefined')
+  }
+ 
+  await nextTick() // 确保 DOM 已经更新
+ 
+  const canvas = await html2canvas(posterElementRef.value, {
+    width: 600,
+    height: 800
+  })
+ 
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob((b) => resolve(b), 'image/png')
+  )
+ 
+  if (!blob) throw new Error('Failed to generate poster')
+ 
+  return new File([blob], `${props.projectData.name}-poster.png`, { type: 'image/png' })
+}
+ 
+defineExpose({
+  createPoster
+})
+//</script>
+ 
+//<template></template>
+ 
+//<style></style>
+```

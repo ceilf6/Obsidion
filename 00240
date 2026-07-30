@@ -1,0 +1,7 @@
+# AI SDK
+
+模型接口层适配
+
+基于 ai-sdk 打通 FrontAgent CLI 暴露支持 LLM 随机生成相关 API 方便使用者进行采样策略控制
+
+[‣](采样策略API%20-%20概率%2032b0f8d8d1fd8004872af6f662cbd478.md)

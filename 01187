@@ -1,0 +1,75 @@
+# 嵌入模型选择
+
+https://github.com/ceilf6/FrontAgent/commit/3d98b8415c4d6e3d0b1e44bdf42e265185f01f1b
+
+默认走和大模型服务一致的配置
+
+当前 CLI 默认 syncOnQuery=true，所以每次查询前会先检查远程 Lab 有没有新提交；如果没变，就直接复用已有索引和向量，不会重新全量嵌入
+
+严格说，`Hugging Face` 是平台，不是模型；你真正要选的是“开源 embedding 模型 + 服务方式”。
+
+当前 FrontAgent 的实现其实已经很接近可接开源模型了，因为它现在只要求一个 `OpenAI-compatible embeddings API`。这点在 [rag.ts](https://www.notion.so/Users/a86198/Desktop/Lab/AI/3-Application/FrontAgent-app/packages/mcp-memory/src/rag.ts#L64) 和 [rag.ts](https://www.notion.so/Users/a86198/Desktop/Lab/AI/3-Application/FrontAgent-app/packages/mcp-memory/src/rag.ts#L1061) 很明确：`provider` 目前只有 `'openai-compatible'`，请求固定打到 `${baseURL}/embeddings`。CLI 也已经暴露了 `model/base-url/api-key/dimensions` 参数，见 [index.ts](https://www.notion.so/Users/a86198/Desktop/Lab/AI/3-Application/FrontAgent-app/apps/cli/src/index.ts#L258)。
+
+**结论**
+最合适的技术路线不是“重写成 Hugging Face 专用”，而是分两层看：
+
+1. 最优先路线：继续保留现在的 `openai-compatible` 抽象，后面接 Hugging Face 的 `TEI` 或 Hugging Face Inference Endpoint。
+2. 第二阶段再补一个真正的 `huggingface-feature-extraction` provider，支持 HF 原生 `feature-extraction` API。
+
+这样做的原因很简单：你现在的代码几乎已经能直接接开源模型，只要这个服务暴露的是 OpenAI 兼容的 `/v1/embeddings`。
+
+**三种可选方案**
+
+1. `Hugging Face Inference Endpoint + TEI`
+这条路最适合你。Hugging Face 官方的 TEI 文档明确支持 OpenAI Embeddings API，`/v1/embeddings` 可以直接用；官方 dedicated endpoint 教程也给了 `https://<endpoint>.endpoints.huggingface.cloud/v1/` 这种 base URL，并用 OpenAI client 调用。
+优点是改动最小、保留远程服务形态、不要求 FrontAgent 用户本地装模型。缺点是仍然依赖 HF 托管服务和对应成本。
+参考：[TEI Quick Tour](https://huggingface.co/docs/text-embeddings-inference/quick_tour)、[HF Inference Endpoints embedding tutorial](https://huggingface.co/docs/inference-endpoints/tutorials/embedding)、[TEI engine docs](https://huggingface.co/docs/inference-endpoints/engines/tei)
+2. `自托管 TEI`
+本质和上面一样，只是你自己部署 Hugging Face 的 TEI。官方文档给了 Docker 方式，既支持原生 `/embed`，也支持 OpenAI 兼容的 `/v1/embeddings`。
+优点是完全摆脱 OpenAI，且可控。缺点是你要承担部署、扩容、监控和模型升级。
+参考：[TEI Quick Tour](https://huggingface.co/docs/text-embeddings-inference/quick_tour)
+3. `Hugging Face Inference Providers / Feature Extraction`
+官方也支持直接做 feature extraction，这条路是可行的，但它不是 OpenAI 兼容接口，所以你当前代码不能无改动接入。
+优点是不用自己起专用 endpoint。缺点是你要在 FrontAgent 里新增 provider 适配层，处理不同请求/响应格式。
+参考：[HF Feature Extraction docs](https://huggingface.co/docs/inference-providers/tasks/feature-extraction)
+
+**模型怎么选**
+
+1. `Qwen/Qwen3-Embedding-0.6B`
+我认为这是你当前项目的一号候选。官方模型卡写得很清楚：支持 100+ 语言、支持代码检索、32K 上下文、输出维度可自定义，还支持 instruction-aware 查询。对 `Lab` 这种“中英混合 + 代码 + 技术文档”的知识库很合适。
+我这里是推断：它比纯英文向量模型更贴近你的语料形态。
+参考：[Qwen3-Embedding-0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B)
+2. `BAAI/bge-m3`
+这是更“RAG 原教旨”的路线。官方模型卡明确写了它支持 dense、sparse、multi-vector 三种检索能力，支持 100+ 语言、最长 8192 tokens，而且还明确建议 RAG 用“hybrid retrieval + re-ranking”。
+它的优势是和你现在的“BM25 + semantic”目标非常契合。缺点是你当前实现只吃 dense vector，暂时还用不上它的 sparse/multi-vector 全能力。
+参考：[BAAI/bge-m3](https://huggingface.co/BAAI/bge-m3)
+3. `intfloat/multilingual-e5-large-instruct`
+这是稳妥基线，但不是我给这个项目的首推。它支持 94 种语言，但模型卡也写了长文本会截断到 512 tokens，而且查询侧需要 instruction，接入时要处理 query/document 不同模板。
+参考：[multilingual-e5-large-instruct](https://huggingface.co/intfloat/multilingual-e5-large-instruct)
+
+**对 FrontAgent 的建议**
+如果你要最低风险落地，我建议：
+
+1. V1：直接支持 `HF Endpoint / TEI`，不改 RAG 主流程，只改配置文档和 provider 命名。
+2. 默认模型选 `Qwen/Qwen3-Embedding-0.6B`。
+3. 在配置里补一层 `queryInstruction` / `documentPrefix`，为 Qwen/E5 这类 instruction-aware 模型留接口。
+4. V2：新增 `huggingface-feature-extraction` provider。
+5. V3：如果你想把 hybrid 做得更强，再考虑 `bge-m3` 的 sparse 或接一个 reranker。HF 的 TEI 也支持 reranker 端点。
+
+**我的明确建议**
+如果你现在就要做，我建议选：
+`Hugging Face Inference Endpoint + TEI + Qwen/Qwen3-Embedding-0.6B`
+
+原因是：
+
+- 和当前代码最兼容
+- 不要求用户本地部署
+- 对中英混合和代码检索更友好
+- 后面还能平滑切到更大的 `Qwen3-Embedding-4B` 或改成 `bge-m3`
+
+如果你认可，我下一步可以直接把 FrontAgent 的 embedding 层抽象成：
+
+- `openai-compatible`
+- `huggingface-feature-extraction`
+
+并顺手把 `query instruction` 这层也补进去。

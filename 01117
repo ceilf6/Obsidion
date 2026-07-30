@@ -1,0 +1,26 @@
+# 修复后记录
+
+Source: [KM 2758169114](https://km.example.com/collabpage/2758169114)
+
+当前需要测试场景有，A22
+
+懒加载货架（良品）
+
+| 机型\场景 | ❌买过❌已购 | ✅买过❌已购 | ❌买过✅已购 | ✅买过✅已购 |
+| --- | --- | --- | --- | --- |
+| ios | > 🎬 **视频附件**：[1.mp4](https://km.example.com/api/file/cdn/2758169114/234035379687?contentType=1) | > 🎬 **视频附件**：[2.mp4](https://km.example.com/api/file/cdn/2758169114/234035382906?contentType=1) | > 🎬 **视频附件**：[2026-04-23 19_59_16.mp4](https://km.example.com/api/file/cdn/2758169114/234037798990?contentType=1) | > 🎬 **视频附件**：[2026-04-23 19_51_05.mp4](https://km.example.com/api/file/cdn/2758169114/234035383483?contentType=1) |
+| ios2（小屏幕） | > 🎬 **视频附件**：[13.mp4](https://km.example.com/api/file/cdn/2758169114/234074218874?contentType=1) | > 🎬 **视频附件**：[14.mp4](https://km.example.com/api/file/cdn/2758169114/234073228126?contentType=1) | > 🎬 **视频附件**：[12.mp4](https://km.example.com/api/file/cdn/2758169114/234073552941?contentType=1) | > 🎬 **视频附件**：[15.mp4](https://km.example.com/api/file/cdn/2758169114/234074452795?contentType=1) |
+| 安卓 | > 🎬 **视频附件**：[5.mp4](https://km.example.com/api/file/cdn/2758169114/234038755201?contentType=1) | > 🎬 **视频附件**：[4.mp4](https://km.example.com/api/file/cdn/2758169114/234041066548?contentType=1) | > 🎬 **视频附件**：[6.mp4](https://km.example.com/api/file/cdn/2758169114/234041105898?contentType=1) | > 🎬 **视频附件**：[3.mp4](https://km.example.com/api/file/cdn/2758169114/234041570241?contentType=1) |
+| 安卓2 | > 🎬 **视频附件**：[9.mp4](https://km.example.com/api/file/cdn/2758169114/234044283737?contentType=1) | > 🎬 **视频附件**：[10.mp4](https://km.example.com/api/file/cdn/2758169114/234069990139?contentType=1) | > 🎬 **视频附件**：[8.mp4](https://km.example.com/api/file/cdn/2758169114/234044121831?contentType=1) | > 🎬 **视频附件**：[11.mp4](https://km.example.com/api/file/cdn/2758169114/234070989556?contentType=1) |
+| 鸿蒙 | > 🎬 **视频附件**：[37.mp4](https://km.example.com/api/file/cdn/2758169114/234190770039?contentType=1) | > 🎬 **视频附件**：[34.mp4](https://km.example.com/api/file/cdn/2758169114/234188843999?contentType=1) | > 🎬 **视频附件**：[36.mp4](https://km.example.com/api/file/cdn/2758169114/234194072919?contentType=1) | > 🎬 **视频附件**：[35.mp4](https://km.example.com/api/file/cdn/2758169114/234189344205?contentType=1) |
+
+非懒加载货架（瑞幸）
+
+| 机型\场景 | ❌买过❌已购 | ✅买过❌已购 | ❌买过✅已购 | ✅买过✅已购 |
+| --- | --- | --- | --- | --- |
+| ios | > 🎬 **视频附件**：[20.mp4](https://km.example.com/api/file/cdn/2758169114/234105669446?contentType=1) | > 🎬 **视频附件**：[22.mp4](https://km.example.com/api/file/cdn/2758169114/234110294538?contentType=1) | > 🎬 **视频附件**：[21.mp4](https://km.example.com/api/file/cdn/2758169114/234108454961?contentType=1) | > 🎬 **视频附件**：[23.mp4](https://km.example.com/api/file/cdn/2758169114/234109999369?contentType=1) |
+| ios2（小屏幕） | > 🎬 **视频附件**：[19.mp4](https://km.example.com/api/file/cdn/2758169114/234102495354?contentType=1) | > 🎬 **视频附件**：[16.mp4](https://km.example.com/api/file/cdn/2758169114/234083352694?contentType=1) | > 🎬 **视频附件**：[18.mp4](https://km.example.com/api/file/cdn/2758169114/234104240989?contentType=1) | > 🎬 **视频附件**：[17.mp4](https://km.example.com/api/file/cdn/2758169114/234083086643?contentType=1) |
+| 安卓 | > 🎬 **视频附件**：[24.mp4](https://km.example.com/api/file/cdn/2758169114/234114270926?contentType=1) | > 🎬 **视频附件**：[33.mp4](https://km.example.com/api/file/cdn/2758169114/234140769433?contentType=1) | > 🎬 **视频附件**：[25.mp4](https://km.example.com/api/file/cdn/2758169114/234117299031?contentType=1) | > 🎬 **视频附件**：[26.mp4](https://km.example.com/api/file/cdn/2758169114/234121916695?contentType=1) |
+| 安卓2 | > 🎬 **视频附件**：[30.mp4](https://km.example.com/api/file/cdn/2758169114/234140878543?contentType=1) | > 🎬 **视频附件**：[27.mp4](https://km.example.com/api/file/cdn/2758169114/234137352964?contentType=1) | > 🎬 **视频附件**：[29.mp4](https://km.example.com/api/file/cdn/2758169114/234142148025?contentType=1) | > 🎬 **视频附件**：[28.mp4](https://km.example.com/api/file/cdn/2758169114/234136969813?contentType=1) |
+
+###

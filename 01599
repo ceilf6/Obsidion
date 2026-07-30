@@ -1,0 +1,623 @@
+# 订单详情页、退款页白皮书
+
+## 一.业务简介
+
+### 1.1 业务定位
+
+秒提订单详情页（ka-mop-order-detail）是美团到店「秒提」业务的核心订单管理页面，承担订单从**下单后到取单/退款完成**的全流程展示与操作：
+- **核心能力**：展示订单完整信息（门店、商品、价格、优惠、取餐方式等），并根据订单状态提供去支付、取消、修改预约时间、确认取单、申请退款等操作。
+- **订单类型**：支持**实时单**与**预约单**，覆盖待付款、待接单、制作中、待取餐、已完成及退款/取消等全生命周期状态。
+- **多端**：支持 MRN、Web容器，与提单页、订单中心、退款页、收银台等形成上下游链路。
+退款页是秒提订单从详情页「申请退款」进入的落地页，负责收集退款商品（部分退时可选）、退款原因与说明/凭证并提交至订单中台，完成用户自助退款申请。
+- **角色**：用户从订单详情页点击「申请退款」后的**唯一在线退款提交入口**（在支持用户自助退款的场景下）；负责收集退款意愿、可选商品（部分退）、原因、说明与凭证，并提交至订单中台。
+- **解决问题**：在订单已支付/已接单/制作中/待取餐/已完成等状态下，为用户提供**自助申请退款**能力，减少联系商家或客服的成本；支持**整单退**与**部分退**（按后端配置），满足「只退部分商品」的需求。
+- **与订单详情页的关系**：详情页负责**展示订单与操作入口**，退款页负责**填写并提交退款申请**；二者通过 URL 入参（orderId、brandId、poiId）与返回时 `refreshOrder` 事件形成交互，返回详情后自动刷新以展示最新订单/退款状态。
+补充：目前可以通过**自助申请退款（退款页）**、**找客服申请退款**和**商家直接退**三种方式，完成订单的整单/部分退。
+客服发起退款时，系统将根据品牌配置执行相应流程：
+- **需商家审核**：退款申请提交后，需商家确认后方可执行
+- **直接退款**：系统将按品牌设置自动处理退款
+
+### 1.2 业务全景图
+
+### 1.2.1 页面概览
+
+| 模块 | 页面形态 | 描述 |
+| --- | --- | --- |
+| 待支付 | - 待付款 (TO_PAY) | 创建订单后未支付，可支付或取消 |
+| **接单与预约** | - 支付成功 (PAY_SUCCESS) |  |
+
+```
+- 待接单 (TO_RECEIPT)	- 预约成功 (BOOK_SUCCESS)
+- 预约修改中 (MODIFYING) | 支付完成 → 等接单 → 接单后预约单在「预约成功/修改中」 |
+```
+
+| **制作与待取餐** | 	- 待制作 (WAIT_MAKING)
+- 制作中 (MAKING)	- 待取餐 (TO_DELIVER) | 从「待制作」到出餐待取、用户确认取单前 |
+| **已完成** | 	- 已完成 (FINISHED) | 用户已确认取单，订单正常结束 |
+| **取消/关闭** | 	- 订单已取消 (CANCELED)
+- 订单已关闭 (CLOSED)
+- 待接单取消并退款(DELIVERING_CANCEL_REFUND) | 各种取消/关闭终态 |
+| **退款** | 	- 退款中 (REFUNDING)	- 待商家审核退款 (REFUND_AUDITING)	- 退款成功 (REFUND_SUCCESS)
+- 退款失败 (REFUND_FAIL) | 从发起退款到退款结果 |
+
+### 1.2.2 上下游链路
+
+### 1.2.3 业务功能
+
+```
+- 订单详情页
+```
+
+| 大类 | 功能描述 |
+| --- | --- |
+| **订单展示与刷新** | 订单状态、门店、商品与优惠、取餐码/预约时间、订单信息等展示；下拉刷新、轮询/推送更新。 |
+| **支付与取消** | 去支付（调起收银台）；待支付取消、待接单取消。 |
+| **履约操作** | 修改预约时间（拉时段、选即刻/预约并提交）；确认取单（本店/错店）。 |
+| **退款入口** | 申请退款（引导浮层后跳退款页或引导打电话）；「更多」里露出申请退款。 |
+| **复购与评价** | 再来一单（跳秒提首页）；去评价（有链接时）。 |
+| **其他服务** | 发票、客服、门店电话/地址与虚拟号、路线导航、顶部提示条。 |
+
+```
+- 退款页
+```
+
+| 大类 | 功能描述 |
+| --- | --- |
+| **退款信息展示** | 订单退款相关信息、可退金额、退款说明文案、可退商品列表（部分退时）等展示。 |
+| **退款范围与试算** | 整单退 / 部分退（勾选商品与数量）；部分退时按勾选试算本次退款金额。 |
+| **退款意愿填写** | 必选退款原因；退款说明与凭证（非极速退必填；支持文字+图片）；极速退可不填说明。 |
+| **提交与返回** | 校验后提交退款申请；返回/关闭回订单详情页，成功或「查看订单」时触发详情页刷新。 |
+
+### 1.2.4 前端技术基建
+
+| 维度/项 |  | **说明** |
+| --- | --- | --- |
+| 仓库 | 包名 | rn_meishi_ka-mop-order-detail |
+|  | 描述 | 秒提在线点到店取餐，详情页&退款页。 |
+|  | 仓库位置 | 与 [ka-mrn](https://dev.example.com/code/repo-detail/meis/ka-mrn/file/list) 同仓，目录 ka-mop-order-detail。 |
+|  | 构建产物 | 主包 kaMopOrderDetail，退款包 kaMopRefundSubmit； |
+| 基建配置配置 | 构建 | max-app build --config build.js；开发 max-app start / mrn start。 |
+|  | 多端 | MAX_TARGET_ENV=mrn/web/wechat-miniprogram，BUILD_PAGE=orderdeatil/refund 区分详情与退款页。 |
+|  | 依赖 | pnpm，依赖 @meishi/ka-mop-base、@meishi/ka-mop-common-component、@hfe/max-*、@max/leez-*、@mrn/* 等；鸿蒙见 oh-package.json。 |
+| MRN/预加载 | mrn.config.js | name=ka-mop-order-detail，biz=meishi，bundleType 1，bundleDependencies：@mrn/mrn-base；fonts 合并 common-component 与 leez-icon；assets 预加载可按需开启（如 pn/mrn_prefetch_trade_detail_query.json）。 |
+|  | index 入口 | AppRegistry.registerComponent('kaMopOrderDetail', () => App)，AppRegistry.registerComponent('kaMopRefundSubmit', () => NewRefund)。 |
+| 埋点 | 页面 CID | c_meishi_em69tttj（订单详情页）；退款页 REFUND_CID：c_meishi_iha9g0gh。 |
+|  | PV/PD | - pvReport(CID, { valLab: { poi_id, order_id, custom: { source, status } }, pageInfoKey }) |
+
+```
+- disappearReport(CID, { pageInfoKey }) |
+```
+
+|  | 页面耗时 | 	- PAGE_DURATION_METRIC.didMount
+- PAGE_DURATION_METRIC.loadData
+- autoReporter.pageDuration(metric, pageCreateTime) |
+|  | 接口监控 | METRIC.getOrderDetail、METRIC.cancelOrder、METRIC.getPayParams 等（utils/owl.ts），与 request 的 metricKey 一致。 |
+|  | 需求埋点 | 	- 埋点方案 [https://ocean.example.com/config/#/demand/program/edit?flowId=31666&action=detail](https://ocean.example.com/config/#/demand/program/edit?flowId=31666&action=detail)
+- 用户发起退款-新增页面 埋点方案 [https://ocean.example.com/config/#/demand/program/edit?flowId=39499&action=detail](https://ocean.example.com/config/#/demand/program/edit?flowId=39499&action=detail)
+- 火车站需求 [https://ocean.example.com/config/#/demand/task?taskId=70046](https://ocean.example.com/config/#/demand/task?taskId=70046)
+- 部分退需求 埋点方案 [https://ocean.example.com/config/#/demand/program/edit?flowId=63434&action=detail](https://ocean.example.com/config/#/demand/program/edit?flowId=63434&action=detail) |
+
+### 1.3 关注哪些指标
+
+### 1.3.1 业务指标
+
+大盘指标：[订详页](https://ocean.example.com/config/#/page/detail?id=42202443&channelId=28&tabName=page)，[退款页](https://ocean.example.com/config/#/page/detail?channelId=28&tabName=page&id=42314708)
+
+### 1.3.2 技术指标
+
+| 指标名称 | 基线 | 查看方式 |
+| --- | --- | --- |
+| 页面JSError率 | <= 0.2‰ | [raptor](https://raptor.mws.example.com/frontend/error/list?type=datetimerange&projectId=14455&webVersion=all&metric=TP90&speedPoint=11,16,18,25&singleSpeedPoint=16&isPerfInMp=false&perfBundleId=3763&dyeingId=&requestTypes=all&errorListCurrentPage=1&errorChartTab=errorrate) |
+| 页面请求成功率 | >= 99.9% | [raptor](https://raptor.mws.example.com/frontend/request/trend?type=datetimerange&projectId=14455&webVersion=all&metric=TP90&speedPoint=11,16,18,25&singleSpeedPoint=16&isPerfInMp=false&perfBundleId=3763&dyeingId=&requestTypes=all) |
+| 秒开率 |  | [raptor](https://raptor.mws.example.com/ffp/index?shortId=NoZwu1owh) |
+
+## 二. 页面路由参数
+
+```
+- 订单详情页
+```
+
+由宿主（订单中心、提单成功跳转、Push/短信/场景卡片等）通过 MRN/Web 打开，传入下表参数；对应类型见 `src/pages/types/index.ts` 之 `IPageProps`、`EPageSource`。
+
+| 字段 | 是否必填 | 说明 |
+| --- | --- | --- |
+| orderId | 是 | 订单 ID，用于 trade/detail/query 查询详情 |
+| source | 是 | 来源枚举（EPageSource）：10 提单、20 订单中心、30 Push、40 短信、50 场景卡片、99 其他 |
+| dishSource | 否 | 点餐来源，与提单/首页一致 |
+| rootTag | 否 | 容器标识，MRN 下用于生命周期与 Pike、关页等 |
+| _referer | 否 | 来源页，用于埋点 |
+| mrn_page_create_time | 否 | 页面创建时间，用于耗时统计（如 PAGE_DURATION_METRIC） |
+
+```
+- 退款页
+```
+
+由**订单详情页**通过 `getOrderRefundUrl({ orderId, brandId, poiId, poiIdEncrypt })` 生成 URL 并 `openUrl` 打开；入参用于 refund/query、refund/trial、applyRefund 及返回时发布 refreshOrder。对应类型见 `src/pages/types/refund.ts` 之 `IPageProps`。
+
+| 字段 | 是否必填 | 说明 |
+| --- | --- | --- |
+| orderId | 是 | 订单 ID，查询退款详情与提交退款 |
+| brandId | 是 | 品牌 ID，请求与埋点 |
+| poiId | 是 | 门店 ID（shopId），请求与埋点 |
+| rootTag | 否 | 容器标识，Web/鸿蒙下返回与 refreshOrder 等 |
+| 注：poiIdEncrypt、rootTag 等是否出现在 URL 中由 `getOrderRefundUrl`（@meishi/ka-mop-base）实现决定；页面侧以 `IPageProps` 为准。 |  |  |
+
+## 三. 模块整理
+
+### 3.1 页面组件结构
+
+| 图示 | 组件 |  |
+| --- | --- | --- |
+|  | ① **导航栏** |  |
+| 左上返回、页面标题、右上客服入口。 |  |  |
+| → 组件：`Nav` |  |  |
+| → 路径：`src/pages/components/Nav/index.tsx`（MRN 用 NavMRN.tsx，Web 用 NavWeb.tsx） | ② **顶部提示条** |  |
+| 故障/秋奶等运营文案轮播，可点击查看详情。 |  |  |
+| → 组件：`TopTipSlider` |  |  |
+| → 路径：`src/pages/components/TopTipSlider/index.tsx` |  |  |
+|  | ③ **订单状态区** |  |
+| 订单状态主文案、状态详情/预计取餐时间（含 JSON 解析时的排号与分钟数）、剩余支付时间（待付款时）、刷新图标（orderPrepareTime 下发 orderStatusRefresh 时）、退款态时的「查看详情」/「查看退款进度」。 |  |  |
+| → 组件：`Status`（含 RestPayTime） |  |  |
+| → 路径：`src/pages/components/Status/index.tsx` | ④ **取餐提示轮播** |  |
+| 预约取餐提醒等多行文案轮播（pickupReserveTipMsg 有值且订单未完成时展示）。 |  |  |
+| → 组件：OrderDetail 内 `Slider` + `LTip` |  |  |
+| → 路径：`src/pages/components/OrderDetail/index.tsx` |  |  |
+|  | ⑤ **取餐/预约提示（含极速退款说明）** |  |
+| 自提指引、预约说明等；当 tipList 中某项 name 含「极速退款」时，展示极速退款说明/入口（图标与申请退款点击）。 |  |  |
+| → 组件：`TipsInfo` |  |  |
+| → 路径：`src/pages/components/Detail/TipsInfo/index.tsx` | ⑥ **门店信息** |  |
+| 门店名称、地址、到店取/路线导航、电话（含虚拟号入口）、取餐码/取餐口令展示。 |  |  |
+| → 组件：`PoiItem` |  |  |
+| → 路径：`src/pages/components/PoiItem/index.tsx` |  |  |
+|  | ⑦ **活动区** |  |
+| 活动 Banner、抽奖入口等（orderDetailActivityVOList）。 |  |  |
+| → 组件：`ActivitySlider`（ActivityBanner、ActivityLottery） |  |  |
+| → 路径：`src/pages/components/Detail/ActivitySlider/index.tsx` | ⑧ **商品与优惠** |  |
+| 商品列表（SKU/套餐/团购券）、加价项、优惠明细（券/立减/支付优惠/星星）、餐具等；商品行内为单品图、名、规格、价格、数量、配料/加价。 |  |  |
+| → 组件：`OrderContent`（内含 GoodsItem、Promotion 等） |  |  |
+| → 路径：`src/pages/components/OrderContent/index.tsx`，商品行 `src/pages/components/GoodsItem/index.tsx`（InnerSkuContent、PremiumContent） |  |  |
+|  | ⑨ **订单信息** |  |
+| 美团订单号、品牌订单号、付款方式、手机号、备注、就餐方式、下单时间、付款时间、餐具份数、会员星星（星巴克）、申请发票、开票提示等。 |  |  |
+| → 组件：`OrderInfo`（含 StarLine） |  |  |
+| → 路径：`src/pages/components/OrderInfo/index.tsx` | ⑩ **错店取餐** |  |
+| 星巴克且待取餐时展示，可操作「已在其他门店取单」。 |  |  |
+| → 组件：`TakeFromOtherStore` |  |  |
+| → 路径：`src/pages/components/TakeFromOtherStore/index.tsx` |  |  |
+|  | ⑪ **会员成长值** |  |
+| 有 memberGrowthValueViewData 时展示会员成长值区块。 |  |  |
+| → 组件：`MemberGrowthValueAlone` |  |  |
+| → 路径：`@hfe/member-growth-value-alone`，在 Detail 内使用 | ⑫ **底部操作区** |  |
+| 去支付 / 取消订单 / 修改预约时间 / 确认取单 / 申请退款 / 更多 / 再来一单 / 评价等按钮，按订单状态与主题配置展示。 |  |  |
+| → 组件：`BottomArea`（IButton） |  |  |
+| → 路径：`src/pages/components/BottomArea/index.tsx` | 按钮文案 | 展示条件 |
+| --- | --- | --- |
+| **取消订单** | 满足下列**任一**即展示：① 待付款；② 待接单且支持取消 | ① showCancelBtnStatus：待付款(TO_PAY)②showToReceiptCancelBtnStatus：待接单(TO_RECEIPT) |
+| **去评价** | 订单带有评价链接 | 无（与订单状态无关） |
+| **更多** | 订单状态在「更多」允许的状态内 **且** 当前允许展示退款相关能力 | showMoreBtnStatus：预约成功(BOOK_SUCCESS)、待取餐(TO_DELIVER) |
+| **申请退款** | 订单状态在「申请退款」允许的状态内 **且** 当前允许展示退款相关能力 | showRefundBtnStatus：制作中(MAKING)、已完成(FINISHED)、待制作(WAIT_MAKING)、待取餐(TO_DELIVER) |
+| **修改预约时间** | 支持修改预约 **且** 当前为预约成功 | showChangeTimeBtnStatus：预约成功(BOOK_SUCCESS) |
+| **确认取单** | 当前为待取餐 | showConfirmBtnStatus：待取餐(TO_DELIVER) |
+| **去支付** | 当前为待付款 | showPayBtnStatus：待付款(TO_PAY) |
+| **再来一单** | 订单支持「再来一单」 **且** 状态在允许范围内 | showReorderBtnStatus：已取消、已关闭、制作中、预约成功、预约修改中、已完成、退款中/失败/成功、待取餐、退款审核中、待接单取消并退款 |
+| 浮层（按需弹出，覆盖在页面之上） | **修改预约时间选择器** |  |
+| 选择「即刻取单」或「预约取单」及具体时段（仅预约单且未改过时间时）。 |  |  |
+| → 组件：`PickupSlotSelectorWithReport` |  |  |
+| → 路径：common-component，在 `src/pages/index.tsx` 使用 | **友好提示弹窗** |  |
+| 点击顶部提示条后展示的详情文案。 |  |  |
+| → 组件：`AnnounceModal` |  |  |
+| → 路径：`src/pages/components/AnnounceModal/index.tsx` |  |  |
+|  | **电话拨打/****虚拟号** |  |
+| 点击门店电话时，号码保护与虚拟号展示弹窗（入口在 PoiItem，弹窗在 Detail 内）。 |  |  |
+| → 组件：`PhoneCallModal` |  |  |
+| → 路径：`src/pages/components/PhoneCall/index.tsx`（Detail 内挂载，PoiItem 通过 Context 触发） | **路线指引** |  |
+| 部分场景（如火车站）的路线引导浮层。 |  |  |
+| → 组件：`RouteGuide` |  |  |
+| → 路径：`@meishi/ka-mop-common-component`，在 `src/pages/index.tsx` 使用 |  |  |
+|  | **退款引导浮层** |  |
+| 有商家联系方式时，申请退款先出「联系商家 / 在线退款」引导。 |  |  |
+| → 组件：`RefundSlideModal` |  |  |
+| → 路径：`src/pages/components/RefundSlideModal/index.tsx` |  |  |
+| 图示 | 组件 |  |
+| --- | --- |  |
+|  | ① **导航栏** |  |
+| 左上返回、页面标题「申请退款」。 |  |  |
+| → 组件：`NavigationBar + Text（Leez 组件)` |  |  |
+| → 路径：`src/pages/newRefund/index.tsx` |  |  |
+|  | ② **极速退款 Banner** |  |
+| 极速退款时展示「可不填说明」等文案。 |  |  |
+| → 组件：`FastRefundBanner` |  |  |
+| → 路径：`src/pages/newRefund/components/FastRefundBanner/index.tsx` |  |  |
+|  | ③ **部分退款商品列表** |  |
+| 部分退时展示可退商品列表，支持勾选商品与数量，含「？」说明入口。 |  |  |
+| → 组件：`RefundProductList（含 RefundProductItem)` |  |  |
+| → 路径：`src/pages/newRefund/components/PartialRefundGoodsList/index.tsx` |  |  |
+|  | ④ **退款基础信息** |  |
+| 部分退时展示可退商品列表，支持勾选商品与数量，含「？」说明入口。 |  |  |
+| → 组件：`RefundProductList（含 RefundProductItem)` |  |  |
+| → 路径：`src/pages/newRefund/components/PartialRefundGoodsList/index.tsx` |  |  |
+|  | ⑤ **退款原因选择** |  |
+| 展示已选退款原因，点击打开原因选择弹窗。 |  |  |
+| → 组件：`RefundReasonSelector` |  |  |
+| → 路径：`src/pages/newRefund/components/RefundReasonSelector/index.tsx` |  |  |
+|  | ⑥ **退款说明与凭证** |  |
+| 多行输入退款说明，支持图片凭证上传。 |  |  |
+| → 组件：`RefundDescriptionInput（含 KeyBoardTextArea、ImageUpload）` |  |  |
+| → 路径：`src/pages/newRefund/components/RefundDescriptionInput/index.tsx` |  |  |
+|  | ⑦ **底部操作区**提交按钮、底部提示（试算金额、说明等）。 |  |
+| → 组件：`BottomActionArea` |  |  |
+| → 路径：`src/pages/newRefund/components/BottomActionArea/index.tsx` |  |  |
+| 浮层（按需弹出） | ⑧ **退款原因弹窗** |  |
+| 从 refundSelectReasonListForFront 中选择退款原因。 |  |  |
+| → 组件：`ReasonModal` |  |  |
+| → 路径：`src/pages/newRefund/components/ReasonModal/index.tsx` |  |  |
+|  | ⑨ **提交结果弹窗** |  |
+| 提交失败时展示「查看订单」或「确认」。 |  |  |
+| → 组件：`ComfirmDialog` |  |  |
+| → 路径：`src/pages/newRefund/components/ComfirmDialog/index.tsx` |  |  |
+|  | ⑩ **退款说明弹窗** |  |
+| 展示 refundDescription（HTML）或默认说明文案。 |  |  |
+| → 组件：`RefundInstructionsModal` |  |  |
+| → 路径：`src/pages/newRefund/components/RefundInstructionsModal/index.tsx` |  |  |
+
+### 3.2 上下游依赖
+
+### 3.2.1 订单详情页 — 上游
+
+| 特殊处理 | 上游 | 作用 |
+| --- | --- | --- |
+| 路由/入参 orderId、source、dishSource、rootTag 等 | 提单页 | 下单成功后跳转详情，source=SUBMIT；详情页 didMount 时若 source=SUBMIT 会发布关购物车事件（KA_MOP_SHOPPING_CART_CLOSE），关闭前置购物车；再来一单时若 source=SUBMIT 会先发布关购物车、关首页（KA_MOP_HOME_CLOSE）再打开秒提首页 |
+|  | 订单中心、我的订单 | 从订单列表进入，source=ORDER_CENTER |
+|  | Push、短信、场景卡片 | source=PUSH、MESSAGE、SCENE_CARD |
+| GetThemeConfig(shopId, componentTypes) | 主题/品牌配置 | 拉取品牌色、hasRefund、hasCancelOrder、refundDisableStatus、hasChangeBookTime 等，决定底部按钮与能力展示 |
+| getHornConfig | Horn | Pike/轮询开关与轮询间隔 |
+| getUserInfo 未登录跳转 | 登录页 | 未登录时跳转登录 |
+
+### 3.2.2 订单详情页 — 下游
+
+| 特殊处理 | 下游 | 作用 |
+| --- | --- | --- |
+| getPayParams → goToCashier | 收银台 | 去支付；支付结果依赖收银台回调或用户返回后轮询 |
+| getOrderRefundUrl 拼链 + openUrl；打开前 KNBProxyToMSI.subscribe(refreshOrder) | 退款提交页（newRefund） | 申请退款打开退款页；退款页关页或提交成功后发布 refreshOrder，详情页 loadData 刷新 |
+| openUrl / publishMsg 关购物车、关首页 | 秒提首页（ka-mop-home） | 再来一单跳转 |
+
+### 3.2.3 退款页 — 上游
+
+| 特殊处理 | 上游 | 作用 |
+| --- | --- | --- |
+| URL 入参 orderId、brandId、poiId、rootTag（由详情页 getOrderRefundUrl 拼链、openUrl 打开） | 订单详情页 | 提供订单与门店标识，供 refund/query 请求及关页时发布 refreshOrder |
+
+### 3.2.4 退款页 — 下游
+
+| 特殊处理 | 下游 | 作用 |
+| --- | --- | --- |
+| publishMsg(KNB_ACTION_REFRESH_ORDER) + pageRouterClose（或 Web/鸿蒙下 msi.publish + msi.closePage） | 订单详情页 | 关页或提交成功后通知详情页执行 loadData，刷新订单与退款状态 |
+
+## 四. 数据
+
+### 4.1 核心接口列表
+
+```
+- 订单详情页
+```
+
+| 接口 | 接口描述 | 调用场景 |
+| --- | --- | --- |
+| **/mop/api/trade/detail/query** | 查询订单详情 | 首查、下拉刷新、按钮刷新、轮询、Pike 推送；入参含 orderId、queryScene（10/20/30/40/50），返回订单状态、商品、门店、取餐码、退款信息等 |
+| **/mop/api/trade/close** | 待支付取消订单 | 用户点击「取消订单」且订单为待支付时，关闭订单 |
+| **/mop/api/trade/cancel** | 待接单取消订单 | 用户点击「取消订单」且订单为待接单时，取消并退款（支持同步/异步） |
+| **/mop/api/trade/submitPayment** | 获取支付参数 | 用户点击「去支付」时，获取 payToken、tradeNo 等，用于调起收银台 |
+| **/mop/api/trade/consume** | 确认取单 | 用户点击「确认取单」时，支持本店/错店取餐（takenInDiffPoi） |
+| **/mop/api/trade/modify** | 修改订单 | 修改预约时间或预约转即时；入参 orderModifyType、takeTime |
+| **/mop/api/shop/reserveTimes** | 门店可预约时间段 | 点击「修改预约时间」时拉取可选时段（reservePeriods），用于时间选择器 |
+| **/mop/api/privacy/useVirtualMobile** | 是否使用虚拟号 | 点击门店电话前，查询是否启用号码保护 |
+| **/mop/api/privacy/queryVirtualMobile** | 查询/获取虚拟号 | 点击拨打门店电话时，获取虚拟号或拨打号 |
+| **/mop/api/trade/invoice/support** | 是否支持开票 | 点击「发票」前，查询当前订单是否支持开票（如麦当劳等） |
+
+```
+- 退款页
+```
+
+| 接口 | 接口描述 | 调用场景 |
+| --- | --- | --- |
+| **/mop/api/trade/refund/query** | 查询退款页详情 | 进入退款页时拉取：是否支持部分退、可退商品列表、退款原因列表、极速退标识、退款说明文案等，用于渲染表单与校验规则 |
+| **/mop/api/trade/refund/trial** | 退款试算 | 部分退时，根据当前勾选商品与数量试算本次退款金额（现金、券等），用于展示「本次退款 ¥xx」及提交时校验 |
+| **/mop/api/trade/applyRefund** | 提交退款申请 | 用户点击「提交」时，提交退款原因、说明、凭证图、部分退时的 refundDetail 与 refundTrial，订单进入退款中/待审核 |
+
+### 4.2 主接口数据结构
+
+```jsx
+**一、顶层响应壳**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| code | number | 200 成功，其他见 ResultCode（如 10007 限流） |
+| msg | string | 提示信息 |
+| data | IDetail | 订单详情对象，见下 |
+
+**二、data（IDetail）字段一览**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| orderId | string | 是 | 订单 ID |
+| vendorOrderId | string | 否 | 如 XBK 订单 ID |
+| orderType | number | 是 | 1 实时单 2 预约单（EOrderType） |
+| orderStatus | number | 是 | 1~16（EOrderStatus：待付款/待接单/制作中/待取餐/已完成等） |
+| orderStatusDesc | string | 是 | 状态文案，如「待取餐」 |
+| orderStatusDetails | string | 是 | 状态详情文案 |
+| orderPrepareTime | string | 是 | 预计取餐时间等展示文案 |
+| orderModifyType | number | 是 | 预约修改类型（EModifyType） |
+| takeTime | string | 否 | 取餐时间，linux 时间戳 |
+| takeMark | string | 否 | 取餐二维码内容，用于生成二维码 |
+| takeCommand | string | 否 | 取餐口令 |
+| takeCommandStatus | boolean | 是 | 取单口令是否过审 |
+| takeCPlatformmmand | string | 否 | 取单口令（兼容字段） |
+| isTakeCommandModulePreLoading | boolean | 是 | 取餐码模块是否预加载中 |
+| pickupGuideText | string | 否 | 取餐引导文案 |
+| pickupGuideImage | string | 否 | 取餐引导图片地址 |
+| pickupReserveTipMsg | string | 否 | 预约取餐提醒，多行用 \\n 分隔 |
+| packageProduct | boolean | 是 | 订单是否打包 |
+| totalPrice | number | 是 | 原价 |
+| payPrice | number | 是 | 实付（仅除去收银台支付优惠） |
+| cashierPayPrice | number | 是 | 收银台真实支付价格 |
+| totalDiscountPrice | number | 是 | 优惠总金额 |
+| restPayTime | number | 否 | 剩余支付时间，单位秒（待支付等） |
+| orderTime | string | 是 | 下单时间 |
+| payTime | string | 否 | 支付时间 |
+| merchantConfirmTime | string | 否 | 接单/拒单时间 |
+| modified | boolean | 是 | 订单是否修改过（如预约时间仅可改一次） |
+| takenInDiffPoi | boolean | 否 | 是否错店取餐 |
+| shop | IShop | 是 | 门店信息，见「三、IShop」 |
+| skuList | ISkuItem[] | 否 | SKU 列表，orderItemType=10 |
+| comboList | IComboItem[] | 否 | 套餐列表，orderItemType=20 |
+| dealList | IDealItem[] | 否 | 团购券列表，orderItemType=30 |
+| orderDetailTablewareVO | ITableware | 否 | 餐具信息 |
+| discountList | OrderDiscountVO[] | 否 | 营销抵扣列表（iconType、count、price） |
+| payment | IOrderPaymentInfo | 是 | 支付与优惠分摊，见「四、IOrderPaymentInfo」 |
+| orderMember | IMemberDTO | 否 | 订单会员/星星信息 |
+| magicalMemberInfo | object | 否 | 神会员支付信息 |
+| magicalMemberViewData | any | 是 | 神会员展示数据 |
+| memberGrowthValueViewData | any | 是 | 会员成长值展示数据 |
+| remark | string | 否 | 订单备注 |
+| userMobile | string | 否 | 用户手机号 |
+| refundRejected | boolean | 是 | 是否有被商家拒绝过的退款 |
+| refund | I_RefundRecord | 否 | 当前退款记录 |
+| refundList | I_RefundRecord[] | 否 | 退款记录列表 |
+| refundRecordList | I_RefundRecord[] | 否 | 已申请的部分退明细 |
+| refundGuideInfo | object | 是 | 退款浮层配置，见「五、refundGuideInfo」 |
+| showCancelButton | boolean | 否 | 是否展示取消订单按钮（如次日不展示） |
+| hasOneMoreOrder | boolean | 否 | 是否展示再来一单 |
+| isConsumeOrder | boolean | 否 | 是否是自核 |
+| hasMobileNo | boolean | 是 | 下单所在门店是否有手机号 |
+| hasTakeTime | boolean | 否 | 是否展示取餐时间 |
+| showRefund | boolean | 是 | 是否展示退款（今日+非星巴克等逻辑） |
+| isStairDeal | boolean | 是 | 是否阶梯次卡订单 |
+| isSupportRefund | boolean | 是 | 是否支持退款 |
+| needDoubleConfirm | boolean | 是 | 发票等是否需二次确认 |
+| invoiceValid | boolean | 是 | 发票是否有效 |
+| invoiceRemind | string | 是 | 发票提醒文案 |
+| invoiceUrl | string | 否 | 发票链接 |
+| ugcUrl | string | 否 | 评价链接 |
+| customerUrl | string | 是 | 客服链接 |
+| tipList | ITip[] | 否 | 提示条，name、position、buttonType |
+| fulfillmentInfo | FulfillmentChoice | 否 | 履约选择，title、desc |
+| guide | ShopGuide | 是 | 路线指引等（来自 common-component 类型） |
+| orderCombineType | number | 否 | 组合订单类型（E_OrderCombineType） |
+| activityBanner | object | 否 | 活动 banner（picAddress、linkAddress），前端已逐步不用 |
+| orderDetailActivityVOList | OrderDetailActivityVO[] | 否 | 活动列表，见「六、OrderDetailActivityVO」 |
+| essentialDishVO | object | 否 | 必选菜信息（essentialSpuName、essentialContent） |
+
+**三、IShop 门店对象字段表**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| shopId | string | 门店 ID |
+| shopIdEncrypt | string | 门店 ID 加密 |
+| brandId | string | 品牌 ID |
+| brandName | string | 品牌名称 |
+| shopName | string | 门店名称 |
+| shopAddressDesc | string | 门店地址描述 |
+| shopAddressLongitude | string | 经度 |
+| shopAddressLatitude | string | 纬度 |
+| mobileNo | string | 否，门店电话 |
+| productBackgroundPicture | string | 否，商品底图 |
+| prepareTimeLoopTips | string[] | 否，轮播提示文案 |
+
+**四、支付信息及 IOrderDetailDiscountVO**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| totalPrice | string | 总价 |
+| payPrice | string | 实付总价 |
+| payDiscount | string | 否，支付折扣 |
+| orderDiscount | IOrderDetailDiscountVO[] | 订单优惠分摊 |
+| paymentName | string | 付款方式名称 |
+| paymentUrl | string | 跳转金融账单页链接 |
+
+IOrderDetailDiscountVO：type、typeText、price、promotionTag、title、date?。
+
+**五、refundGuideInfo 退款浮层配置各字段**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| refundTitle | string | 退款标题 |
+| refundSecondTitle | string | 退款二级标题 |
+| refundBrandTel | string | 退款品牌电话 |
+| isSupportUserRefund | boolean | 是否支持用户自助退款 |
+| leftButtonText | string | 左侧按钮文案（如联系商家） |
+| leftButtonTopText | string | 左侧按钮右上角文案 |
+| rightButtonText | string | 右侧按钮文案（如在线退款） |
+| rightButtonTopText | string | 右侧按钮右上角文案 |
+
+**六、OrderDetailActivityVO 活动区（Banner / 抽奖）结构**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| activityType | number | 1 Banner 2 抽奖（ACTIVITY_TYPE） |
+| activityBanner | object | 否，picAddress、linkAddress |
+| activityLottery | object | 否，lotteryTitle、lotteryText、buttonMsg、lotteryUrl、lotteryId、lotteryModal 等 |
+
+**七、商品项简表**
+
+| 类型 | 说明 | 主要字段 |
+|------|------|----------|
+| ISkuItem | SKU，orderItemType=10 | rank、spuId、skuId、spuName、skuName、spuImage、count、totalPrice、skuPrice、payPrice、hasPromotion、premiumList、tag |
+| IComboItem | 套餐，orderItemType=20 | rank、comboName、comboImage、totalPrice、payPrice、count、skuList: IComboSku[]、tag |
+| IDealItem | 团购券，orderItemType=30 | rank、dealName、dealImage、count、originalPrice、payPrice、skuList: IComboSku[]、tag |
+| IComboSku | 套餐/团购内 SKU | spuId、skuId、spuName、skuName、spuImage、count、totalPrice、skuPrice、premiumList |
+| SkuPremium | 配料/加价项 | premiumName、count、payPrice、unit? |
+| ITag | 商品标签 | type、name、icon、showTag |
+
+**八、其他嵌套类型**
+
+| 类型 | 说明 |
+|------|------|
+| ITableware | count、price、tablewareWithFee、productWithTableware |
+| IMemberDTO | increaseStarNum、speedIncreaseStarNum、memberFlag、speedIncreaseStarType |
+| OrderDiscountVO | iconType（E_DiscountType）、count、price |
+| I_RefundRecord | productName、refundStatus、tradeNo、refundNo、applyTime、amount、planRefundTime 等 |
+| ITip | name、position、buttonType |
+| FulfillmentChoice | title、desc |
+```
+
+```jsx
+**一、顶层响应壳**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| code | number | 200 成功，其他见 ResultCode |
+| msg | string | 提示信息 |
+| data | DetailResponse | 退款详情对象，见下 |
+
+**二、data（DetailResponse）字段一览**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| orderId | string | 是 | 订单 ID |
+| orderStatus | number | 是 | 订单状态（OrderStatus：1~13，如待取餐/已完成等） |
+| totalPrice | number | 是 | 订单总价 |
+| payPrice | number | 是 | 订单实付 |
+| discountPrice | number | 是 | 优惠金额 |
+| isPartRefund | boolean | 是 | 是否支持部分退款 |
+| isInstantRefund | boolean | 是 | 是否极速退款（可不填退款说明） |
+| dealTotalCount | number | 是 | 团购券总数量等统计 |
+| refundDescription | string | 否 | 退款说明 HTML，用于退款说明弹窗展示 |
+| refundReason | string | 否 | 已选/默认退款原因等 |
+| refundDetail | RefundDetailVO | 否 | 可退商品明细（部分退时与 skuList/comboList/dealList 配合） |
+| skuList | ISkuItem[] | 否 | 可退 SKU 列表，部分退时展示勾选 |
+| comboList | IComboItem[] | 否 | 可退套餐列表 |
+| dealList | IDealItem[] | 否 | 可退团购券列表 |
+| refundSelectReasonListForFront | Array<{ code, text }> | 是 | 退款原因列表，弹窗选项；code 为原因码，text 为展示文案 |
+| tipList | ITip[] | 是 | 提示条，含 position（如 bottom）等，用于底部提示等 |
+
+**三、RefundDetailVO（可退商品维度）**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| skuList | ISkuItem[] | 否，本次可退 SKU |
+| comboList | IComboItem[] | 否，本次可退套餐 |
+| dealList | IDealItem[] | 否，本次可退团购券 |
+
+用于部分退时提交的退款范围；与 DetailResponse 顶层的 skuList/comboList/dealList 区别在于：顶层为「可退商品列表」展示与勾选，refundDetail 为提交时选中的维度。
+
+**四、退款原因项**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| code | number | 原因码，提交时回传 |
+| text | string | 前端展示文案 |
+```
+
+## 五. 核心流程
+
+### 5.1 订单详情页核心流程
+
+### 5.1.1 数据流
+
+订单详情页以「进入 → 拉取订单详情 → 主题配置 → 展示 → 轮询/Pike/刷新 → 用户操作与下游」为主线；数据由 trade/detail/query 响应与 GetThemeConfig 驱动，页面 state（data、contextConfig、isShowBottom）与 constants 中状态枚举共同决定各区块与底部按钮展示，非终态通过轮询或 Pike 更新，与退款页/收银台通过 refreshOrder、loadData 协作。
+**1. 进入页面**
+进入页 → 登录校验（getUserInfo，未登录 goToLogin）→ 并行 loadData(QUERY_SCENE.FIRST_QUERY)、getHornConfig()。
+**2. 拉取订单详情**
+getOrderDetail(brandId, queryScene) 请求 trade/detail/query，返回 data/code。首查且 code === ResultCode.RATE_LIMIT 则展示限流页；否则继续。
+**3. 主题与展示**
+成功后拉 GetThemeConfig(shopId, componentTypes)，dealThemeConfig 合并写入 contextConfig。setState({ data, contextConfig, isShowBottom, isError: !data, isLoading: false })；子组件按 data 与 contextConfig 渲染。
+**4. ****轮询与 Pike**
+非终态且页面可见时按 Horn 的 pollingTime 或默认 5s 轮询 loadData(POLLING_REFRESH)；不可见时清除定时器，再次可见且 needContinuePoll 时执行一次轮询后置 false。getHornConfig 若开启 Pike 则 initPike + startPike，handlePikeData 收到 orderId 一致推送时执行 loadData(PIKE_QUERY)，页面卸载 releasePike。
+**5. 下拉与按钮刷新**
+下拉刷新、订单状态区刷新按钮分别触发 loadData(PULL_TO_REFRESH)、loadData(BUTTON_TO_REFRESH)。
+**6. 终态与停止轮询**
+订单为 finalStatus（已取消/已关闭/已完成/退款成功或失败/待接单取消并退款）时不再轮询。
+**7. 从退款页返回**
+收到 refreshOrder 或 onPageShow 时执行 loadData，保证详情与退款状态最新。
+
+### 5.1.2 状态与操作流（展示与互斥）
+
+```
+- **订单状态**：EOrderStatus 枚举（待付款 TO_PAY、待接单 TO_RECEIPT、待制作 WAIT_MAKING、制作中 MAKING、预约成功 BOOK_SUCCESS、预约修改中 MODIFYING、待取餐 TO_DELIVER、已完成 FINISHED、退款中/待审核/成功/失败、已取消 CANCELED、已关闭 CLOSED、待接单取消并退款 DELIVERING_CANCEL_REFUND 等）。
+- **终态**：finalStatus 含 CANCELED、CLOSED、FINISHED、REFUND_FAIL、REFUND_SUCCESS、DELIVERING_CANCEL_REFUND；终态不再轮询。
+- **底部按钮与状态**：由 constants 中 showCancelBtnStatus、showToReceiptCancelBtnStatus、showPayBtnStatus、showRefundBtnStatus、showChangeTimeBtnStatus、showConfirmBtnStatus、showMoreBtnStatus 等与 contextConfig（hasRefund、hasCancelOrder、refundDisableStatus、hasChangeBookTime）共同决定；例如仅 TO_PAY 展示去支付，仅 TO_RECEIPT 可待接单取消，仅 BOOK_SUCCESS 可修改预约时间（且 order.modified 为 false），仅 TO_DELIVER 可确认取单。
+- **取餐码/口令、剩余支付时间**：由 showTakeCommandStatus、showPayTimeStatus 等与 order 字段控制展示。
+```
+
+### 5.1.3 轮询与推送
+
+```
+- **轮询**：非终态且页面可见时，按 Horn 下发的 pollingTime 或默认 5s 调用 `loadData(QUERY_SCENE.POLLING_REFRESH)`；Web 端固定 5s。
+- **Pike**：getHornConfig 若开启 Pike，则 initPike + startPike；handlePikeData 收到推送且 orderId 与当前订单一致时执行一次 `loadData(QUERY_SCENE.PIKE_QUERY)`；页面卸载时 releasePike。
+- **页面可见性**：containerViewDidAppear / containerViewDidDisappear 控制 needContinuePoll；再次可见时若 needContinuePoll 为 true 则执行一次 loadData(POLLING_REFRESH) 后将其置为 false。
+```
+
+### 5.1.4 特殊业务逻辑注意
+
+```
+- **待接单取消**：接口返回 brandChannel=200 表示异步取消，前端轮询最多 3 次（约 1s 间隔），直至订单状态变为已取消或提示取消失败；CancelOrderCode.RECEIPT_ERROR(10121) 时提示“商家已接单，如仍需取消请申请退款”。
+- **预约时间**：仅可修改一次（order.modified 为 true 后不可再改）；getAvailableTime 请求 shop/reserveTimes，前端仅使用 reservePeriods 中 enabled 为 true 的时段。
+- **阶梯次卡**：isStairDeal 且 !isSupportRefund 时不允许退款，Toast 提示。
+- **退款引导**：order.hasMobileNo 时先出 RefundSlideModal，用户可选联系商家或在线退款；refundGuideInfo.isSupportUserRefund 为 false 时引导拨打品牌电话。
+- **限流**：仅首查（queryScene === FIRST_QUERY）返回 ResultCode.RATE_LIMIT 时展示限流页；轮询失败保留原 data，不置为错误态。
+- **Web/从退款页返回**：Web 下 pageshow 且 persisted 或 performance.navigation.type===2 时重新 loadData；MRN 下 onPageShow 时若 hasGoneToRefund 则 reloadData 并清标记。
+```
+
+### 5.1.5 与退款页/收银台的交互
+
+```
+- **收银台**：getPayParams（trade/submitPayment）获取 payToken、tradeNo → goToCashier({ tradeNo, payToken })，部分环境需传 pay_success_url；支付结果依赖收银台回调或用户返回后轮询订单状态。
+- **退款页**：getOrderRefundUrl 生成 URL，openUrl 打开退款页前先 KNBProxyToMSI.subscribe({ action: 'refreshOrder', handle: () => this.loadData() })；退款页关闭或提交成功后 publishMsg(KNB_ACTION_REFRESH_ORDER)，详情页在 onPageShow 或订阅 handle 中执行 loadData，保证返回后数据最新。me'r
+```
+
+### 5.2 退款页核心流程
+
+### 5.2.1 数据流
+
+退款页（newRefund）以「拉取退款详情 → 渲染表单 → 部分退试算 → 校验提交 → 关页并通知详情页」为主线；数据由 URL 入参与 refund/query 响应驱动，表单状态（勾选、原因、说明、凭证）由页面 state 与 hooks 管理，与详情页通过 refreshOrder 事件协作。
+**1. 进入页面**
+详情页 getOrderRefundUrl + openUrl 打开退款页（orderId、brandId、poiId、rootTag）；usePageProps 解析入参供后续请求与关页时发布 refreshOrder 事件。
+**2. 拉取退款详情**
+useRefundData.loadData → getRefundDetail(brandId) 请求 `trade/refund/query`，返回 DetailResponse；成功 setRefundData，失败 setError 展示 NewErrorPage。data 含 isPartRefund、isInstantRefund、refundSelectReasonListForFront、可退商品列表、refundDescription、tipList 等。
+**3. 渲染与展示**
+按 refundData：极速退展示 FastRefundBanner；部分退展示 RefundProductList（勾选与数量）；RefundReasonSelector、RefundDescriptionInput（非极速退必填说明）；RefundBaseInfo、BottomActionArea；tipList position=bottom 作底部提示。
+**4. 部分退试算**
+isPartRefund 时 useRefundTrial 按 selectedRefundItems 用 buildRefundDetail 生成 RefundDetailVO，防抖请求 `trade/refund/trial`，响应展示「本次退款金额」并写入 refundTrial；提交时携带 refundTrial 做校验。
+**5. 表单校验**
+getValidationError：部分退须至少勾选一件；必选退款原因；非极速退须填说明。失败则 Toast + scrollToSection / 打开 ReasonModal，不请求接口。
+**6. 提交与结果**
+submitRefund 请求 `trade/applyRefund`，入参含原因、说明、凭证、refundDetail、refundTrial（部分退）。成功 → Toast + handleNavigateBack，详情页 refreshOrder 后 loadData；REFRESH_CODES → 弹窗「查看订单」并关页发布 refreshOrder；其他失败 → 弹窗「确认」仅关弹窗。
+**7. 关页与通知**
+handleNavigateBack：MRN 下 publishMsg(KNB_ACTION_REFRESH_ORDER) + pageRouterClose；Web/鸿蒙下 msi.publish + msi.closePage 或 navigateBack。详情页已 subscribe refreshOrder，关页或提交成功后发布，详情页 loadData 更新状态。
+
+### 5.2.2 **展示与校验规则**
+
+```
+- **整单退**：isPartRefund 为 false 时无商品勾选区，refundDetail 以接口返回的 refundDetail 或空提交。
+- **部分退**：仅支持申请一次部分退；勾选与数量变化触发防抖试算；提交时 refundDetail 为 buildRefundDetail(selectedRefundItems)，且携带 refundTrial。
+- **极速退**：isInstantRefund 为 true 时展示极速退款 Banner，可不填退款说明，仍必选退款原因。
+- **退款原因**：必选，从 refundSelectReasonListForFront 中通过 ReasonModal 选择，提交时传原因码。
+- **退款说明弹窗**：refundDescription（HTML）通过 RefundInstructionsModal 展示，与必填说明区分。
+```
+
+### 5.2.3 特殊逻辑注意
+
+```
+- **REFRESH_CODES**：提交失败且 code 属于 REFRESH_CODES（如 10125 订单状态已变化、10126 跨天无法自助退）时，弹窗按钮为「查看订单」，点击后发布 refreshOrder 并关页，引导用户回详情页查看。
+- **凭证上传**：Web 下部分环境（如鸿蒙 MSI）支持图片上传，纯 Web 可关闭；supportImageUpload 由环境决定。
+- **返回方式**：MRN 用 pageRouterClose；Web/鸿蒙可能用 navigateBack 或 msi.closePage，均需在关页前或关页时发布 **refreshOrder**，以便详情页刷新。
+```

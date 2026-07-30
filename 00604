@@ -1,0 +1,39 @@
+# 97 二维路径DP
+
+```jsx
+/**
+ * @param {string} s1
+ * @param {string} s2
+ * @param {string} s3
+ * @return {boolean}
+ */
+var isInterleave = function(s1, s2, s3) {
+    // 顺序交错 - 二维路径问题
+    const L1 = s1.length
+    const L2 = s2.length
+    if(L1+L2 !== s3.length)
+        return false
+    const f = Array.from({length: L1+1}, () => new Array(L2+1).fill(false))
+    // 初始化
+    f[0][0] = true
+    // 如果相同就状态顺延
+    for (let i = 1; i <= L1; i++) {
+        f[i][0] = f[i - 1][0] && s1[i - 1] === s3[i - 1];
+    }
+    for (let j = 1; j <= L2; j++) {
+        f[0][j] = f[0][j - 1] && s2[j - 1] === s3[j - 1];
+    }
+    
+    for(let i=1;i<L1+1;i++){
+        for(let j=1;j<L2+1;j++){
+            const curChr = s3[i+j-1]
+            // 两种可能走到这里
+            f[i][j] = 
+                f[i-1][j] && curChr===s1[i-1] ||
+                f[i][j-1] && curChr===s2[j-1]
+        }
+    }
+
+    return f[L1][L2]
+};
+```

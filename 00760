@@ -1,0 +1,27 @@
+# 3. AI 应用开发层
+
+智能体相关概念新词一波又一波，但是本质其实都是在对 输入到大模型的提示词 做文章
+
+如何让在 当前阶段的提示词 对 当前阶段工作 是最友好的
+
+[名词](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/%E5%90%8D%E8%AF%8D%203220f8d8d1fd8072be8be73dfbec0704.md)
+
+[openclaw](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/openclaw%203210f8d8d1fd8002ab6ee1225292730a.md)
+
+[SubAgent & A2A](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/SubAgent%20&%20A2A%203230f8d8d1fd80a5a8f9e18df575f03b.md)
+
+[FrontAgent](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/FrontAgent%203230f8d8d1fd802a92ffe6a7c509243d.md)
+
+[Agent集群](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/Agent%E9%9B%86%E7%BE%A4%203250f8d8d1fd80fdae2af29d83563f96.md)
+
+[claw](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/claw%203250f8d8d1fd806c916fe5ec71d31b8d.md)
+
+[claude code](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/claude%20code%203510f8d8d1fd80a6826dc8b480feced0.md)
+
+[harness](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/harness%203590f8d8d1fd80ecbcc7c1378e01d60a.md)
+
+[claude-mem](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/claude-mem%2035e0f8d8d1fd80b6864fd1a86ca4513e.md)
+
+[hermes 记忆](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/hermes%20%E8%AE%B0%E5%BF%86%2036b0f8d8d1fd80ceb7aef92a431dae53.md)
+
+[智能体循环与沙箱执行分离](3%20AI%20%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%B1%82/%E6%99%BA%E8%83%BD%E4%BD%93%E5%BE%AA%E7%8E%AF%E4%B8%8E%E6%B2%99%E7%AE%B1%E6%89%A7%E8%A1%8C%E5%88%86%E7%A6%BB%203730f8d8d1fd80beac12f12156cade49.md)

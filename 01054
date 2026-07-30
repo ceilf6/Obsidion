@@ -1,0 +1,104 @@
+# claw接入大象
+
+Source: [KM 2754365867](https://km.example.com/collabpage/2754365867)
+
+> 最新进度：
+> 
+> 
+> [https://km.example.com/collabpage/2755523545](https://km.example.com/collabpage/2755523545)
+> 
+> [image.png](https://km.example.com/api/file/cdn/2754365867/233671605218?contentType=1&isNewContent=false)
+> 
+> [image.png](https://km.example.com/api/file/cdn/2754365867/233674406128?contentType=1&isNewContent=false)
+> 
+
+本来想偷懒领一只的，但是好像我不配。。
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230462472946?contentType=1&isNewContent=false)
+
+和接入飞书一样
+
+本质都是要打通第三方应用和claw网关的通信
+
+和去 飞书开发者平台 一样去 [https://dxopen.example.com/](https://dxopen.example.com/) 大象开发者平台配置应用的
+
+[https://github.com/ceilf6/Lab/commit/1f4e69ede0b8bd82dde7e1789231954b165819a6](https://github.com/ceilf6/Lab/commit/1f4e69ede0b8bd82dde7e1789231954b165819a6)
+
+> **ℹ️ 信息：**
+> 
+> 
+> 注意更新信息发布需要审核，所以建议一口气配完再提交
+> 
+
+## 权限
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230458663777?contentType=1&isNewContent=false)
+
+> **⚠️ 警示：**
+> 
+> 
+> 注意：配置中我们只配置了mis号，但是claw需要做一次MIS→UID的转换才能鉴权，但是queryEmpIdentityByMisList这个接口是需要权限的，所以
+> 
+> [image.png](https://km.example.com/api/file/cdn/2754365867/230499916996?contentType=1&isNewContent=false)
+> 
+> 用户中权限一定要申请
+> 
+
+## WS 事件回调
+
+我这边用的是 [https://km.example.com/collabpage/2751671861](https://km.example.com/collabpage/2751671861) 作为通道所以不像飞书填自己的地址，而是填给的 com.example.catenative.dxopen
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230456437990?contentType=1&isNewContent=false)
+
+## 应用可见性
+
+注意，飞书机器人是直接关联到账号的，但是大象机器要配置可见范围
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230466601414?contentType=1&isNewContent=false)
+
+## 创建AI卡片
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230486890260?contentType=1&isNewContent=false)
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230492895301?contentType=1&isNewContent=false)
+
+## 申请资源
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230496473010?contentType=1&isNewContent=false)
+
+## 将配置拿到的信息填入配置中
+
+~/.catpaw-channel-daxiang/.env
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230457410790?contentType=1&isNewContent=false)
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230456295217?contentType=1&isNewContent=false)
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/230453489677?contentType=1&isNewContent=false)
+
+## 使用时注意事项
+
+- 例如如果通道是对接 codex ，那么不要在 codex 中打开对应对话，会导致提前终止
+- 通道是通过 state 文件管理上下文，可以通过 11 session 进行管理
+
+## 附上常用命令
+
+```
+// 代码块
+catpaw-channel-daxiang start     # 后台启动
+catpaw-channel-daxiang stop      # 停止
+catpaw-channel-daxiang status    # 查看是否在运行
+catpaw-channel-daxiang logs      # 实时查看日志（Ctrl+C 退出）
+```
+
+## 模型配置
+
+具体智能体使用的模型是看的 .claude 中的配置，可以在 cc switch 中编辑通用配置
+
+[image.png](https://km.example.com/api/file/cdn/2754365867/235386596890?contentType=1&isNewContent=false)
+
+相关文档
+
+- [https://km.example.com/collabpage/2751671861](https://km.example.com/collabpage/2751671861)
+- [https://km.example.com/collabpage/2754655398](https://km.example.com/collabpage/2754655398)
+- [https://km.example.com/collabpage/2755121698](https://km.example.com/collabpage/2755121698)

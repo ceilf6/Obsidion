@@ -1,0 +1,37 @@
+# 浏览器离线存储
+
+在前面的章节中，我们已经为大家介绍了整个浏览器的组成部分：
+
+![image-20211126131413497](https://img.wangjinghong.com/2021-11-26-051413.png)
+
+大致分为：
+
+- 用户界面（*user interface*）
+- 浏览器引擎（*browser engine*）
+- 渲染引擎（*rendering engine*）
+- 网络（*networking*）
+- *JS* 解释器（*JavaScript interpreter*）
+- 用户界面后端（*UI backend*）
+- 数据存储（*data storage*）
+
+而本章节我们就一起来看一下 *Data Persistence/storage* 这个部分，翻译成中文叫做浏览器离线存储或者本地存储。顾名思义，就是内容存储在浏览器这一边。
+
+目前常见的浏览器离线存储的方式如下：
+
+1. *Cookie*
+2. *Web Storage*
+3. *WebSQL*
+4. *IndexedDB*
+5. *File System*
+
+---
+
+[cookie](%E6%B5%8F%E8%A7%88%E5%99%A8%E7%A6%BB%E7%BA%BF%E5%AD%98%E5%82%A8/cookie%202f80f8d8d1fd8043a111d83e991783e7.md)
+
+[Storage](%E6%B5%8F%E8%A7%88%E5%99%A8%E7%A6%BB%E7%BA%BF%E5%AD%98%E5%82%A8/Storage%202f90f8d8d1fd807085e8e0ea59c08dae.md)
+
+[*IndexedDB*](%E6%B5%8F%E8%A7%88%E5%99%A8%E7%A6%BB%E7%BA%BF%E5%AD%98%E5%82%A8/IndexedDB%202f80f8d8d1fd80edaf5be3d0da48bb00.md)
+
+[File API](%E6%B5%8F%E8%A7%88%E5%99%A8%E7%A6%BB%E7%BA%BF%E5%AD%98%E5%82%A8/File%20API%202f90f8d8d1fd80eb93e3ea0f98e16386.md)
+
+[*WebSQL*](%E6%B5%8F%E8%A7%88%E5%99%A8%E7%A6%BB%E7%BA%BF%E5%AD%98%E5%82%A8/WebSQL%202f80f8d8d1fd8067b7fae3adc1cda185.md)

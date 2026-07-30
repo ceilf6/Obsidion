@@ -1,0 +1,38 @@
+# 数组作为key
+
+直接将引用数据类型作为key利用的是其引用地址
+
+所以必须得是同一个引用
+
+```tsx
+const key = [1, 2]
+
+const map = new Map()
+
+map.set(key, 'ceilf6')
+console.log(map.get([1, 2])) // undefined
+console.log(map.get(key)) // ceilf6
+```
+
+如果是想按值获取
+
+1. 用 JSON
+    
+    ```tsx
+    map.set(JSON.stringify([1, 2]), 'ceilf7')
+    console.log(map.get(JSON.stringify([1, 2]))) // ceilf7
+    ```
+    
+2. 自己拼接字符串 => hash
+    
+    ```tsx
+    const arr = [1, 2]
+    const hashKey =
+        arr.reduce((s, item) => {
+            s += new String(item) + ','
+            return s
+        }, '')
+    console.log(hashKey) // 1,2,
+    map.set(hashKey, 'ceilf8')
+    console.log(map.get(hashKey)) // ceilf8
+    ```

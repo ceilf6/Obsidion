@@ -1,0 +1,22 @@
+# AI技术认知
+
+1. 裸模型
+    
+    GPT, Kimi, GLM … 注意力机制、上下文窗口
+    
+2. 模型服务
+    
+    API, template, top_k, top_p
+    
+    OpenAI, 
+    
+3. AI 应用
+    
+    Agent, Claude Code
+    
+
+[裸模型 Raw Model](AI%E6%8A%80%E6%9C%AF%E8%AE%A4%E7%9F%A5/%E8%A3%B8%E6%A8%A1%E5%9E%8B%20Raw%20Model%203550f8d8d1fd804aa5ecd39b2272eb3e.md)
+
+[Model Service](AI%E6%8A%80%E6%9C%AF%E8%AE%A4%E7%9F%A5/Model%20Service%203560f8d8d1fd805ca747f1506c3b03b2.md)
+
+[AI Application 玩转大模型的核心思路](AI%E6%8A%80%E6%9C%AF%E8%AE%A4%E7%9F%A5/AI%20Application%20%E7%8E%A9%E8%BD%AC%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A0%B8%E5%BF%83%E6%80%9D%E8%B7%AF%203570f8d8d1fd80a5bf17e45bd9cb2a6f.md)

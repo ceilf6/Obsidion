@@ -1,0 +1,64 @@
+# BigInt
+
+对大数处理常见的方法
+
+1. 转为数组
+2. BigInt
+
+JS的普通Number是基于 IEEE 754 双精度浮点数，只能安全表示到 2**53 - 1
+
+BigInt 就不会（但只能表示整数，不能表示小数）
+
+# 创建 BigInt
+
+## 1. 字面量写法 n
+
+直接在整数后面加 n
+
+```jsx
+const x = 123n
+const y = 9007199254740993123456789n
+const z = -42n
+```
+
+## 2. 用 BigInt( )
+
+```jsx
+const a = BigInt(123)
+const b = BigInt("9007199254740993123456789")
+const c = BigInt("0xff")
+const d = BigInt("0b1010")
+const e = BigInt("0o777")
+```
+
+```jsx
+const ten1 = 10
+const ten2 = 10n
+
+console.log(ten1 == ten2) // true
+console.log(ten1 === ten2) // false
+```
+
+# 注意不能混用
+
+```jsx
+// console.log(ten2 * 1) // TypeError: Cannot mix BigInt and other types, use explicit conversions
+console.log(ten2) // 10n
+console.log(Number(ten2)) // 10
+console.log(ten2 * 1n)
+console.log(ten2 * BigInt(1))
+
+// Math API 不支持 BigInt
+// console.log(Math.max(ten2, 100n)) // TypeError: Cannot convert a BigInt value to a number
+```
+
+[如果按照注释的我之前写法去做那么会导致 cur << 1 是 32 位
+还是得 **BigInt(”0b”+)** 然后 **.toString()** 对结果二进制进行处理](../../%E5%AF%BF%E5%8F%B8/%E7%9C%9F%E9%A2%98/%E9%98%BF%E9%87%8C%E7%9C%9F%E9%A2%98/%E6%B7%98%E5%A4%A924%E7%A7%8B%E6%8B%9B-2%203280f8d8d1fd80889d57cbd9b734f0f4.md) 
+
+BigInt(”0b“+targetStr)
+
+0b 二进制
+
+0o 八进制
+
+0x 十六进制

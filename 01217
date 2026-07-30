@@ -1,0 +1,259 @@
+# 模版
+
+# 内容
+
+动态变化：用大胡子语法 **{{ }}**
+
+# 指令
+
+## v-bind
+
+用于绑定元素属性，写在元素的属性位置
+
+### 指令参数
+
+属性名
+
+可以简写为 :开头的属性，例如
+
+**v-bind:src 等于 :src**
+
+这样对应属性值的地方就可以通过 **“ ” 注入JS表达式**
+
+```jsx
+    <div id="app">
+        <!-- <img v-bind:src="image" alt="" /> -->
+        <img :src="image" alt="" />
+    </div>
+    <script src="./vue.min.js"></script>
+    <script>
+        var vm = new Vue({
+            data: {
+                image:
+                    "https://avatars.githubusercontent.com/u/140817245?v=4&size=64",
+            },
+        });
+        vm.$mount("#app");
+    </script>
+```
+
+### 特殊属性
+
+- 绑定 style 的时候需要绑定一个对象
+    
+    ```
+      <img
+        :src="url"
+        alt=""
+        :style="{ width: width + 'px', height: height + 'px' }"
+      />
+    ```
+    
+    ```jsx
+    <Avatar :url="require('@/assets/ceilf6.png')" 
+    :width="66" :height="66" />
+    <!-- 传递数字得通过 绑定bind: JS注入 -->
+    ```
+    
+    更多其他方式https://cn.vuejs.org/guide/essentials/class-and-style#%E7%BB%91%E5%AE%9A%E5%86%85%E8%81%94%E6%A0%B7%E5%BC%8F
+    
+- class 属性绑定
+    - 字符串
+    - 对象 类名：布尔值（表示是否加入，用布尔变量）
+    
+    ```jsx
+    <div
+      class="static"
+      :class="{ active: isActive, 'text-danger': hasError }"
+    ></div>
+    ```
+    
+    - 数组
+    
+    ```jsx
+    <div :class="[activeClass, errorClass]"></div>
+    ```
+    
+    ![image.png](%E6%A8%A1%E7%89%88/image.png)
+    
+    https://cn.vuejs.org/guide/essentials/class-and-style#%E7%BB%91%E5%AE%9A-HTML-Class
+    
+
+## v-for
+
+用于循环数组
+
+注意v-bind绑定 key 值，key值稳定且唯一（用于虚拟节点、比较新旧树）
+
+同样**在 “ “ 中间注入 JS 表达式**
+
+```jsx
+<div id="app">
+    <ul>
+        <li v-for="(item, i) in list" :key="item.id">
+            姓名: {{item.name}}, 年龄:
+            <!-- {{item.age}} -->
+            <button @click="changeAge(item, item.age - 1)">-</button>
+            {{item.age?item.age:'so young'}}
+            <button @click="changeAge(item, item.age + 1)">+</button>
+        </li>
+    </ul>
+</div>
+<script src="./vue.min.js"></script>
+<script>
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            list: [
+                { name: 'ceilf6', age: 18, id: 1 },
+                { name: 'ceilf7', age: 20, id: 2 },
+                { name: 'ceilf8', age: 22, id: 3 },
+                { name: 'ceilf9', age: 24, id: 4 },
+            ]
+        },
+        computed: {
+            total() {
+                return this.list.length;
+            }
+        },
+        methods: {
+            changeAge(item, newAge) {
+                if (newAge < 0) newAge = 0;
+                item.age = newAge;
+            }
+        }
+    })
+</script>
+```
+
+## v-on
+
+绑定事件
+
+### 指令参数
+
+事件名
+
+可以简写为 @ 开头的事件，例如
+
+**v-on:click 等于 @click**
+
+同样可以在 “ “ 中间注入 JS 表达式
+
+## v-if
+
+控制元素显示与否
+
+支持分支判断
+
+### v-else-if
+
+与 v-if 元素中间不能有隔断
+
+### v-else
+
+![image-20201113133827438](../../../assets/img/20201113133827.png)
+
+## v-show
+
+也用于控制显示
+
+不能有分支
+
+![image-20201113134051281](../../../assets/img/20201113134051.png)
+
+## **面试题：v-if 和 v-show 有什么区别？**
+
+> v-if能够控制是否生成vnode，也就间接控制了是否生成对应的dom。当v-if为true时，会生成对应的vnode，并生成对应的dom元素；当其为false时，不会生成对应的vnode，自然不会生成任何的dom元素。
+> 
+> 
+> v-show始终会生成vnode，也就间接导致了始终生成dom。它只是控制dom的**display**属性，当v-show为true时，不做任何处理；当其为false时，生成的dom的display属性为none。
+> 
+> 使用v-if可以有效的**减少树的节点和渲染量**，但也会导致树的**不稳定**；而使用v-show可以保持树的稳定，但不能减少树的节点和渲染量。
+> 
+> 因此，在实际开发中，显示**状态变化频繁的情况下应该使用v-show**，以保持树的**稳定**；显示**状态变化较少时应该使用v-if**，以**减少树的节点和渲染量**。
+> 
+
+Vue渲染的效率取决于 树的节点数量 以及 树是否稳定
+
+## v-slot
+
+[插槽 slot](%E5%86%85%E7%BD%AE%E7%BB%84%E4%BB%B6%20slot/%E6%8F%92%E6%A7%BD%20slot%202fd0f8d8d1fd803dae4ff93671dff179.md) 
+
+```jsx
+<template v-slot:default>
+
+</template>
+```
+
+指定插槽名称
+
+## 自定义指令
+
+[自定义指令](%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E4%BB%A4%202fe0f8d8d1fd80df9f0bde4b8e2f36b7.md) 
+
+## v-html
+
+相当于设置了 .innerHTML ，常用于 markdown 转为 HTML 后的嵌入渲染
+
+{{ }} 大胡子语法会自动将内部 < , > 等转为实体字符 &gt; 来防范 XSS
+
+v-html 会导致 XSS 攻击
+
+## v-model 受控组件
+
+[v-model 双向绑定](../Vue3/%E6%A8%A1%E7%89%88%E7%9A%84%E5%8F%98%E5%8C%96%203040f8d8d1fd80e289b9c2ed7d4cfa20.md) 
+
+针对表单元素
+
+`v-model`指令实质是一个**语法糖**，它是`value`属性和`input`事件的*结合体*
+
+input 事件会在每次更改都触发，而 change 事件只有失去焦点才会触发
+
+v-model 默认是 input 事件，**在事件修饰符**之后 v-model**.lazy** 是**change** 事件
+
+```html
+<input :value="data" @input="data=$event.target.value" />
+<!-- 等同于 -->
+<input v-model="data" />
+```
+
+详见：[表单输入绑定](https://cn.vuejs.org/v2/guide/forms.html)
+
+### 复选框
+
+```jsx
+<input type="checkbox" v-model="formData.arr" value="id1"
+```
+
+v-model 传入一个数组，是否显示**选中状态**是看 
+
+传入的数组中是否包含 value
+
+### 单选框
+
+type: radio（单选框的交互行为来自“收音机按钮”
+
+因为同一组的按钮对应同一个 data 所以不设置 name 也可以
+
+### 事件修饰符
+
+https://cn.vuejs.org/guide/essentials/event-handling#event-modifiers
+
+**针对`dom`节点的原生事件**，`vue`支持多种修饰符以简化代码
+
+事件修饰符本质是 Vue 内部对 事件做了处理
+
+例如 键盘事件 .key 就是判断按下的按键是什么
+
+v-model.number 自动对输入做了转数字处理
+
+# 特殊属性
+
+## key
+
+[注意v-bind绑定 key 值，key值稳定且唯一（用于虚拟节点、比较新旧树）](%E6%A8%A1%E7%89%88%202f90f8d8d1fd801a843bc6987ad31546.md) 
+
+## ref
+
+[ref](%E5%AE%9E%E8%B7%B5%20toast%E6%B6%88%E6%81%AF%E6%8F%90%E7%A4%BA%202fd0f8d8d1fd80009334d154ca460007.md)

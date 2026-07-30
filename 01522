@@ -1,0 +1,751 @@
+# 减轻包袱技术方案
+
+下面是一版可直接作为技术方案初稿的文档，定位是：**让 filesense 从“默认全仓前置扫描器”演进为“按需、局部、预算受控的项目导航层”**。
+
+───
+
+FrontAgent Filesense 优化技术方案
+
+:::note{type=info}
+**Abstract**
+
+当前 filesense 在 FrontAgent 中承担目录索引、语义摘要、ProjectFacts 增强和 prompt 目录感知等职责，但现有接入方式偏全局、前置、写入型，容易带来扫描耗时、工作区污染和上下文膨胀。本文提出将 filesense 演进为 **lazy / local / budgeted / cache-isolated** 的项目导航层，通过触发策略收口、索引存储隔离、查询结果摘要化、planner 意图绑定和灰度开关治理，在保留目录感知收益的同时降低 FrontAgent 主流程负担。
+:::
+
+1. 背景
+
+FrontAgent 的核心目标是让 Agent 能够在前端工程中完成代码理解、文件修改、调试验证和质量治理。为了降低 Agent 在陌生仓库中的探索成本，当前引入了 filesense 作为目录索引能力。
+
+filesense 当前提供以下能力：
+
+`| 能力              | 当前实现                                             | 价值                          |
+| --------------- | ------------------------------------------------ | --------------------------- |
+| 目录索引            | 为目录生成 FILES.json                                 | 快速了解目录 children、文件类型、hash 等 |
+| 语义摘要            | 为目录生成 FILES.notes.json                           | 推断目录用途、入口、约定                |
+| MCP 工具          | filesense_sync/query/check/...                   | 供 FrontAgent 通过 MCP 调用      |
+| planner 注入      | 文件类任务前置 filesense_sync_and_summarize('.')        | 执行前获得项目结构感知                 |
+| prompt 注入       | ## 目录索引 (Filesense)                              | 给模型提供目录上下文                  |
+| ProjectFacts 增强 | 从 index 结果补充 existingFiles / existingDirectories | 减少文件存在性重复判断                 |`
+
+方向是合理的。问题在于：**filesense 当前承担的是“项目导航层”的职责，但以“全仓扫描 + 目录写文件 + prompt 注入”的方式接入主链路，成本边界不够清晰。**
+
+1. 当前问题分析
+
+2.1 触发策略过粗
+
+当前 planner 逻辑大致是：
+
+`if task.type !== 'query' && steps.some(read_file/list_directory/create_file/apply_patch) {
+  prepend filesense_sync_and_summarize({ path: '.' })
+}`
+
+这意味着大量任务都会在执行前进行一次项目级 sync + summarize。
+
+问题是：
+
+- 单文件编辑并不需要全仓索引；
+• 已知路径读取不需要目录摘要；
+• 小范围 patch 前置全仓扫描收益很低；
+• 大仓库中递归扫描会明显拉长首步耗时。
+
+**结论：filesense 的触发条件应该和任务意图绑定，而不是和“是否读写文件”绑定。**
+
+2.2 写入型副作用较重
+
+filesense 当前会在业务目录中写入：
+
+- `FILES.json`
+• `FILES.notes.json`
+• `.filesrc.json`
+• `.filesignore`
+• `schemas/FILES.schema.json`
+• `schemas/FILES.notes.schema.json`
+
+这会带来几个副作用：
+
+1. 污染工作区；
+2. 制造额外 git diff；
+3. 干扰用户判断真实业务变更；
+4. 对只读分析类任务也产生写操作；
+5. 多 Agent 并发时可能出现索引文件竞争。
+
+对于 FrontAgent 这种工程代理，工作区干净度很重要。索引能力应优先落在 FrontAgent 自己的缓存目录，而不是散落在业务仓库目录中。
+
+2.3 prompt 注入收益不稳定
+
+目录摘要能帮助模型理解项目结构，但如果摘要来自启发式规则，信息密度可能不稳定：
+
+- 简单仓库：摘要价值有限；
+• 复杂业务仓库：目录名无法表达真实业务语义；
+• 大目录：children 列表过长，挤占上下文；
+• 过期摘要：可能误导模型。
+
+因此，filesense 不应该默认把大量目录信息注入 system prompt，而应该作为 **按需检索工具** 和 **搜索空间收缩器**。
+
+2.4 与已有能力存在重叠
+
+FrontAgent 已有：
+
+- `list_directory`
+• `search_code`
+• `read_file`
+• `get_ast`
+• RAG memory
+• SDD constraints
+
+如果 filesense 只是再做一层目录 list 缓存，它的收益不一定覆盖复杂度。更合理的定位是：
+
+filesense 不替代 read/search/AST，而是在它们之前做 **路径候选召回、目录优先级排序、工程结构导航和预算控制**。
+
+1. 优化目标
+
+3.1 核心目标
+
+将 filesense 从当前的 **eager global indexer** 演进为 **lazy local project navigator**。
+
+即：
+
+- 不默认全仓扫描；
+• 不默认写业务目录；
+• 不默认注入大段上下文；
+• 只在有明确收益时触发；
+• 每次触发必须受预算控制；
+• 查询结果面向 Agent 决策，而不是返回原始大 JSON。
+
+3.2 设计原则
+
+`| 原则             | 说明                               |
+| -------------- | -------------------------------- |
+| Lazy           | 需要时才索引，避免任务启动固定成本                |
+| Local          | 优先索引目标路径附近，而不是项目根目录              |
+| Budgeted       | depth、entry 数、字节数、耗时均可控          |
+| Cache-isolated | 索引写入 .frontagent/cache，不污染业务目录   |
+| Summary-first  | 默认返回摘要和 TopK 候选，完整结果按需开启         |
+| Non-blocking   | filesense 失败不阻断主任务，但要有可观测告警      |
+| Planner-aware  | 由 planner 根据任务意图决定是否触发、触发哪里、触发多深 |`
+
+1. 总体方案
+
+4.1 架构演进
+
+当前形态：
+
+`Planner
+  └─ 文件类任务？
+       └─ prepend filesense_sync_and_summarize('.')
+              └─ 写业务目录 FILES.json / FILES.notes.json
+                     └─ 可选注入 prompt / facts`
+
+目标形态：
+
+`Planner
+  └─ 识别任务意图
+       ├─ known-file-edit       -> skip filesense
+       ├─ locate-file           -> filesense_query_summary(root, depth=2)
+       ├─ multi-file-refactor   -> filesense_scan(targetDirs, depth=2, budget)
+       ├─ create-feature        -> filesense_conventions(parentDir)
+       └─ architecture-query    -> filesense_map(root, depth=2) + search/RAG
+
+Filesense Service
+  ├─ cache store: .frontagent/cache/filesense
+  ├─ index engine: incremental / budgeted / changed-only
+  ├─ summarizer: optional / lazy / confidence-aware
+  └─ query API: summary / candidates / verbose`
+
+核心变化是：**filesense 从执行计划的固定前置步骤，变成 planner 可选择调用的导航工具。**
+
+1. 详细设计
+
+5.1 触发策略优化
+
+新增 `FilesenseTriggerPolicy`，由 planner 在生成步骤后做一次决策。
+
+5.1.1 任务分型
+
+`| 任务类型           | 是否触发 | 推荐策略                                      |
+| -------------- | ---- | ----------------------------------------- |
+| query 普通问答     | 否    | 使用 RAG / memory 即可                        |
+| 已知路径 read/edit | 否    | 直接 read/apply_patch                       |
+| 单文件修改          | 否    | 除非路径不存在或需要寻找相邻约定                          |
+| 新增组件/页面        | 是    | 扫描目标父目录 + 同类目录                            |
+| 多文件重构          | 是    | 扫描相关目录，depth=2                            |
+| 找入口/定位文件       | 是    | root depth=2，返回候选路径 TopK                  |
+| 架构理解           | 是    | root map + package/scripts + src 重点目录     |
+| 执行失败恢复         | 条件触发 | 仅在 path not found / unknown structure 时触发 |`
+
+5.1.2 策略伪代码
+
+`interface FilesenseDecision {
+  enabled: boolean;
+  mode: 'skip' | 'query' | 'sync' | 'map' | 'conventions';
+  paths: string[];
+  depth: number;
+  budget: FilesenseBudget;
+  reason: string;
+}
+
+function decideFilesense(task, steps, facts): FilesenseDecision {
+  if (task.type === 'query' && !task.needsRepoStructure) {
+    return skip('query task without repo-structure need');
+  }
+
+  if (isKnownSingleFileEdit(steps, facts)) {
+    return skip('known single-file edit');
+  }
+
+  if (needsFileLocation(task, steps)) {
+    return map({ paths: ['.'], depth: 2, maxEntries: 300 });
+  }
+
+  if (isMultiFileRefactor(task, steps)) {
+    return sync({ paths: inferTargetDirs(steps), depth: 2, maxEntries: 500 });
+  }
+
+  if (isCreateFeature(task, steps)) {
+    return conventions({ paths: inferParentDirs(steps), depth: 1 });
+  }
+
+  return skip('no clear filesense benefit');
+}`
+
+5.1.3 planner 接入点
+
+替换当前 `phase.filesense-sync` 的粗粒度判断。
+
+当前：
+
+`shouldInject: ({ task, steps }) => {
+  if (task.type === 'query') return false;
+  return steps.some(step =>
+    step.action === 'create_file' ||
+    step.action === 'apply_patch' ||
+    step.action === 'read_file' ||
+    step.action === 'list_directory'
+  );
+}`
+
+目标：
+
+`shouldInject: ({ task, steps, context }) => {
+  return decideFilesense(task, steps, context.facts).enabled;
+}
+
+apply: ({ task, steps, context, stepFactory }) => {
+  const decision = decideFilesense(task, steps, context.facts);
+  if (!decision.enabled) return steps;
+
+  return [
+    stepFactory.createStep({
+      description: `按需构建目录导航上下文：${decision.reason}`,
+      action: 'filesense_navigate',
+      tool: 'filesense_navigate',
+      params: decision,
+      phase: 'preparation',
+    }),
+    ...steps,
+  ];
+}`
+
+5.2 MCP API 优化
+
+5.2.1 保留兼容 API
+
+现有 API 保留，避免破坏已有调用：
+
+- `filesense_init`
+• `filesense_sync`
+• `filesense_summarize`
+• `filesense_query`
+• `filesense_check`
+• `filesense_sync_and_summarize`
+
+但不再推荐 planner 默认使用 `filesense_sync_and_summarize('.')`。
+
+5.2.2 新增导航型 API
+
+新增一个高层 API：`filesense_navigate`。
+
+`interface FilesenseNavigateInput {
+  paths?: string[];
+  intent:
+    | 'locate'
+    | 'understand_structure'
+    | 'find_conventions'
+    | 'prepare_refactor'
+    | 'prepare_create'
+    | 'validate_freshness';
+
+  depth?: number;
+  maxEntries?: number;
+  maxBytes?: number;
+  timeoutMs?: number;
+
+  includeGlobs?: string[];
+  excludeGlobs?: string[];
+
+  output?: 'summary' | 'candidates' | 'verbose';
+  writeMode?: 'cache' | 'workspace' | 'none';
+}`
+
+默认值：
+
+`{
+  paths: ['.'],
+  depth: 2,
+  maxEntries: 300,
+  maxBytes: 128 * 1024,
+  timeoutMs: 3000,
+  output: 'summary',
+  writeMode: 'cache'
+}`
+
+5.2.3 返回结构
+
+`interface FilesenseNavigateResult {
+  success: boolean;
+  root: string;
+  scanned: {
+    paths: string[];
+    depth: number;
+    entries: number;
+    elapsedMs: number;
+    truncated: boolean;
+  };
+  summary: {
+    projectType?: string;
+    packageManager?: string;
+    mainEntrypoints: string[];
+    importantDirs: Array<{
+      path: string;
+      purpose: string;
+      confidence: number;
+    }>;
+    conventions: string[];
+    risks: string[];
+  };
+  candidates: Array<{
+    path: string;
+    type: 'file' | 'dir';
+    reason: string;
+    score: number;
+  }>;
+  factsDelta?: {
+    existingFiles: string[];
+    existingDirectories: string[];
+  };
+  warnings: string[];
+}`
+
+关键点：默认返回 **summary + candidates**，不返回完整 children 大列表。
+
+5.3 存储模型优化
+
+5.3.1 默认缓存隔离
+
+将默认写入位置从业务目录切换到：
+
+`.frontagent/cache/filesense/
+  index.json
+  dirs/
+    <hash>.json
+  notes/
+    <hash>.json
+  meta.json`
+
+业务目录不再默认生成：
+
+- `FILES.json`
+• `FILES.notes.json`
+• schema files
+
+5.3.2 workspace 写入改为显式模式
+
+只有用户或配置显式开启时，才写入业务目录：
+
+`filesense:
+  writeMode: cache # cache | workspace | none
+  workspaceFiles:
+    enabled: false`
+
+如需兼容旧行为，可提供迁移开关：
+
+`filesense:
+  legacyWorkspaceIndex: false`
+
+5.3.3 缓存 key 设计
+
+缓存 key 应包含：
+
+- project root hash
+• relative path
+• mtime signature
+• size signature
+• ignore config version
+• filesense schema version
+
+示例：
+
+`cacheKey = sha1([
+  rootRealPath,
+  relativePath,
+  stat.mtimeMs,
+  stat.size,
+  ignoreHash,
+  schemaVersion,
+].join('|'))`
+
+5.4 索引引擎优化
+
+5.4.1 支持 depth
+
+当前 CLI README 中已有 `--depth` 概念，但 MCP schema 未暴露。需要将 depth 下沉到 engine。
+
+`interface WalkOptions {
+  depth?: number;
+  maxEntries?: number;
+  maxBytes?: number;
+  timeoutMs?: number;
+  includeGlobs?: string[];
+  excludeGlobs?: string[];
+}`
+
+walk 时维护当前深度：
+
+`async function walkDirectories(root, dir, options, visitor) {
+  if (currentDepth > options.depth) return;
+  if (budget.entries >= options.maxEntries) return markTruncated();
+  if (Date.now() - start > options.timeoutMs) return markTimeout();
+  // ...
+}`
+
+5.4.2 changed-only
+
+避免每次重复扫描完整目录树。
+
+策略：
+
+- 目录级 mtime 未变化：跳过 children 重建；
+• 文件 size + mtime 未变化：不重新 hash；
+• package lock / tsconfig / vite config 等关键文件变化：提升相关目录优先级；
+• git diff 中涉及的目录优先扫描。
+
+5.4.3 忽略规则增强
+
+默认忽略：
+
+`.git
+node_modules
+dist
+build
+.next
+coverage
+.turbo
+.cache
+.frontagent/cache
+*.log`
+
+同时支持合并：
+
+- `.gitignore`
+• `.filesignore`
+• FrontAgent config ignore
+• 用户输入 excludeGlobs
+
+5.5 摘要策略优化
+
+5.5.1 summarize 从默认执行改为按需执行
+
+旧策略：
+
+`sync + summarize 总是一起执行`
+
+新策略：
+
+`locate / map       -> 不需要 summarize，返回结构摘要即可
+create-feature     -> 需要 conventions 摘要
+refactor           -> 只摘要相关目录
+architecture-query -> 摘要 root + src 一级重点目录`
+
+5.5.2 摘要结果增加 confidence
+
+`interface DirectoryPurpose {
+  path: string;
+  purpose: string;
+  evidence: string[];
+  confidence: number;
+}`
+
+例子：
+
+`{
+  "path": "src/hooks",
+  "purpose": "React hooks directory",
+  "evidence": ["directory name: hooks", "files match use*.ts"],
+  "confidence": 0.92
+}`
+
+低置信摘要不应强注入 prompt，只作为候选信息。
+
+5.5.3 prompt 注入改为 TopK
+
+`ContextManager.setFilesenseContext` 不再接收原始大 JSON，而接收压缩后的 Markdown：
+
+`## 目录导航摘要
+- 项目类型：React + TypeScript，推断置信度 0.86
+- 主要入口：src/main.tsx, src/App.tsx
+- 相关目录：
+  - src/components：组件目录，建议新增 UI 组件优先放这里
+  - src/hooks：hooks 目录，命名约定 use*.ts
+- 本次任务候选文件：
+  1. src/pages/User/index.tsx：名称与任务关键词匹配
+  2. src/api/user.ts：可能包含用户接口`
+
+预算建议：
+
+- 默认不超过 2KB；
+• 多文件重构不超过 4KB；
+• 架构理解不超过 8KB；
+• 超预算时保留 TopK 和 warnings。
+
+5.6 ProjectFacts 优化
+
+当前 `sync_and_summarize` 返回的是 summary，不一定包含完整 index children，因此 facts 增强收益有限。
+
+建议改为 `filesense_navigate` 明确返回 `factsDelta`：
+
+`factsDelta: {
+  existingFiles: ['src/main.tsx', 'src/App.tsx'],
+  existingDirectories: ['src/components', 'src/hooks']
+}`
+
+ContextManager 只消费 `factsDelta`，避免从不同 result shape 中猜字段：
+
+`if (toolName.startsWith('filesense_') && result.factsDelta) {
+  for (const file of result.factsDelta.existingFiles) addExistingFile(file);
+  for (const dir of result.factsDelta.existingDirectories) addExistingDirectory(dir);
+}`
+
+这样边界更清楚，也减少耦合。
+
+5.7 配置与灰度
+
+新增配置：
+
+`filesense:
+  enabled: true
+  mode: lazy # off | lazy | eager
+  writeMode: cache # cache | workspace | none
+
+  defaultBudget:
+    depth: 2
+    maxEntries: 300
+    maxBytes: 131072
+    timeoutMs: 3000
+
+  prompt:
+    enabled: true
+    maxBytes: 2048
+    topK: 10
+
+  summarize:
+    enabled: true
+    default: false
+    minConfidence: 0.7
+
+  legacy:
+    syncAndSummarizeOnFileTask: false
+    workspaceFiles: false`
+
+灰度策略：
+
+`| 阶段      | 策略                                        | 目标      |
+| ------- | ----------------------------------------- | ------- |
+| Phase 1 | 保留旧 API，新增 lazy policy，默认关闭旧 eager 注入     | 不破坏现有功能 |
+| Phase 2 | 默认 mode=lazy，缓存写入 .frontagent/cache       | 降低主流程成本 |
+| Phase 3 | workspace index 变成显式 opt-in               | 消除工作区污染 |
+| Phase 4 | 删除 planner 中固定 sync_and_summarize('.') 逻辑 | 完成架构收口  |`
+
+1. 落地计划
+
+6.1 第一阶段：低风险收口
+
+目标：先解决最明显的“默认全仓前置”问题。
+
+改动：
+
+1. 新增 `FilesenseTriggerPolicy`；
+2. 替换 `phase.filesense-sync` 的触发条件；
+3. 对单文件 read/edit 默认跳过 filesense；
+4. 对 multi-file / locate / create-feature 才触发；
+5. 加 debug 日志输出触发原因。
+
+验收：
+
+- 单文件修改任务不再出现 `filesense_sync_and_summarize('.')`；
+• 多文件重构任务仍会触发 filesense；
+• filesense 失败仍不阻断主任务；
+• 原有测试通过。
+
+6.2 第二阶段：预算参数下沉
+
+目标：让 filesense 调用可控。
+
+改动：
+
+1. MCP schema 增加：`depth / maxEntries / maxBytes / timeoutMs / includeGlobs / excludeGlobs`；
+2. engine walk 支持 depth 和 budget；
+3. 超预算时返回 `truncated: true` 和 warnings；
+4. planner 根据任务类型设置不同预算。
+
+验收：
+
+- 大仓库扫描不会无限递归；
+• 超过预算时优雅截断；
+• 返回结果包含 truncation 信息；
+• 默认扫描耗时可控在 3s 以内。
+
+6.3 第三阶段：缓存隔离
+
+目标：不再污染业务目录。
+
+改动：
+
+1. 新增 cache store；
+2. 默认 `writeMode=cache`；
+3. legacy workspace 写入保留开关；
+4. `filesense_query` 同时支持 cache 查询和 workspace 查询；
+5. `filesense_check` 支持检查 cache freshness。
+
+验收：
+
+- 默认任务不生成 `FILES.json / FILES.notes.json`；
+• `.frontagent/cache/filesense` 中有索引产物；
+• git diff 不出现 filesense 生成文件；
+• 旧项目启用 legacy 开关后仍兼容。
+
+6.4 第四阶段：导航型 API
+
+目标：提供更适合 Agent 的高层结果。
+
+改动：
+
+1. 新增 `filesense_navigate`；
+2. 返回 `summary / candidates / factsDelta / warnings`；
+3. ContextManager 只注入压缩摘要；
+4. ProjectFacts 只消费 `factsDelta`；
+5. 旧 `sync_and_summarize` 从 planner 默认链路移除。
+
+验收：
+
+- prompt 中 filesense 内容稳定小于预算；
+• candidates 能辅助 locate 类任务；
+• ProjectFacts 更新逻辑不再依赖 result shape 猜测；
+• 旧 API 仍可手动调用。
+1. 关键代码改造点
+
+7.1 `packages/core/src/skills/planner-skills.ts`
+
+改造目标：替换当前粗粒度 phase 注入。
+
+建议新增：
+
+`import { decideFilesense } from '../filesense/trigger-policy';`
+
+新增目录：
+
+`packages/core/src/filesense/
+  trigger-policy.ts
+  budget.ts
+  prompt-format.ts`
+
+7.2 `packages/core/src/skills/executor-skills.ts`
+
+新增 action skill：
+
+`{
+  name: 'action.filesense-navigate',
+  action: 'filesense_navigate',
+  shouldSkipToolError: ({ errorMsg }) => true,
+}`
+
+保留原有 filesense action，但降低默认使用优先级。
+
+7.3 `packages/core/src/context.ts`
+
+改造点：
+
+1. `setFilesenseContext` 接受压缩摘要；
+2. `updateFileSystemFacts` 改为消费 `factsDelta`；
+3. prompt 注入增加最大长度保护。
+
+示例：
+
+`if (context.collectedContext.filesenseContext) {
+  zones.push(
+    '
+## 目录导航摘要 (Filesense)
+' +
+    truncateByBytes(context.collectedContext.filesenseContext, maxBytes)
+  );
+}`
+
+7.4 `packages/mcp-filesense/src/tools.ts`
+
+改造点：
+
+1. schema 增加预算参数；
+2. 新增 `filesense_navigate` schema；
+3. handler 调用 engine 的导航方法。
+
+7.5 `packages/mcp-filesense/src/engine.ts`
+
+改造点：
+
+1. `walkDirectories` 支持 depth/budget；
+2. 增加 cache store；
+3. 增加 summary builder；
+4. 增加 candidate ranker；
+5. 返回 truncation/warnings。
+6. 方案收益
+
+`| 优化项             | 预期收益                                |
+| --------------- | ----------------------------------- |
+| 触发策略收口          | 降低无效 filesense 调用次数                 |
+| depth/budget 控制 | 降低大仓库扫描耗时                           |
+| cache 隔离        | 避免业务目录污染和 git diff 噪音               |
+| summary-first   | 降低 prompt 膨胀                        |
+| candidates 输出   | 提高 locate / create / refactor 任务命中率 |
+| factsDelta 明确化  | 降低 ContextManager 耦合                |
+| legacy 开关       | 降低迁移风险                              |`
+
+1. 风险与应对
+
+`| 风险                | 影响         | 应对                                           |
+| ----------------- | ---------- | -------------------------------------------- |
+| lazy 后某些任务缺少目录上下文 | 任务成功率下降    | path not found / search miss 时二次触发 filesense |
+| cache 索引过期        | 误导 planner | mtime signature + freshness check            |
+| budget 截断导致候选遗漏   | locate 不完整 | 返回 truncated，必要时扩大 depth 或调用 search_code     |
+| 旧用户依赖 FILES.json  | 兼容性问题      | 保留 workspace write legacy 开关                 |
+| 摘要低置信误导模型         | 生成错误计划     | summary 带 confidence，低置信只做候选不做结论             |`
+
+1. 验证指标
+
+建议引入以下指标：
+
+`| 指标                   | 目标           |
+| -------------------- | ------------ |
+| filesense 触发率        | 单文件任务下降 80%+ |
+| 平均 filesense 耗时      | 默认 ≤ 3s      |
+| prompt filesense 字节数 | 默认 ≤ 2KB     |
+| 工作区 filesense 生成文件数  | 默认 0         |
+| locate 类任务首轮命中率      | 不低于旧方案       |
+| path not found 重试成功率 | 有明显提升        |
+| 用户可见 git diff 噪声     | 默认 0         |`
+
+1. 推荐结论
+
+最终建议采用 **lazy navigator 方案**：
+
+**filesense 不再作为 FrontAgent 文件任务的默认前置全仓扫描步骤，而是作为 planner 按需调用的项目导航层。**
+
+具体落地上，先做低风险的 planner 触发策略收口，再逐步补齐 budget、cache store 和 `filesense_navigate`。这样既能保留 filesense 的工程结构感知能力，又能避免它反过来成为 FrontAgent 的性能、上下文和工作区负担。

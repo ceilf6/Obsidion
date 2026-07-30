@@ -1,0 +1,21 @@
+# 遇到问题
+
+Source: [KM 2755458569](https://km.example.com/collabpage/2755458569)
+
+- LernaPublish报错
+
+```
+// 代码块
+lerna ERR! at async Promise.all (index 0)
+lerna ERR! lerna Command failed with exit code 128: git tag @meishi/snack-poi-m-snack-shelf@0.86.3-beta.1 -m @meishi/snack-poi-m-snack-shelf@0.86.3-beta.1
+lerna ERR! lerna fatal: tag '@meishi/snack-poi-m-snack-shelf@0.86.3-beta.1' already exists
+```
+
+版本号已经存在，去 package.json 中升级 version 即可
+
+[image.png](https://km.example.com/api/file/cdn/2755458569/231481034644?contentType=1&isNewContent=false)
+
+结果仍然重复了，
+
+1. 直接添加个人标识<span style="color:#116329">`"version"`</span><span style="color:#202020">`:` </span><span style="color:#0a3069">`"0.86.3-beta.ceilf6"`</span>
+2. 通过 `npm view @meishi/snack-poi-m-snack-shelf`查看所有包版本之后设为一个未占用的

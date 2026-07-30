@@ -1,0 +1,102 @@
+# 20260423 融合货架 Skill 设计思路与当前进展
+
+### 基本信息
+
+**文档日期**：2026-04-23
+**产品需求文档**：[开通融合货架-操作流程](https://km.example.com/collabpage/2758490392)**Friday Skill 地址**：[operator-mop-rhhj-migration](https://skills.example.com/skills/skill-detail?activeTab=overview&activeTestTab=cases&id=48255)
+
+---
+
+### 背景
+
+产品侧梳理了「开通融合货架」的完整操作流程（共 5 个步骤），其中 Step1～Step4 被标记为「急需 skill 化」。本文档记录当前 skill 的设计思路、已完成内容，以及使用 CatDesk/CatClaw 自动化操作的安全风险评估。
+
+---
+
+### 产品需求拆解
+
+产品文档将开通融合货架分为两个 skill 场景：
+**CKA 定制融合 skill**：覆盖 Step1～Step4（仅针对 CKA 场景）
+**通用融合 skill**：覆盖 Step1～Step2（融合登记后的通用流程）
+五个步骤的分工如下：
+
+| 步骤 | 角色 | 内容 | 是否 skill 化 |
+| --- | --- | --- | --- |
+| Step1 | BD | 判断货架类型（列表式 or 分组式） | 急需 |
+| Step2 | BD | 改为分组式 + 写入3个标准分组 + 预览 + 发布 | 急需 |
+| Step3 | 产品 | 罗盘供给池配置 | 急需 |
+| Step4 | 研发 | shop-Lion 白名单配置 | 急需 |
+| Step5 | BD/商家 | 线上验收 | 不需要 skill 化 |
+
+---
+
+### 当前设计思路
+
+### 整体架构
+
+Skill 采用「纯 Agent + 脚本」模式，不依赖任何 CLI 包，所有 BMS 接口调用通过 Node.js 脚本直接发起，token 通过 browser 自动化从 BMS 页面获取。
+
+### Token 获取
+
+通过 `catdesk browser-action` 打开 BMS 货架页，执行 `window.getSSOToken()` 获取 access-token，整个过程无需用户手动登录或复制 cookie。
+
+### 流程分支设计
+
+Skill 在启动时先判断货架是否已存在，分为两条路径：
+**已有货架（迁移流程）**：阶段一改样式 → 阶段二写分组 → 阶段三预览 → 阶段四发布
+**无货架（新建流程）**：询问用户确认 → 收集参数（名称、维度、ID）→ 新建 → 直接进入阶段二写分组 → 阶段三预览 → 阶段四发布
+新建时默认使用分组式（shelfStyle=2）、茶饮类型（shelfType=1），无需用户填写。品牌维度只能填一个 ID，门店维度可以填多个 ID。
+
+---
+
+### 当前完成进度
+
+### ✅ 已完成
+
+**Step1：判断货架类型**
+通过 `pageQueryShelfSummary` 接口查询货架信息，自动识别 shelfStyle（1=列表式，2=分组式），并告知用户当前状态。无货架时主动询问是否新建。
+**Step2：改样式 + 写分组 + 预览 + 发布（完整串联）**
+- `shelf-update-shelf-style.mjs`：调用 `saveShelfBasicInfo`（saveScene:2）将列表式改为分组式，已是分组式则自动跳过
+- `shelf-create.mjs`：调用 `saveShelfBasicInfo`（saveScene:1）新建货架，支持品牌维度（shelfActiveType=1）和门店维度（shelfActiveType=4）
+- `shelf-save-detail-groups.mjs`：写入3个标准分组（在线点菜单 type:4、优惠套餐 type:1、超值单品 type:1），自动处理草稿 detail 的查找与创建
+- `shelf-build-preview-url.mjs`：生成预览 token，拼出 C 端 deeplink，供用户扫码验证
+- `shelf-publish-detail.mjs`：用户确认预览无误后，将草稿发布上线
+所有脚本均支持 `--shelf-active-id`（已有货架）和 `--shelf-id`（新建后直接传入）两种参数，新建和迁移两条路径均可复用。
+
+### ❌ 尚未完成
+
+**Step3：罗盘供给池配置**
+需要在罗盘平台（[luopan.example.com](http://luopan.example.com/)）操作，涉及供给池选择、数据组合池配置、托管调度任务执行。目前尚未实现，需要 browser 自动化或罗盘 API 接入。
+**Step4：shop-Lion 白名单配置**
+需要研发在 shop-Lion 配置以下开关：`INSTANT_ORDER_ENTRANCE_GRAY_CONFIG`、`SHELF_FUSION_BRAND_WHITE_LIST`、`SHELF_FUSION_CART_BRAND_WHITE_LIST`、`COMBINE_CART_CONFIG`。目前尚未实现，属于研发侧操作，skill 化难度较高。
+
+---
+
+### 安全风险评估
+
+### 风险点分析
+
+**1. Token 泄露风险**
+Skill 通过 browser 自动化获取 BMS access-token，该 token 具有操作货架的完整权限。当前设计中 token 仅在内存中流转，不写入日志、不输出到对话回复，但仍存在以下风险：
+- 若 AI 在回复中意外输出 token（如调试信息），会导致 token 暴露在对话记录中
+- token 有效期内若被截获，攻击者可直接调用 BMS 接口
+**缓解措施**：[SKILL.md](http://skill.md/) 中明确标注「token 不得输出到日志或回复中」，脚本中 token 仅通过环境变量传递，不打印到 stdout。
+**2. 误操作风险（发布不可逆）**
+货架发布（detailStatus:3）是线上操作，一旦发布会立即影响 C 端用户看到的货架展示。若 AI 在用户未确认的情况下自动发布，可能造成线上事故。
+**缓解措施**：[SKILL.md](http://skill.md/) 中阶段四设置了强制确认门槛——必须先问用户「预览验证成功了吗？」，用户明确确认后才执行发布命令。预览二维码环节也要求用户用美团 App 实际扫码验证。
+**3. 越权操作风险**
+BMS token 是当前登录用户的 SSO token，理论上可以操作该用户有权限访问的所有货架，不限于当前任务涉及的货架。
+**缓解措施**：Skill 每次操作前都通过 `shelfActiveId` 或 `shelfId` 精确定位目标货架，不做批量操作。操作前会向用户展示货架名称和 ID 供确认。
+**4. browser 自动化的隐式权限**
+CatDesk 内置浏览器复用了用户的 SSO 登录态，意味着 AI 可以通过 browser-action 访问用户有权限的任何内网系统，不仅限于 BMS。
+**缓解措施**：Skill 中 browser 仅用于获取 token，获取后立即切换为脚本直接调用 API，减少 browser 操作的暴露面。后续可考虑将 token 获取封装为独立的最小权限操作。
+
+### 总体评估
+
+当前 skill 的安全设计基本合理，主要风险集中在「发布不可逆」和「token 管理」两个方面，已通过流程设计（强制确认）和规范约束（token 不输出）进行了缓解。Step3（罗盘）和 Step4（shop-Lion）尚未实现，待接入时需要重新评估对应系统的操作权限边界。
+
+---
+
+### 后续计划
+
+Step3 罗盘供给池配置的 skill 化，需要调研罗盘是否有可用 API，或通过 browser 自动化实现。Step4 shop-Lion 白名单配置属于研发侧操作，建议评估是否通过配置平台 API 实现，或保持人工操作。

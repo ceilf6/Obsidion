@@ -1,0 +1,64 @@
+# 26.01.01 - 26.06.04（架构版）
+
+Source: [KM 2766835896](https://km.example.com/collabpage/2766835896)
+
+**总计：92 Skills, 0 CLIs, 41 成员（28人有产出，参与率 68%）**
+
+---
+
+### 大客户前端组（11人，参与率 91%，贡献 50 Skills）
+
+这是产出最高的小组，几乎全员参与，人均 4.5 个 Skill。
+
+| mis | Skills | 代表作 |
+| --- | --- | --- |
+| liyuqian06 | 14 | ac-alert-analyzer, ai-usage-report, repo-analyzer 等 |
+| wangjinghong02 | 11 | group-skills-clis-stats, frontend-reviewer, design 等 |
+| guyixin | 8 | operator-mop-ops, operator-prd-scoring 等 |
+| lihuiliang | 6 | friday-a2a-agent, pr-reviewer, raptor-member-dashboard 等 |
+| yuanlu09 | 3 | user-mop-order, user-weather-query 等 |
+| jiangpeng25 | 3 | ka-fe-troubleshoot, llm-knowledge-base 等 |
+| wudongxia | 2 | raptor-error-classifier, task-eta-before-run |
+| wb_gaotian03 | 1 | mrn-prefetch-dk |
+| shuyue03 | 1 | openspec-tool |
+| wb_caizhiquan | 1 | operator-mop-lightweight-query |
+
+未参与：guchengwei
+
+---
+
+### 品牌运营组（15人，参与率 67%，贡献 25 Skills）
+
+人数最多的组，人均 1.7 个 Skill。
+
+| mis | Skills | 代表作 |
+| --- | --- | --- |
+| jiangzhiwei09 | 5 | food-ops-member-union 系列, jzw-member-weekly-report |
+| lizeming02 | 4 | brand-onboarding, daxiang-pub-account 等 |
+| fanchuyun | 4 | api-doc-gen, cookie-ann, damai-tracker 等 |
+| majiaxin04 | 3 | food-brand-resv-tech-report, food-brand-resv-weekly-report 等 |
+| zhangbowen23 | 3 | food-member-integration, ka-water-level-report 等 |
+| xiejiatong02 | 2 | food-ops-member-union-builder-skill, java-knowledge-generator |
+| panyuanyuan05 | 1 | food-ops-member-union-datareport |
+| wb_yudalin | 1 | dacan-joint-member-qa |
+| liuhaibo03 | 1 | daily-work-report |
+| wangyutong18 | 1 | food-resv-ops |
+
+未参与：zhaobingqian02, wb_zhuyeheng, wb_sunchao07, zhengyuling06, wb_chenyile02
+
+---
+
+### 新业务拓展组（13人，参与率 62%，贡献 17 Skills）
+
+| mis | Skills | 代表作 |
+| --- | --- | --- |
+| liuyu225 | 5 | raptor-alert-review, raptor-alert-code-analysis 等 |
+| yaoli04 | 3 | mop-brand-eval, mry-loadtest-prep 等 |
+| wb_chengfeixiang | 3 | mop-brand-e2e-builder, mop-portal-deal-mapping 等 |
+| wb_huwenqiang02 | 2 | admin-user-query-hwq, qahome-v2 |
+| liuhaohao | 1 | ones-team-worktime |
+| xiaoruoyin | 1 | mop-dish-manager |
+| zhangjun150 | 1 | mop-deal-mapping-monitor |
+| lijiawei16 | 1 | food-mop-integration-assistant |
+
+未参与：zhangxiangyu23, quekaixin, xuanruiwei, wb_chenwenwei, zengyunchi

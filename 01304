@@ -1,0 +1,148 @@
+# 统一的通信网关
+
+网关：用于 消息平台 和 业务程序 的中转层
+
+代理层 + 协议适配层 + 入口层
+
+OpenClaw 用 网关统一控制面+通道插件统一适配面 实现通信的统一
+
+所有第三方App等渠道都被收敛到**同一套协议、路由和出站发送链路**
+
+## 1) 网关统一控制面（Control Plane）
+
+1. 启动与总装配（把所有能力拼成一个 Gateway 运行体）`src/cli/gateway-cli/run.ts:160` 进入 `runGatewayCommand`，`src/cli/gateway-cli/run-loop.ts:28` 负责生命周期（锁、信号、重启/优雅停止）。
+真正装配在 `src/gateway/server.impl.ts:468-937`：
+    - 收集基础 methods + 插件 methods：`468-486`
+    - 创建 channel manager：`572-577`
+    - 创建 HTTP/WS runtime state：`600-626`
+        
+        WS: WebSocket Server
+        
+    - 构建统一请求上下文（方法处理需要的依赖全放这里）：`814-864`
+    - 挂 WS 连接处理器：`871-893`
+    - 启 sidecars，并触发 `startChannels()`：`926-937`（对应 `src/gateway/server-startup.ts:132`）
+2. 统一传输入口（HTTP/WS）`src/gateway/server-runtime-state.ts:39-230` 把网络层统一起来：
+    - 多 host 绑定与 HTTP server 初始化：`129-183`
+    - WS server 创建并挂 upgrade handler：`186-199`
+    - 广播器与 chat run 状态：`110-112`, `201-210`
+    HTTP 路由流水线在 `src/gateway/server-http.ts:639-772`，顺序是固定 stage：`hooks -> tools-invoke -> slack -> openresponses/openai -> canvas auth/http -> plugin routes -> control UI -> health/readiness`。
+    WS upgrade 同样在这里统一鉴权入口：`src/gateway/server-http.ts:788-841`。
+3. 统一 WS 握手、鉴权、配对、会话建立`src/gateway/server/ws-connection.ts:115-317` 管连接生命周期；`src/gateway/server/ws-connection/message-handler.ts:236-1240` 管消息协议：
+    - 首帧必须是 `connect`：`393-433`
+    - 协议版本协商：`462-477`
+    - role/scopes 基线处理：`480-495`
+    - browser origin 校验：`497-531`
+    - token/password/device token 鉴权：`547-627`, `753-774`
+    - 设备签名与配对流程：`688-983`（含 pairing required 广播 `845-891`）
+    - 返回 `hello-ok`（methods/events/snapshot）：`1058-1155`
+    - 握手后所有请求统一走 `handleGatewayRequest`：`1221-1229`
+4. 统一 RPC 分发与权限模型`src/gateway/server-methods.ts:68-98` 定义 core handlers 聚合。
+同文件：
+    - 统一方法授权（role + scopes）：`39-66`, `104-108`
+    - 控制面写操作限流（config.apply/patch/update.run）：`109-133`
+    - 分发规则：`extraHandlers[method] ?? coreGatewayHandlers[method]`：`135`
+    - 所有 handler 在 gateway request scope 中执行：`153-157`
+    可调用 methods 列表在 `src/gateway/server-methods-list.ts:107-110`，是 `BASE_METHODS + channel.gatewayMethods`。
+5. 协议统一校验
+    
+    `src/gateway/protocol/index.ts:253-423` 用 AJV 编译 frame/params schema；
+    
+    `formatValidationErrors` 在 `424-458`，错误信息统一格式化。
+    
+6. 事件广播统一（含权限和慢消费者治理）
+    
+    `src/gateway/server-broadcast.ts`：
+    
+    - 事件级 scope guard：`9-16`, `41-55`
+    - 广播帧统一格式：`71-77`
+    - 慢消费者处理（drop 或 close）：`100-110`
+    - 支持目标连接定向广播：`123-128`
+7. 控制面如何调用“渠道特有能力”
+例如 web 登录不是硬编码某渠道，而是看谁声明了 `gatewayMethods`：`src/gateway/server-methods/web.ts:14-17` 选择 provider，`42-117` 调 `provider.gateway.loginWithQrStart/Wait`，并用 `context.stopChannel/startChannel` 协调渠道生命周期（`61`, `111`）。
+
+---
+
+## 2) 通道插件统一适配面（Adapter Plane）
+
+1. 插件发现、加载、激活`src/plugins/loader.ts:447-820`：
+    - 发现候选插件：`509-520`
+    - 校验配置/schema：`745-755`
+    - 调用插件 `register(api)`：`769-777`
+    - 激活 registry：`442-445`, `818`
+    这一步把“各渠道差异实现”变成统一 registry 数据结构。
+2. 插件 API 的统一注册点`src/plugins/registry.ts`：
+    - `registerChannel`：`402-428`
+    - `registerGatewayMethod`：`290-310`
+    - `createApi` 暴露给插件的统一接口：`575-607`
+    所以不管 Telegram/Feishu/第三方扩展，接入动作都是同一套 API。
+3. 统一通道契约（核心抽象）`src/channels/plugins/types.plugin.ts:49-85` 定义 `ChannelPlugin`：`config/outbound/status/gateway/...`。`src/channels/plugins/types.adapters.ts` 定义子接口：
+    - 出站：`ChannelOutboundAdapter` `108-125`
+    - 网关生命周期：`ChannelGatewayAdapter` `275-289`
+    - 插件可拿到的 gateway 上下文：`ChannelGatewayContext` `168-239src/channels/plugins/index.ts:42-84` 从 active registry 统一拿 plugin。
+4. 给插件注入“统一能力面”（channelRuntime）
+    
+    `src/plugins/runtime/index.ts:52-63` 创建 `runtime.channel`。
+    
+    `src/plugins/runtime/runtime-channel.ts:119-264` 把核心能力暴露给插件：
+    
+    `reply/routing/session/debounce/commands/...`。
+    
+    这就是“插件可扩展但仍走统一通信管道”的关键。
+    
+5. 统一渠道生命周期管理（start/stop/restart/backoff）
+    
+    `src/gateway/server-channels.ts`：
+    
+    - 启动每个 account：`149-303`（调用 `plugin.gateway.startAccount` 在 `227`）
+    - 崩溃后退避重启：`266-289`
+    - 停止 account：`311-366`（可调用 `plugin.gateway.stopAccount`）
+    - 启动所有渠道：`368-372`
+    - 运行时状态快照：`399-420`
+    Gateway 启动时统一触发 `startChannels`：`src/gateway/server-startup.ts:132`。
+6. 飞书是怎样“按统一契约落地”的
+    - 注册为 channel plugin：`extensions/feishu/index.ts:53`
+    - 插件定义与 `gateway.startAccount`：`extensions/feishu/src/channel.ts:85`, `352-367`
+    - monitor 主入口：`extensions/feishu/src/monitor.ts:31-91`
+    - 单账号启动、WebSocket/Webhook 二选一：`extensions/feishu/src/monitor.account.ts:500-545`
+    - 事件注册（`im.message.receive_v1` 等）：`extensions/feishu/src/monitor.account.ts:379-486`
+    - 入站处理里统一 route：`extensions/feishu/src/bot.ts:1168-1177`
+    - 统一 reply dispatch：`extensions/feishu/src/bot.ts:1502-1530`
+    - 渠道回复 dispatcher 调 send：`extensions/feishu/src/reply-dispatcher.ts:313-343`
+    - 最终发到 Feishu API：`extensions/feishu/src/send.ts:278-324`
+
+---
+
+## 3) 两层如何合起来形成“通信统一”
+
+1. 入站统一路径（以飞书为例）
+    
+    `event -> monitor -> handleFeishuMessage -> resolveAgentRoute -> dispatchReplyFromConfig -> channel dispatcher -> provider send`
+    
+    对应：
+    
+    `extensions/feishu/src/monitor.account.ts:380` -> `extensions/feishu/src/bot.ts:862` -> `1168` -> `1524` -> `extensions/feishu/src/reply-dispatcher.ts:313` -> `extensions/feishu/src/send.ts:278`
+    
+2. 出站统一路径（任意渠道）
+    
+    `sendMessage` 先选渠道，再解析 target，再统一投递：
+    
+    `src/infra/outbound/message.ts:166-247` -> `src/infra/outbound/channel-selection.ts:86-134` -> `src/infra/outbound/targets.ts:171-238` -> `src/infra/outbound/deliver.ts:531-828`。
+    
+    最终落到对应插件 `outbound.sendText/sendMedia`（如飞书 `extensions/feishu/src/outbound.ts:79-168`）。
+    
+3. 跨渠道回路由统一
+    
+    `dispatch-from-config` 在检测到 `OriginatingChannel != currentSurface` 时走 `routeReply`：
+    
+    `src/auto-reply/reply/dispatch-from-config.ts:211-233`, `257-272`, `516-526`。
+    
+    `routeReply` 再统一走 outbound delivery：`src/auto-reply/reply/route-reply.ts:72-166`。
+    
+
+一句话总结：**控制面统一“入口、协议、鉴权、方法调度、生命周期”；适配面统一“插件契约、渠道差异封装、入站/出站执行”。**
+
+所以新增一个渠道，基本是实现 `ChannelPlugin` 合同，而不是改网关主干逻辑。
+
+[飞书、纸飞机 通信](%E7%BB%9F%E4%B8%80%E7%9A%84%E9%80%9A%E4%BF%A1%E7%BD%91%E5%85%B3/%E9%A3%9E%E4%B9%A6%E3%80%81%E7%BA%B8%E9%A3%9E%E6%9C%BA%20%E9%80%9A%E4%BF%A1%203250f8d8d1fd80e88f06dca0648733f0.md)
+
+[统一鉴权](%E7%BB%9F%E4%B8%80%E7%9A%84%E9%80%9A%E4%BF%A1%E7%BD%91%E5%85%B3/%E7%BB%9F%E4%B8%80%E9%89%B4%E6%9D%83%203250f8d8d1fd80539b78d20e35b15af2.md)

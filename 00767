@@ -1,0 +1,27 @@
+# 26.04.24 王景宏日报
+
+Source: [KM 2759403625](https://km.example.com/collabpage/2759403625)
+
+## 今日完成
+
+- 联名套餐问题排查：分析联名套餐数据格式与普通商品不一致导致无法走通的问题
+    - 进展：对比联名套餐与正常商品的响应结构差异，定位根因
+    - 文档：[联名套餐无法走通](https://km.example.com/collabpage/2759161502)
+- 懒加载货架修复验证：完成修复后多场景穷举测试，覆盖 iOS 买过/已购四种组合
+    - 进展：录制各场景视频，测试通过
+    - 文档：[修复后记录](https://km.example.com/collabpage/2758169114)
+- ka-skills 架构梳理：整理秒提/大客业务 Skill monorepo 的整体结构与各模块职责
+    - 进展：梳理 skills、cli、cli-shared、scripts、templates、website 各层分工
+    - 文档：[ka-skills](https://km.example.com/collabpage/2759290975)
+- POI 打包发布流程更新：补充 snack-poi → food-poi 打包流程及跟周迭代车发布步骤
+    - 文档：[POI开发流程](https://km.example.com/collabpage/2755368703)
+- 实验组白名单配置：记录 Arena 实验 #442160 的白名单配置方式及 uuid 查看方法
+    - 文档：[实验组-白名单](https://km.example.com/collabpage/2758688708)
+- 日报自动器需求整理：整理日报自动器的需求背景、基础 skills 清单及报告 skill 链接
+    - 文档：[日报自动器](https://km.example.com/collabpage/2758414734)
+
+## 明日展望
+
+- 继续推进联名套餐数据格式兼容方案，完成修复并自测
+- 跟进 POI 懒加载货架上线，将工作流迁移至周迭代发布
+- 推进 ka-skills 秒提点单 skill 完善，补全规格选择逻辑

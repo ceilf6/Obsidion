@@ -1,0 +1,172 @@
+# JSX
+
+## 什么是JSX
+
+- Facebook起草的JS扩展语法
+- 本质是一个**JS对象**，会**被babel编译，最终会被转换为React.createElement**
+    
+    **React.createElement的语法糖**
+    
+- 每个JSX表达式，有且仅有一个根节点
+    - React.Fragment
+- 每个JSX元素必须结束（XML规范）
+
+## 在JSX中嵌入表达式
+
+- 在JSX中使用注释
+- 将表达式作为内容的一部分
+    - null、undefined、false不会显示
+    - 普通对象，不可以作为子元素
+    - 可以放置React元素对象
+- 将表达式作为元素属性
+    
+    ```jsx
+    <h1 att={"val"} 
+    		className={bool ? "active" : "negative"}
+        style={
+            { marginLeft: "50px", color: "red" }
+        }
+    // style 需要赋值对象
+    >att={"val"}</h1>
+    ```
+    
+- 属性使用**小驼峰**命名法
+- 防止注入攻击XSS - DOM.**innerText** 而不是 innerHTML
+    - 自动编码
+    - dangerouslySetInnerHTML
+
+## 元素的不可变性
+
+Object.freeze 了
+
+- 虽然JSX元素是一个对象，但是该对象中的所有属性不可更改
+- 如果确实需要更改元素的属性，需要重新创建JSX元素
+    
+    效率不低，应该改变的是虚拟DOM对象，而不是操作真实DOM
+    
+
+```jsx
+import React from 'react'; // 虽然也许可能没有使用，如果删了就会报错React.createElement
+import ReactDOM from 'react-dom';
+
+const computed = React.createElement("div", {}, `${250 * 250}`)
+
+const obj = {
+    att1: 1,
+    att2: 2
+}
+const XMLObj = (<h1>nihao</h1>)
+
+const arr = [1, 2, 3]
+const XMLObjArr = new Array(3).fill(0).map((item, i) => { return (<li key={i}>{i + 1}</li>) })
+
+let bool = true
+
+const content = "<h1>nihao</h1>"
+
+const el = (
+    <React.Fragment>{/* <> */}
+
+        <h1>Hello World <span>span元素</span></h1>
+        <div>2th Element</div>
+
+        <div>{250 * 250}</div>
+        {computed}
+
+        {null}
+        {undefined}
+        {false}
+        {0}
+
+        {/* {obj} */}
+        {XMLObj}
+
+        {arr /* 会依次遍历子元素然后加入 */}
+        {/* 
+        "1"
+        "2"
+        "3"
+        */}
+        <ul>
+            {XMLObjArr}
+        </ul>
+
+        <h1 att={"val"}
+            className={bool ? "active" : "negative"}
+            style={
+                { marginLeft: "50px", color: "red" }
+            }
+        // style 需要赋值对象
+        >att={"val"}</h1>
+
+        {content /* DOM.innerText 而不是 innerHTML */}
+        <div dangerouslySetInnerHTML={
+            {
+                __html: content
+            }
+        }>
+            {/* dangerouslySetInnerHTML */}
+        </div>
+
+        {/* </> */}</React.Fragment>
+)
+
+// Object.freeze
+const el2 = (
+    <div att="2">el2</div>
+)
+console.log("=== el2:", el2.props.children, el2.att)
+// el2.props.children = "el1";
+// el2.att = "1"
+// console.log("=== el2:", el2.props.children, el2.att)
+let num = 0;
+setInterval(() => {
+    num++;
+    const el3 = (
+        <div>
+            {num}
+        </div>
+    )
+    ReactDOM.render(
+        <div>
+            {el}
+            {el2}
+            {el3}
+        </div>
+        , document.getElementById('root'));
+}, 1000)
+
+```
+
+## *createElement* 方法
+
+*JSX* 是一种 *JavaScript* 的语法扩展，*Babel* 会把 *JSX* 转译成一个名为 *React.createElement* 函数调用。
+
+```jsx
+React.createElement(type, [props], [...children]);
+```
+
+参数说明：
+
+- *type*：创建的 *React* 元素类型（可选的值有：标签名字符串、*React* 组件）。
+- *props*（可选）：*React* 元素的属性。
+- *children*（可选）：*React* 元素的子元素。
+
+例如，下面两种代码的作用完全是相同的：
+
+```jsx
+const element1 = (
+    <h1 className="greeting">
+    	Hello, world!
+    </h1>
+);
+const element2 = React.createElement(
+    'h1',
+    {className: 'greeting'},
+    'Hello, world!'
+);
+```
+
+这些对象被称为 “*React* 元素”。它们描述了你希望在屏幕上看到的内容。
+
+可以看出，***JSX* 的本质其实就是 *React.createElement* 方法的一种语法糖**。
